@@ -1,5 +1,33 @@
 import math
 
+def getZeroValueFromInput(memoryIn, pos1Value, pos2Value):
+    memCpy = [None]*len(memoryIn)
+    for i in range(len(memoryIn)):
+        memCpy[i] = memoryIn[i]
+
+    memCpy[1] = pos1Value
+    memCpy[2] = pos2Value
+
+    return getZeroValue(memCpy)
+
+def getZeroValue(codeInstr):
+    myInstr = 0
+
+    while(True):
+        operation = codeInstr[myInstr]
+        if(operation == 1):
+            codeInstr[codeInstr[myInstr+3]] = codeInstr[codeInstr[myInstr+1]] + codeInstr[codeInstr[myInstr+2]]
+        elif(operation == 2):
+            codeInstr[codeInstr[myInstr+3]] = codeInstr[codeInstr[myInstr+1]] * codeInstr[codeInstr[myInstr+2]]
+        elif(operation == 99):
+            break
+        else:
+            raise ValueError("Did not recognize op code " + str(operation) + " at location " + str(myInstr))
+
+        myInstr+=4
+
+    return codeInstr[0]
+
 def y2019d2(inputPath = None):
     if(inputPath == None):
         inputPath = "Input2019/d2.txt"
@@ -21,36 +49,12 @@ def y2019d2(inputPath = None):
             codeInstr.append(int(myStr[0:commaIndex]))
             myStr = myStr[commaIndex+1:]
 
-        myInstr = 0
-        codeInstr[1] = 12
-        codeInstr[2] = 2
+        res = getZeroValueFromInput(codeInstr, 12, 2)
 
-        while(True):
-            operation = codeInstr[myInstr]
-            if(operation == 1):
-                lhsIndex = codeInstr[myInstr+1]
-                lhsValue = codeInstr[lhsIndex]
-                rhsIndex = codeInstr[myInstr+2]
-                rhsValue = codeInstr[rhsIndex]
-                resIndex = codeInstr[myInstr+3]
-                codeInstr[resIndex] = lhsValue + rhsValue
-                #codeInstr[codeInstr[myInstr+3]] = codeInstr[codeInstr[myInstr+1]] + codeInstr[codeInstr[myInstr+2]]
-            elif(operation == 2):
-                lhsIndex = codeInstr[myInstr+1]
-                lhsValue = codeInstr[lhsIndex]
-                rhsIndex = codeInstr[myInstr+2]
-                rhsValue = codeInstr[rhsIndex]
-                resIndex = codeInstr[myInstr+3]
-                codeInstr[resIndex] = lhsValue * rhsValue
-                #codeInstr[codeInstr[myInstr+3]] = codeInstr[codeInstr[myInstr+1]] * codeInstr[codeInstr[myInstr+2]]
-            elif(operation == 99):
-                break
-            else:
-                raise ValueError("Did not recognize op code " + str(operation) + " at location " + str(myInstr))
-        
-            myInstr+=4
-        
-        print("The value in location 0 is " + str(codeInstr[0]))
+        print("The value in location 0 (part 1) is " + str(res))
+
+        #part 2
+        desiredAnswer = 19690720
 
     print("===========")
 
