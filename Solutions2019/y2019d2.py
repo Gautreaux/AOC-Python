@@ -56,16 +56,28 @@ def y2019d2(inputPath = None):
         #part 2
         desiredAnswer = 19690720
 
-        for i in range(0, 10000000):
-            for j in range(0, i):
-                res = getZeroValueFromInput(codeInstr, i, j)
-                if(res == desiredAnswer):
-                    print("The values for part 2 are: " + str(i) + ", " + str(j))
-                    print("The answer is: " + str(i*100+j))
-                    print("==========")
-                    return
+        class BreakException(Exception):
+            pass
+
+        try:
+            for i in range(0, 99):
+                for j in range(0, i):
+                    res = getZeroValueFromInput(codeInstr, i, j)
+                    if(res == desiredAnswer):
+                        print("The values for part 2 are: " + str(i) + ", " + str(j))
+                        print("The answer is: " + str(i*100+j))
+                        raise BreakException
+        except BreakException:
+            pass
+
+        #part 2 - iterative
+
+        if(99 in codeInstr):
+            print("There is a possible reverse solution")
+            print("But i'm not going to worry about it because there is only 10000 possible input values")
+        else:
+            print("The reverse solution is impossible")
     
-    print("Could not resolve part 2")
     print("===========")
 
 
