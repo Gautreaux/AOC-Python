@@ -51,11 +51,21 @@ def y2019d2(inputPath = None):
 
         res = getZeroValueFromInput(codeInstr, 12, 2)
 
-        print("The value in location 0 (part 1) is " + str(res))
+        print("The value in location 0 (part 1) is: " + str(res))
 
         #part 2
         desiredAnswer = 19690720
 
+        for i in range(0, 10000000):
+            for j in range(0, i):
+                res = getZeroValueFromInput(codeInstr, i, j)
+                if(res == desiredAnswer):
+                    print("The values for part 2 are: " + str(i) + ", " + str(j))
+                    print("The answer is: " + str(i*100+j))
+                    print("==========")
+                    return
+    
+    print("Could not resolve part 2")
     print("===========")
 
 
