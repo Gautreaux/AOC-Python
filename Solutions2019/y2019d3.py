@@ -14,11 +14,21 @@ def getSegmentCollision(Seg1, Seg2):
         #calculate the intersection
         if(Seg1.start[0] == Seg2.start[0]):
             #share the x coordinate
-            print("You lazy boi")
+            if(Seg1.start[0] <= Seg2.start[0] and Seg1.end[0] >= Seg2.start[0])
+                #there is some overlapping region
+                print("Need to finish horizontal region overlap checking")
+            elif(Seg1.start[0] <= Seg2.end[0] and Seg1.end[0] >= Seg2.end[0])
+                #there is some overlapping region
+                print("Need to finish horizontal region overlap checking")
+            else:
+                #there is no overlapping region
+                return None
     elif(isHorizontal(Seg1) and isHorizontal(Seg2)):
         if(Seg1.start[1] == Seg2.start[1]):
-            #share the y coordinate
-            print("You lazy mf")
+            #segments share the y coordinate
+            #can do this by converting to vertical then checking that way
+            #return getSegmentCollision(rotate90(Seg1), rotate90(Seg2))
+            print("Not fully implemented horizontal segment collision")
     elif(isHorizontal(Seg1) and isVertical(Seg2)):
         return getSegmentCollision(Seg2, Seg1)
     else:
