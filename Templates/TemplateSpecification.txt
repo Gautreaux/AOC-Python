@@ -1,0 +1,41 @@
+The AOC template type defines a specification for building python 3 (.py) files through a series of simple replacements
+The replacement is done by a python script which takes three required parameters:
+    First, the desired path of the resulting .py file
+    Secondly, the .AOCTemplate file that provides the source for the template
+    Third, the string values that are responsible for each replacement
+
+The AOC template type supports the operations:
+    The operator # designates a line comment
+        All text including and after a # for the remainder of the will not be included in the output
+    The $ operator designates a variable
+        The variable will be matched and replaced in place
+        See more about the variables below
+    The \ operator serves as an escape character
+        \\ - the literal '\'
+        \$ - the literal '$'
+        \# - the literal '#'
+
+Variables:
+    Variables are subject to the following naming conventions:
+        Variable names may not contain the characters '\', '$', or '#' or any newline character
+        It is recommended to avoid whitespace in variable names
+        Additionally, the AOC template specification is designed to run on ASCII characters
+    Variables may be masked when they occur as a prefix of another variable:
+        For example, the variables $d and $day are being replaced with values "1" and "3" respectively
+        In the input "a$db$dc$dd$de" will produce the output "a1b1c31e"
+        In the input "$ddd" the output will be "3d"
+    Variable values may contain operators
+        For example, the variable $d and $day are being replaced by "$day" and "5" respectively
+        The input "$d00" will produce the output "500" via the intermediate step "$day00"
+        However, in the case that there was another variable $day00 being replaced with output "-1"
+        The same input "$d00" will expand first to "$day00" then into "-1"
+
+File Specification:
+    The first n non-comment lines in the file should define the variables one per line
+        Each line should begin with '$'
+        All text following the '$' to the first '#' or newline will define the variable names
+    The variable definition phase ends at the first:
+        Non-empty, non-comment line
+        The first line that redefines a variable 
+            Note, this variable will be replaced with the appropriate variable.
+    The remainder of the file is the processed, making suitable replacements

@@ -1,0 +1,19 @@
+#The variables that are in this template
+$$y
+$$d
+
+def y$y.d$d.(inputPath = None):
+    if(inputPath == None):
+        inputPath = "Input$y/d$d.txt"
+    print("$y day $d:")
+
+    try:
+        with open(inputPath) as f:
+            for line in f:
+                #do something for every line
+                pass
+
+    
+    except FileNotFoundError:
+        print("Got a file not found error while trying to open '" +inputPath+ "'")
+    print("===========")
