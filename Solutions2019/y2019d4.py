@@ -48,17 +48,6 @@ def meetsPart2(intIn):
     #no conditions could be meet, terminate
     return False
 
-#return true iff the int meets the validation criteria for part 2
-def isValidValue2(intIn):
-    if(len(str(intIn)) != 6):
-        return False
-    #no need to check range
-    if(not(hasTwoAdjacent(intIn))):
-        return False
-    if(not(meetsPart2(intIn))):
-        return False
-    return isIncreasing(intIn)
-
 def y2019d4(inputStr = None):
     if(inputStr == None):
         inputStr = "272091-815432"
@@ -78,8 +67,8 @@ def y2019d4(inputStr = None):
     while(i <= ub):
         if(isValidValue(i)):
             validCount+=1
-        if(isValidValue2(i)):
-            validCount2+=1
+            if(meetsPart2(i)):
+                validCount2+=1
         i+=1
 
     print("The valid count (part 1) is " + str(validCount))
