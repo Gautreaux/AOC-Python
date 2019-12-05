@@ -1,42 +1,15 @@
-import math
 
-# def getZeroValueFromInput(memoryIn, pos1Value, pos2Value):
-#     memCpy = [None]*len(memoryIn)
-#     for i in range(len(memoryIn)):
-#         memCpy[i] = memoryIn[i]
-
-#     memCpy[1] = pos1Value
-#     memCpy[2] = pos2Value
-
-#     return getZeroValue(memCpy)
-
-# def getZeroValue(codeInstr):
-#     myInstr = 0
-
-#     while(True):
-#         operation = codeInstr[myInstr]
-#         if(operation == 1):
-#             codeInstr[codeInstr[myInstr+3]] = codeInstr[codeInstr[myInstr+1]] + codeInstr[codeInstr[myInstr+2]]
-#         elif(operation == 2):
-#             codeInstr[codeInstr[myInstr+3]] = codeInstr[codeInstr[myInstr+1]] * codeInstr[codeInstr[myInstr+2]]
-#         if(operaiton == 3):
-#             codeInstr[codeInstr == ]
-#         elif(operation == 99):
-#             break
-#         else:
-#             raise ValueError("Did not recognize op code " + str(operation) + " at location " + str(myInstr))
-
-#         myInstr+=4
-
-#     return codeInstr[0]
-
+#convert the input number to a length 5 representation
 def get5LenNumber(inputNum):
     inputNum = str(inputNum)
     while(len(inputNum) < 5):
         inputNum = '0'+inputNum
     return inputNum
 
+#hardcode the input string
 inputStr = "5"
+
+#return and display what the next input will be
 def getNextInput():
     global inputStr
     if(inputStr == ""):
@@ -70,6 +43,7 @@ def y2019d5(inputPath = None):
         #do the calculation
         myInstr = 0
         while True:
+            #i honestly cant explain what is happening in here anymore
             fiveNum = get5LenNumber(codeInstr[myInstr])
             operation = int(fiveNum[3:5])
 
@@ -181,11 +155,6 @@ def y2019d5(inputPath = None):
 
             else:
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
-
-
-        # print("The value in location 0 (part 1) is: " + str(res))
-
-        #part 2
     
     print("===========")
 
