@@ -5,19 +5,19 @@ The replacement is done by a python script which takes three required parameters
     Third, the string values that are responsible for each replacement
 
 The AOC template type supports the operations:
-    The operator # designates a line comment
-        All text including and after a # for the remainder of the will not be included in the output
+    The operator @ designates a line comment
+        All text including and after a @ for the remainder of the will not be included in the output
     The $ operator designates a variable
         The variable will be matched and replaced in place
         See more about the variables below
     The \ operator serves as an escape character
         \\ - the literal '\'
         \$ - the literal '$'
-        \# - the literal '#'
+        \@ - the literal '@'
 
 Variables:
     Variables are subject to the following naming conventions:
-        Variable names may not contain the characters '\', '$', or '#' or any newline character
+        Variable names may not contain the characters '\', '$', or '@' or any newline character
         It is recommended to avoid whitespace in variable names
         Additionally, the AOC template specification is designed to run on ASCII characters
     Variables may be masked when they occur as a prefix of another variable:
@@ -33,7 +33,7 @@ Variables:
 File Specification:
     The first n non-comment lines in the file should define the variables one per line
         Each line should begin with '$'
-        All text following the '$' to the first '#' or newline will define the variable names
+        All text following the '$' to the first '@' or newline will define the variable names
     The variable definition phase ends at the first:
         Non-empty, non-comment line
         The first line that redefines a variable 
