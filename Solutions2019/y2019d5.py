@@ -36,7 +36,7 @@ def get5LenNumber(inputNum):
         inputNum = '0'+inputNum
     return inputNum
 
-inputStr = "1"
+inputStr = "5"
 def getNextInput():
     global inputStr
     if(inputStr == ""):
@@ -89,12 +89,12 @@ def y2019d5(inputPath = None):
 
                 myInstr+=2
             elif(operation == 4):
-                # if(firstParamMode == 1):
-                #     param = codeInstr[(myInstr+1)]
-                # else:
-                #     param = codeInstr[codeInstr[myInstr+1]]
-                param = codeInstr[(myInstr+1)]
-                print(codeInstr[param])
+                if(firstParamMode == 1):
+                    param = codeInstr[(myInstr+1)]
+                else:
+                    param = codeInstr[codeInstr[myInstr+1]]
+                # param = codeInstr[(myInstr+1)]
+                print(param)
 
                 myInstr+=2
             elif(operation == 1 or operation == 2):
@@ -124,59 +124,60 @@ def y2019d5(inputPath = None):
                 codeInstr[codeInstr[(myInstr+3)]] = res
 
                 myInstr+=4
-            # elif(operation == 5 or operation == 6):
-            #     if(firstParamMode == 1):
-            #         param = codeInstr[(myInstr+1)]
-            #     else:
-            #         param = codeInstr[codeInstr[(myInstr+1)]]
+            elif(operation == 5 or operation == 6):
+                if(firstParamMode == 1):
+                    param = codeInstr[(myInstr+1)]
+                else:
+                    param = codeInstr[codeInstr[(myInstr+1)]]
 
-            #     if(secondParmaMode == 1):
-            #         param1 = codeInstr[(myInstr+2)]
-            #     else:
-            #         param1 = codeInstr[codeInstr[(myInstr+2)]]
+                if(secondParmaMode == 1):
+                    param1 = codeInstr[(myInstr+2)]
+                else:
+                    param1 = codeInstr[codeInstr[(myInstr+2)]]
 
-            #     if(operation == 5):
-            #         if(param != 0):
-            #             myInstr = param1
-            #             continue
-            #         else:
-            #             pass
-            #     elif(operation == 6):
-            #         if(param == 0):
-            #             myInstr = param1
-            #             continue
-            #         else:
-            #             pass
+                if(operation == 5):
+                    if(param != 0):
+                        myInstr = param1
+                        continue
+                    else:
+                        pass
+                elif(operation == 6):
+                    if(param == 0):
+                        myInstr = param1
+                        continue
+                    else:
+                        pass
 
-            #     myInstr+=3
-            # elif(operation == 7 or operation == 8):
-            #     if(firstParamMode == 1):
-            #         param = codeInstr[(myInstr+1)]
-            #     else:
-            #         param = codeInstr[codeInstr[(myInstr+1)]]
+                myInstr+=3
+            elif(operation == 7 or operation == 8):
+                if(firstParamMode == 1):
+                    param = codeInstr[(myInstr+1)]
+                else:
+                    param = codeInstr[codeInstr[(myInstr+1)]]
 
-            #     if(secondParmaMode == 1):
-            #         param1 = codeInstr[(myInstr+2)]
-            #     else:
-            #         param1 = codeInstr[codeInstr[(myInstr+2)]]
+                if(secondParmaMode == 1):
+                    param1 = codeInstr[(myInstr+2)]
+                else:
+                    param1 = codeInstr[codeInstr[(myInstr+2)]]
                 
-            #     if(thirdParamMode == 1):
-            #         param2 = codeInstr[(myInstr+3)]
-            #     else:
-            #         param2 = codeInstr[codeInstr[(myInstr+3)]]
+                # if(thirdParamMode == 1):
+                #     param2 = codeInstr[(myInstr+3)]
+                # else:
+                #     param2 = codeInstr[codeInstr[(myInstr+3)]]
+                param2 = codeInstr[(myInstr+3)]
 
-            #     if(operation == 7):
-            #         if(param < param1):
-            #             codeInstr[param2] = 1
-            #         else:
-            #             codeInstr[param2] = 0
-            #     elif(operation == 8):
-            #         if(param == param1):
-            #             codeInstr[param2] = 1
-            #         else:
-            #             codeInstr[param2] = 0
+                if(operation == 7):
+                    if(param < param1):
+                        codeInstr[param2] = 1
+                    else:
+                        codeInstr[param2] = 0
+                elif(operation == 8):
+                    if(param == param1):
+                        codeInstr[param2] = 1
+                    else:
+                        codeInstr[param2] = 0
 
-            #     myInstr+=4
+                myInstr+=4
 
             else:
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
@@ -190,3 +191,4 @@ def y2019d5(inputPath = None):
 
 
 #part 2: 14250156 incorrect
+# 15386262 -- too high
