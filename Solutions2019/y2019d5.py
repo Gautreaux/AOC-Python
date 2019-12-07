@@ -7,22 +7,35 @@ def get5LenNumber(inputNum):
     return inputNum
 
 #hardcode the input string
+# inputStr = "5"
+global inputStr
 inputStr = "5"
+
+global outputStr
+outputStr =  ""
 
 #return and display what the next input will be
 def getNextInput():
     global inputStr
-    if(inputStr == ""):
+    if(inputStr == "" or inputStr == [] or inputStr == None):
         raise ValueError("Asked for more inputs than were specified")
     t = inputStr[0]
     inputStr = inputStr[1:]
-    print("Supplying input: " + str(t))
+    #print("Supplying input: " + str(t))
     return t
 
-def y2019d5(inputPath = None):
+def output(strOut):
+    global outputStr
+    outputStr += str(strOut)
+
+def y2019d5(inputPath = None, inputString = None):
     if(inputPath == None):
         inputPath = "Input2019/d5.txt"
-    print("2019 day 5:")
+    #print("2019 day 5:")
+
+    if(inputString != None):
+        global inputStr
+        inputStr = inputString
 
     with open(inputPath) as f:
         myStr = ""
@@ -39,6 +52,9 @@ def y2019d5(inputPath = None):
             commaIndex = myStr.find(",")
             codeInstr.append(int(myStr[0:commaIndex]))
             myStr = myStr[commaIndex+1:]
+
+        global outputStr
+        outputStr = ""
 
         #do the calculation
         myInstr = 0
@@ -68,7 +84,8 @@ def y2019d5(inputPath = None):
                 else:
                     param = codeInstr[codeInstr[myInstr+1]]
                 # param = codeInstr[(myInstr+1)]
-                print(param)
+                output(param)
+                # print(param)
 
                 myInstr+=2
             elif(operation == 1 or operation == 2):
@@ -155,7 +172,9 @@ def y2019d5(inputPath = None):
 
             else:
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
-    
+        
+        
+        return outputStr
     print("===========")
 
 
