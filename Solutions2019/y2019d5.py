@@ -28,7 +28,11 @@ def output(strOut):
     global outputStr
     outputStr += str(strOut)
 
-def y2019d5(inputPath = None, inputString = None):
+def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFunction = None):
+    #input function should take no parameters and return a string for the next input
+    #output function takes one parameter
+    #input str is irrelevant when input function is non-None
+
     if(inputPath == None):
         inputPath = "Input2019/d5.txt"
     #print("2019 day 5:")
@@ -36,6 +40,12 @@ def y2019d5(inputPath = None, inputString = None):
     if(inputString != None):
         global inputStr
         inputStr = inputString
+    
+    if(inputFunction == None):
+        inputFunction = getNextInput
+    
+    if(outputFunction == None):
+        outputFunction = output
 
     with open(inputPath) as f:
         myStr = ""
@@ -75,7 +85,7 @@ def y2019d5(inputPath = None, inputString = None):
                 # else:
                 #     param = codeInstr[codeInstr[myInstr+1]]
                 #param = codeInstr[codeInstr[(myInstr+1)]]
-                codeInstr[codeInstr[myInstr+1]] = int(getNextInput())
+                codeInstr[codeInstr[myInstr+1]] = int(inputFunction())
 
                 myInstr+=2
             elif(operation == 4):
@@ -84,8 +94,7 @@ def y2019d5(inputPath = None, inputString = None):
                 else:
                     param = codeInstr[codeInstr[myInstr+1]]
                 # param = codeInstr[(myInstr+1)]
-                output(param)
-                # print(param)
+                outputFunction(str(param))
 
                 myInstr+=2
             elif(operation == 1 or operation == 2):
