@@ -95,6 +95,8 @@ def y2019d7():
         threadPool = [None]*len(pcStruct)
 
         for i in range(len(pcStruct)):
+            #start a thread for each amplifier
+            #some note here about python threading not actually being threads
             threadPool[i] = threading.Thread(target = program, args=(None, pcStruct[i].remove, pcStruct[(i+1)%len(pcStruct)].insert))
             threadPool[i].daemon = True
             threadPool[i].start()
@@ -102,7 +104,8 @@ def y2019d7():
         try:
             while(True):
 
-
+                #try to join the thread with a 10-second timeout
+                #this only works because in the last loop, E exits
                 threadPool[4].join(10)
                 break
 

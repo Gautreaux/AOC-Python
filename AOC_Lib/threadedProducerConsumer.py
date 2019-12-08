@@ -8,7 +8,7 @@ class ThreadedProducerConsumer():
         self.q = []
         self.waitingToRemove = 0
         self.lastInsert = None
-        self.insertHistory = []
+        # self.insertHistory = []
 
     def __len__(self):
         return len(self.q)
@@ -19,7 +19,7 @@ class ThreadedProducerConsumer():
             self.q.append(value)
             self.producerSemaphore.release()
             self.lastInsert = value
-            self.insertHistory.append(value)
+            # self.insertHistory.append(value)
         finally:
             self.lock.release()
     
