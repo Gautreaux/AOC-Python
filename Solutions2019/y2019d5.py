@@ -1,4 +1,20 @@
 
+class MemoryModule:
+    def __init__(self):
+        self.memory = {}
+
+    def __getitem__(self, key):
+        if(key < 0):
+            raise KeyError("Illegal memory address: " + str(key))
+        if(key not in self.memory):
+            self.memory[key] = 0
+        return self.memory[key]
+    
+    def __setitem__(self, key, value):
+        if(key < 0):
+            raise KeyError("Illegal memory address: " + str(key))
+        self.memory[key] = value
+
 #convert the input number to a length 5 representation
 def get5LenNumber(inputNum):
     inputNum = str(inputNum)
@@ -26,7 +42,8 @@ def getNextInput():
 
 def output(strOut):
     global outputStr
-    outputStr += str(strOut)
+    print(strOut)
+    outputStr += str(strOut) + ", "
 
 def getParameter(codeInstr, address, mode, relativeBase):
     if(mode == 0):
@@ -68,10 +85,12 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
         myStr += ", "
 
         #split on commas
-        codeInstr = []
+        codeInstr = MemoryModule()
+        tempCtr = 0
         while(myStr.find(",") > 0):
             commaIndex = myStr.find(",")
-            codeInstr.append(int(myStr[0:commaIndex]))
+            codeInstr[tempCtr] = (int(myStr[0:commaIndex]))
+            tempCtr+=1
             myStr = myStr[commaIndex+1:]
 
         global outputStr
@@ -96,7 +115,15 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
                 # else:
                 #     param = codeInstr[codeInstr[myInstr+1]]
                 #param = codeInstr[codeInstr[(myInstr+1)]]
-                codeInstr[codeInstr[myInstr+1]] = int(inputFunction())
+                r = int(inputFunction())
+
+                if(firstParamMode == 0):
+                    codeInstr[codeInstr[myInstr+1]] = r
+                elif(firstParamMode == 2):
+                    # print("Dong")
+                    codeInstr[codeInstr[myInstr+1]+relativeBase] = r
+                else:
+                    raise ValueError("Operation 3 weird parameter mode: " + str(firstParamMode))
 
                 myInstr+=2
             elif(operation == 4):
@@ -107,12 +134,11 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
             elif(operation == 1 or operation == 2):
                 param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
                 param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
+                # param2 = getParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase)
 
-                if(thirdParamMode != 0):
-                    raise Exception("Writes should not be in immediate mode")
-                    #param2 = codeInstr[(myInstr+3)]
-                else:
-                    param2 = codeInstr[codeInstr[(myInstr+3)]]
+                # if(thirdParamMode == 1):
+                #     raise Exception("Writes should not be in immediate mode")
+                #     #param2 = codeInstr[(myInstr+3)]
 
                 if(operation == 1):
                     res = param1 + param
@@ -120,8 +146,16 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
                     res = param1 * param
                 else:
                     raise ValueError
+                
+                if(thirdParamMode == 0):
+                    codeInstr[codeInstr[myInstr+3]] = res
+                elif(thirdParamMode == 2):
+                    # print("DING")
+                    codeInstr[codeInstr[myInstr+3]+relativeBase] = res
+                else:
+                    raise ValueError("Operation 1/2 weird parameter3 mode: " + str(thirdParamMode))
 
-                codeInstr[codeInstr[(myInstr+3)]] = res
+                # codeInstr[codeInstr[(myInstr+3)]] = res
 
                 myInstr+=4
             elif(operation == 5 or operation == 6):
@@ -151,6 +185,7 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
                 # else:
                 #     param2 = codeInstr[codeInstr[(myInstr+3)]]
                 param2 = codeInstr[(myInstr+3)]
+                # param2 = getParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase)
 
                 if(operation == 7):
                     if(param < param1):
@@ -172,7 +207,7 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
         
         
-        return outputStr
+        return outputStr[0:len(outputStr)-2]
     print("===========")
 
 

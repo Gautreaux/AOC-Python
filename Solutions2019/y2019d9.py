@@ -15,3 +15,8 @@ def y2019d9(inputPath = None):
             break
         print(y2019d5(inputPath, [1]))
     print("===========")
+
+
+    #incorrect:
+    #1091204-1100110011001008100161011006101099
+    #2030
