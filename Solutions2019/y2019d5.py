@@ -56,6 +56,14 @@ def getParameter(codeInstr, address, mode, relativeBase):
     else:
         raise ValueError("Illegal parameter mode " + str(mode))
 
+def writeParameter(codeInstr, address, mode, relativeBase, res):
+    if(mode == 0):
+        codeInstr[codeInstr[address]] = res
+    elif(mode == 2):
+        codeInstr[codeInstr[address]+relativeBase] = res
+    else:
+        raise ValueError("Illegal write parameter mode: " + str(mode))
+
 def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFunction = None, relativeBase = 0):
     #input function should take no parameters and return a string for the next input
     #output function takes one parameter
@@ -109,13 +117,15 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
             paramCount = parameterDict[operation]
 
             #memory reset
-            firstParamMode = None
-            secondParmaMode = None
-            thirdParamMode = None
-            param = None
-            param1 = None
-            param2 = None
+            if True:
+                firstParamMode = None
+                secondParmaMode = None
+                thirdParamMode = None
+                param = None
+                param1 = None
+                param2 = None
 
+            #parameter setup
             if(paramCount >= 1):
                 firstParamMode = int(fiveNum[2])
                 param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
@@ -129,85 +139,44 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
             if(operation == 99):
                 break
+            elif(operation == 1):
+                writeParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase, param1+param)
+            elif(operation == 2):
+                writeParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase, param1*param)
             elif(operation == 3):
-                r = int(inputFunction())
-                if(firstParamMode == 0):
-                    codeInstr[codeInstr[myInstr+1]] = r
-                elif(firstParamMode == 2):
-                    # print("Dong")
-                    codeInstr[codeInstr[myInstr+1]+relativeBase] = r
-                else:
-                    raise ValueError("Operation 3 weird parameter mode: " + str(firstParamMode))
-
-                myInstr+=2
+                writeParameter(codeInstr, myInstr+1, firstParamMode, relativeBase, int(inputFunction()))
             elif(operation == 4):
                 outputFunction(str(param))
-
-                myInstr+=2
-            elif(operation == 1 or operation == 2):
-
-                if(operation == 1):
-                    res = param1 + param
-                elif(operation == 2):
-                    res = param1 * param
+            elif(operation == 5):
+                if(param != 0):
+                    myInstr = param1
+                    continue
                 else:
-                    raise ValueError
-                
-                if(thirdParamMode == 0):
-                    codeInstr[codeInstr[myInstr+3]] = res
-                elif(thirdParamMode == 2):
-                    # print("DING")
-                    codeInstr[codeInstr[myInstr+3]+relativeBase] = res
+                    pass
+            elif(operation == 6):
+                if(param == 0):
+                    myInstr = param1
+                    continue
                 else:
-                    raise ValueError("Operation 1/2 weird parameter3 mode: " + str(thirdParamMode))
-
-                myInstr+=4
-            elif(operation == 5 or operation == 6):
-            
-                if(operation == 5):
-                    if(param != 0):
-                        myInstr = param1
-                        continue
-                    else:
-                        pass
-                elif(operation == 6):
-                    if(param == 0):
-                        myInstr = param1
-                        continue
-                    else:
-                        pass
-
-                myInstr+=3
-            elif(operation == 7 or operation == 8):
-
-                r = None
-                if(operation == 7):
-                    if(param < param1):
-                        r = 1
-                    else:
-                        r = 0
-                elif(operation == 8):
-                    if(param == param1):
-                        r = 1
-                    else:
-                        r = 0
-
-                if(thirdParamMode == 0):
-                    codeInstr[codeInstr[myInstr+3]] = r
-                elif(thirdParamMode == 2):
-                    codeInstr[codeInstr[myInstr+3]+relativeBase] = r
+                    pass
+            elif(operation == 7):
+                if(param < param1):
+                    r = 1
                 else:
-                    raise ValueError("Illegal third param mode in 7/8: " + str(thirdParamMode))
-
-                myInstr+=4
+                    r = 0
+                writeParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase, r)
+            elif(operation == 8):
+                if(param == param1):
+                    r = 1
+                else:
+                    r = 0
+                writeParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase, r)
             elif(operation == 9):
-                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
                 relativeBase+=param
-                myInstr+=2
             else:
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
         
-            # myInstr+=paramCount+1
+            myInstr+=paramCount+1
         
         return outputStr[0:len(outputStr)-2]
     print("===========")
