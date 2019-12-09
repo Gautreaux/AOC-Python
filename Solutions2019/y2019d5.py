@@ -130,13 +130,7 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
             if(operation == 99):
                 break
             elif(operation == 3):
-                # if(firstParamMode == 1):
-                #     param = codeInstr[(myInstr+1)]
-                # else:
-                #     param = codeInstr[codeInstr[myInstr+1]]
-                #param = codeInstr[codeInstr[(myInstr+1)]]
                 r = int(inputFunction())
-
                 if(firstParamMode == 0):
                     codeInstr[codeInstr[myInstr+1]] = r
                 elif(firstParamMode == 2):
@@ -147,18 +141,10 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=2
             elif(operation == 4):
-                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
                 outputFunction(str(param))
 
                 myInstr+=2
             elif(operation == 1 or operation == 2):
-                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
-                # param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
-                # param2 = getParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase)
-
-                # if(thirdParamMode == 1):
-                #     raise Exception("Writes should not be in immediate mode")
-                #     #param2 = codeInstr[(myInstr+3)]
 
                 if(operation == 1):
                     res = param1 + param
@@ -175,13 +161,9 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
                 else:
                     raise ValueError("Operation 1/2 weird parameter3 mode: " + str(thirdParamMode))
 
-                # codeInstr[codeInstr[(myInstr+3)]] = res
-
                 myInstr+=4
             elif(operation == 5 or operation == 6):
-                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
-                # param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
-
+            
                 if(operation == 5):
                     if(param != 0):
                         myInstr = param1
@@ -197,26 +179,25 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=3
             elif(operation == 7 or operation == 8):
-                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
-                # param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
-                
-                # if(thirdParamMode == 1):
-                #     param2 = codeInstr[(myInstr+3)]
-                # else:
-                #     param2 = codeInstr[codeInstr[(myInstr+3)]]
-                param2 = codeInstr[(myInstr+3)]
-                # param2 = getParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase)
 
+                r = None
                 if(operation == 7):
                     if(param < param1):
-                        codeInstr[param2] = 1
+                        r = 1
                     else:
-                        codeInstr[param2] = 0
+                        r = 0
                 elif(operation == 8):
                     if(param == param1):
-                        codeInstr[param2] = 1
+                        r = 1
                     else:
-                        codeInstr[param2] = 0
+                        r = 0
+
+                if(thirdParamMode == 0):
+                    codeInstr[codeInstr[myInstr+3]] = r
+                elif(thirdParamMode == 2):
+                    codeInstr[codeInstr[myInstr+3]+relativeBase] = r
+                else:
+                    raise ValueError("Illegal third param mode in 7/8: " + str(thirdParamMode))
 
                 myInstr+=4
             elif(operation == 9):
@@ -226,6 +207,7 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
             else:
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
         
+            # myInstr+=paramCount+1
         
         return outputStr[0:len(outputStr)-2]
     print("===========")
