@@ -42,7 +42,7 @@ def getNextInput():
 
 def output(strOut):
     global outputStr
-    print(strOut)
+    # print(strOut)
     outputStr += str(strOut) + ", "
 
 def getParameter(codeInstr, address, mode, relativeBase):
@@ -98,14 +98,34 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
         #do the calculation
         myInstr = 0
+        parameterDict = {1:3,2:3,3:1,4:1,5:2,6:2,7:3,8:3,9:1,99:0}
         while True:
             #i honestly cant explain what is happening in here anymore
             fiveNum = get5LenNumber(codeInstr[myInstr])
             operation = int(fiveNum[3:5])
 
-            firstParamMode = int(fiveNum[2])
-            secondParmaMode = int(fiveNum[1])
-            thirdParamMode = int(fiveNum[0])
+            if(operation not in parameterDict):
+                raise ValueError("Illegal operation: " + str(operation))
+            paramCount = parameterDict[operation]
+
+            #memory reset
+            firstParamMode = None
+            secondParmaMode = None
+            thirdParamMode = None
+            param = None
+            param1 = None
+            param2 = None
+
+            if(paramCount >= 1):
+                firstParamMode = int(fiveNum[2])
+                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+            if(paramCount >= 2):
+                secondParmaMode = int(fiveNum[1])
+                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
+            if(paramCount >= 3):
+                thirdParamMode = int(fiveNum[0])
+                param2 = getParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase)
+
 
             if(operation == 99):
                 break
@@ -132,8 +152,8 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=2
             elif(operation == 1 or operation == 2):
-                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
-                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
+                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                # param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
                 # param2 = getParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase)
 
                 # if(thirdParamMode == 1):
@@ -159,8 +179,8 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=4
             elif(operation == 5 or operation == 6):
-                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
-                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
+                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                # param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
 
                 if(operation == 5):
                     if(param != 0):
@@ -177,8 +197,8 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=3
             elif(operation == 7 or operation == 8):
-                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
-                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
+                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                # param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
                 
                 # if(thirdParamMode == 1):
                 #     param2 = codeInstr[(myInstr+3)]
@@ -200,7 +220,7 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=4
             elif(operation == 9):
-                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                # param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
                 relativeBase+=param
                 myInstr+=2
             else:
