@@ -28,7 +28,18 @@ def output(strOut):
     global outputStr
     outputStr += str(strOut)
 
-def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFunction = None):
+def getParameter(codeInstr, address, mode, relativeBase):
+    if(mode == 0):
+        return codeInstr[codeInstr[address]]
+    elif(mode == 1):
+        return codeInstr[address]
+    elif(mode == 2):
+        #print("MODE2")
+        return codeInstr[relativeBase+codeInstr[address]]
+    else:
+        raise ValueError("Illegal parameter mode " + str(mode))
+
+def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFunction = None, relativeBase = 0):
     #input function should take no parameters and return a string for the next input
     #output function takes one parameter
     #input str is irrelevant when input function is non-None
@@ -89,26 +100,15 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=2
             elif(operation == 4):
-                if(firstParamMode == 1):
-                    param = codeInstr[(myInstr+1)]
-                else:
-                    param = codeInstr[codeInstr[myInstr+1]]
-                # param = codeInstr[(myInstr+1)]
+                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
                 outputFunction(str(param))
 
                 myInstr+=2
             elif(operation == 1 or operation == 2):
-                if(firstParamMode == 1):
-                    param = codeInstr[(myInstr+1)]
-                else:
-                    param = codeInstr[codeInstr[(myInstr+1)]]
+                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
 
-                if(secondParmaMode == 1):
-                    param1 = codeInstr[(myInstr+2)]
-                else:
-                    param1 = codeInstr[codeInstr[(myInstr+2)]]
-
-                if(thirdParamMode == 1):
+                if(thirdParamMode != 0):
                     raise Exception("Writes should not be in immediate mode")
                     #param2 = codeInstr[(myInstr+3)]
                 else:
@@ -125,15 +125,8 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=4
             elif(operation == 5 or operation == 6):
-                if(firstParamMode == 1):
-                    param = codeInstr[(myInstr+1)]
-                else:
-                    param = codeInstr[codeInstr[(myInstr+1)]]
-
-                if(secondParmaMode == 1):
-                    param1 = codeInstr[(myInstr+2)]
-                else:
-                    param1 = codeInstr[codeInstr[(myInstr+2)]]
+                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
 
                 if(operation == 5):
                     if(param != 0):
@@ -150,15 +143,8 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
 
                 myInstr+=3
             elif(operation == 7 or operation == 8):
-                if(firstParamMode == 1):
-                    param = codeInstr[(myInstr+1)]
-                else:
-                    param = codeInstr[codeInstr[(myInstr+1)]]
-
-                if(secondParmaMode == 1):
-                    param1 = codeInstr[(myInstr+2)]
-                else:
-                    param1 = codeInstr[codeInstr[(myInstr+2)]]
+                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                param1 = getParameter(codeInstr, myInstr+2, secondParmaMode, relativeBase)
                 
                 # if(thirdParamMode == 1):
                 #     param2 = codeInstr[(myInstr+3)]
@@ -178,7 +164,10 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
                         codeInstr[param2] = 0
 
                 myInstr+=4
-
+            elif(operation == 9):
+                param = getParameter(codeInstr, myInstr+1, firstParamMode, relativeBase)
+                relativeBase+=param
+                myInstr+=2
             else:
                 raise ValueError("Illegal operation: " + str(operation) + " in " + str(fiveNum))
         

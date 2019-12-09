@@ -49,26 +49,26 @@ def y2019d7():
 
     myInputs = getAllInputs("01234")
 
-    # for inputStr in myInputs:
+    for inputStr in myInputs:
     
-    #     inputA = [inputStr[0],"0"]
-    #     resA = program(inputA)
-    #     inputB = [inputStr[1],resA]
-    #     resB = program(inputB)
-    #     inputC = [inputStr[2],resB]
-    #     resC = program(inputC)
-    #     inputD = [inputStr[3],resC]
-    #     resD = program(inputD)
-    #     inputE = [inputStr[4],resD]
-    #     resE = program(inputE)
+        inputA = [inputStr[0],"0"]
+        resA = program(inputA)
+        inputB = [inputStr[1],resA]
+        resB = program(inputB)
+        inputC = [inputStr[2],resB]
+        resC = program(inputC)
+        inputD = [inputStr[3],resC]
+        resD = program(inputD)
+        inputE = [inputStr[4],resD]
+        resE = program(inputE)
 
-    #     v = int(resE)
+        v = int(resE)
 
-    #     if(v > maxValue):
-    #         maxValue = v
-    #         maxSet = inputStr
+        if(v > maxValue):
+            maxValue = v
+            maxSet = inputStr
 
-    # print("Max value (part 1) : " + str(maxValue) + " on str " + str(maxSet))
+    print("Max value (part 1) : " + str(maxValue) + " on str " + str(maxSet))
 
     phase2Inputs = getAllInputs("56789")
 
