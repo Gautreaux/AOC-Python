@@ -1,42 +1,15 @@
 import math
 
+def hashPair(tuple1):
+    return tuple1[0]*20+tuple1[1]
 
-def dist(p1, p2):
+def getDist(p1, p2):
     return math.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)
 
 def getRay(p1, p2):
-    return ((p2[0]-p1[0]),(p2[1]-p1[1]))
-
-
-def canSee(stationXY, asteroidXY, worldMap):
-    #the vector from the station to the asteroid
-    sightRay = getRay(stationXY, asteroidXY)
-    minDist = dist(stationXY, asteroidXY)
-    
-    for y in range(len(worldMap)):
-        for x in range(len(worldMap[0])):
-            if((x,y) == stationXY):
-                continue
-            if((x,y) == asteroidXY):
-                continue
-            if(dist(stationXY, (x,y)) < minDist and getRay(stationXY, (x,y)) == sightRay):
-                return False
-
-def getSightCount(lineList, xStat, yStat):
-    'return the number of asteroids visible from this point'
-    sightCount = 0
-    for y in range(len(lineList)):
-        for x in range(len(lineList[0])):
-            if(xStat == x and yStat == y):
-                #skip the same
-                continue
-            elif(lineList[y][x] == '.'):
-                #skip empties
-                continue
-            elif(canSee((xStat,yStat), (x,y), lineList)):
-                #can this point see the station?
-                sightCount+=1
-    return sightCount
+    r =  ((p2[0]-p1[0]),(p2[1]-p1[1]))
+    rmag = getDist(r, (0,0))
+    return (round(r[0]/rmag,6), round(r[1]/rmag,6))
 
 def y2019d10(inputPath = None):
     if(inputPath == None):
@@ -56,26 +29,46 @@ def y2019d10(inputPath = None):
         bestCount = 0
 
         asteroidPos = [] # a list of all the asteroids
-
         for y in range(len(lineList)):
             for x in range(len(lineList[0])):
-                asteroidPos.append((x,y))
+                if(lineList[y][x] == '#'):
+                    asteroidPos.append((x,y))
 
-        for y in range(len(lineList)):
-            for x in range(len(lineList[0])):
-                # print(lineList[y][x], end="")
-                if(lineList[y][x] == '.'):
+        print(len(asteroidPos))
+
+        for asteroid in asteroidPos:
+            takenRaysDict = {} #maps a ray to a distance
+            rayDict = {}
+
+            for otherAsteroid in asteroidPos:
+                if(otherAsteroid == asteroid):
                     continue
-                k = getSightCount(lineList, x ,y)
-                if(k > bestCount):
-                    bestCount = k
-                    bestXY = (x, y)
+                rt = getRay(asteroid, otherAsteroid)
+                r = hashPair(rt)
 
-            print("Advancing to line " + str(y+1))
-            # print("")
+                if(r not in rayDict):
+                    rayDict[r] = rt
+                else:
+                    if(rayDict[r] != rt):
+                        print("HASH COLLISION:" + str(rayDict[r])+  " " + str(rt))
+
+                d = getDist(asteroid, otherAsteroid)
+                if(r not in takenRaysDict):
+                    takenRaysDict[r] = d
+                else:
+                    if(d < takenRaysDict[r]):
+                        takenRaysDict[r] = d
+            
+            totalVisible = len(takenRaysDict)
+            if(totalVisible > bestCount):
+                bestCount = totalVisible
+                bestXY = asteroid
 
         print("The best location " + str(bestXY) + " can see " + str(bestCount));
 
     print("===========")
 
     #285 incorrect
+    #728 too high
+    #404 too high
+    #295 incorrect
