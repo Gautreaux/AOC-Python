@@ -144,6 +144,7 @@ def y2019d5(inputPath = None, inputString = None, inputFunction = None, outputFu
             elif(operation == 2):
                 writeParameter(codeInstr, myInstr+3, thirdParamMode, relativeBase, param1*param)
             elif(operation == 3):
+                # tempValue = int(inputFunction())
                 writeParameter(codeInstr, myInstr+1, firstParamMode, relativeBase, int(inputFunction()))
             elif(operation == 4):
                 outputFunction(str(param))
