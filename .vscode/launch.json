@@ -11,5 +11,13 @@
             "program": "${file}",
             "console": "integratedTerminal"
         }
+
+        {
+            "name": "Master File",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/masterFile.py",
+            "console": "integratedTerminal"
+        }
     ]
 }
