@@ -101,11 +101,11 @@ def y2019d13(inputPath = None):
             myLine = line.strip()
             break
 
-        gameState = GameState()
+    gameState = GameState()
 
-        y2019d5(inputPath, inputFunction=gameState.sendCommand,outputFunction=gameState.receiveCommand)
+    y2019d5(inputPath, inputFunction=gameState.sendCommand,outputFunction=gameState.receiveCommand)
 
-        print(len(gameState.blockList))
+    print(len(gameState.blockList))
 
     print("===========")
 
