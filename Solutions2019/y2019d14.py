@@ -4,6 +4,7 @@ from AOC_Lib.queue import Queue
 
 #TODO - modify this code to accept exactly one producing reaction
 #TODO - this problem part 2 is a network flow problem?
+#       or with a topological sort
 
 class Element():
     def __init__(self, nameStr):
@@ -110,81 +111,87 @@ def y2019d14(inputPath = None):
             print("Failed one or more production checks.")
         #now this has gotten pretty easy
 
-        requirementsDict = {} #requirements that we are trying to satisfy
-        doneList = []
 
-        for k in elementsDict:
-            requirementsDict[k] = 0
+        def getOreRequirementsForFuel(reqAmount):
+            requirementsDict = {} #requirements that we are trying to satisfy
+            doneList = []
 
-        requirementsQ = Queue()
-        requirementsQ.pushBack("FUEL")
-        requirementsDict["FUEL"] = 1
+            for k in elementsDict:
+                requirementsDict[k] = 0
 
-        while(len(requirementsQ) > 0):
-            thisReq = requirementsQ.pop() #the name of the item we need to produce
+            requirementsQ = Queue()
+            requirementsQ.pushBack("FUEL")
+            requirementsDict["FUEL"] = reqAmount
 
-            if(thisReq == "ORE"):
-                if(len(requirementsQ) != 0):
-                    # print("Warning, the dict may have exited prematurely")
-                    requirementsQ.pushBack("ORE")
-                    continue
-                else:
-                    break
+            while(len(requirementsQ) > 0):
+                thisReq = requirementsQ.pop() #the name of the item we need to produce
 
-            doneList.append(thisReq)
-            
+                if(thisReq == "ORE"):
+                    if(len(requirementsQ) != 0):
+                        # print("Warning, the dict may have exited prematurely")
+                        requirementsQ.pushBack("ORE")
+                        continue
+                    else:
+                        break
 
-            thisElement = elementsDict[thisReq] #the element
-            thisRel = thisElement.producingReactions[0] #the producing relation
-            thisCount = requirementsDict[thisReq] #the total quantity to produce
-            thisReactionsRequired = thisCount/(thisRel[1][0][0])
-
-            if(thisReactionsRequired != int(thisReactionsRequired)):
-                excessProduced = round((math.ceil(thisReactionsRequired)-thisReactionsRequired)*thisRel[1][0][0],6)
-                if(excessProduced != int(excessProduced)):
-                    raise Exception("Excess non-integer exception: " + str(excessProduced))
-                thisReactionsRequired = math.ceil(thisReactionsRequired)
-                # raise ValueError("The reaction needs to occur a non-integer number of times")
-                requirementsDict[thisReq] = -int(excessProduced)
-            else:
-                #reset the requirements dict
-                requirementsDict[thisReq] = 0
-
-            #loop over the reaction inputs
-            for e in thisRel[0]:
-                item = e[1]
-                count = e[0]
-                countCycles = count*thisReactionsRequired
-
-                # if(item in doneList):
-                #     if(item == 'ORE'):
-                #         print("BIG OOF")
-                #     requirementsDict[item] = 0
-                #     doneList.remove(item)
-
-                requirementsDict[item] += countCycles
-
-                if(item not in requirementsQ):
-                    requirementsQ.pushBack(item)
+                doneList.append(thisReq)
                 
 
+                thisElement = elementsDict[thisReq] #the element
+                thisRel = thisElement.producingReactions[0] #the producing relation
+                thisCount = requirementsDict[thisReq] #the total quantity to produce
+                thisReactionsRequired = thisCount/(thisRel[1][0][0])
+
+                if(thisReactionsRequired != int(thisReactionsRequired)):
+                    excessProduced = round((math.ceil(thisReactionsRequired)-thisReactionsRequired)*thisRel[1][0][0],4)
+                    if(excessProduced != int(excessProduced)):
+                        raise Exception("Excess non-integer exception: " + str(excessProduced))
+                    thisReactionsRequired = math.ceil(thisReactionsRequired)
+                    # raise ValueError("The reaction needs to occur a non-integer number of times")
+                    requirementsDict[thisReq] = -int(excessProduced)
+                else:
+                    #reset the requirements dict
+                    requirementsDict[thisReq] = 0
+
+                #loop over the reaction inputs
+                for e in thisRel[0]:
+                    item = e[1]
+                    count = e[0]
+                    countCycles = count*thisReactionsRequired
+
+                    # if(item in doneList):
+                    #     if(item == 'ORE'):
+                    #         print("BIG OOF")
+                    #     requirementsDict[item] = 0
+                    #     doneList.remove(item)
+
+                    requirementsDict[item] += countCycles
+
+                    if(item not in requirementsQ):
+                        requirementsQ.pushBack(item)
+
+            return requirementsDict["ORE"]
+
         
-        print("Ore Required (Part 1): " + str(requirementsDict["ORE"]))
+        print("Ore Required (Part 1): " + str(getOreRequirementsForFuel(1)))
 
-        #now doing the conversion the other way
-        resourceCounter = {}
-        for k in elementsDict:
-            resourceCounter[k] = 0
+        maxOre = 1000000000000
+        fuelCtr = 1
+        fuelIncrement = 1
 
-        resourceCounter["ORE"] = 1000000000000
+        while(True):
+            t = getOreRequirementsForFuel(fuelCtr+fuelIncrement)
+            if(t <= maxOre):
+                fuelCtr+=fuelIncrement
+                fuelIncrement*=2
+            else:
+                if(fuelIncrement == 1):
+                    break
+                else:
+                    #reset the increment and try again
+                    fuelIncrement = 1
 
-
-        #now need to perfrom a topological ordering
-
-        #unsuprisingly, this is not the answer
-        # resourceCounter["FUEL"] = resourceCounter["ORE"]/requirementsDict["ORE"]
-
-        print("From one trillion ore (Part 2), "  + str(resourceCounter["FUEL"]) + " fuel can be produced.")
+        print("From one trillion ore (Part 2), "  + str(fuelCtr) + " fuel can be produced.")
 
         
     
