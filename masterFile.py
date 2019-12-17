@@ -1,15 +1,15 @@
 #the main file for the solution
 
 if __name__ == "__main__":
-    from Solutions2019.y2019d14 import y2019d14
-    print("165, ????:")
-    y2019d14("Input2019/d14-sample.txt")
-    print("13312, 8292753:")
-    y2019d14("Input2019/d14-sample2.txt")
-    print("180697, 5586022:")
-    y2019d14("Input2019/d14-sample3.txt")
-    print("2210736, 460664:")
-    y2019d14("Input2019/d14-sample4.txt")
-    print("????, ????:")
-    y2019d14()
+    from Solutions2019.y2019d16 import y2019d16
+    print("?????")
+    y2019d16("12345678")
+    print("24176176:")
+    y2019d16("80871224585914546619083218645595")
+    print("73745418:")
+    y2019d16("19617804207202209144916044189917")
+    print("52432133:")
+    y2019d16("69317163492948606335995924319873")
+    print("????:")
+    y2019d16()
 
