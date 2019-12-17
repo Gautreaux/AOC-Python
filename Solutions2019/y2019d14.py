@@ -72,16 +72,29 @@ def y2019d14(inputPath = None):
                     print("Element " + str(e.name) + " does not have a producing reaction.")
                     return
             elif(k != 1):
-                print("Element " + str(name) + " has " + str(k) + " producing reactions.")
+                print("Element " + str(e.name) + " has " + str(k) + " producing reactions.")
 
+        #assert that each product can be produced only once 
+        #this ensures that no feedback loops can exist as either
+        #   the product is already in the feedback loop
+        #       but how did the loop start?
+        #   or this product isnt in a loop
+        for e in elementsDict:
+            element = elementsDict[e]
+            if(len(element.producingReactions) > 1):
+                print("Warning: looped production possible.")
+
+        #check that each reaction has excatly one product
         for rel in relations:
             if(len(rel[1]) > 1):
                 print("Warning: multiple product production found.")
+            
 
         print("Passed producing check.")
         #now this has gotten pretty easy
 
-        requirementsDict = {}
+        requirementsDict = {} #requirements that we are trying to satisfy
+        doneList = []
 
         for k in elementsDict:
             requirementsDict[k] = 0
@@ -94,7 +107,15 @@ def y2019d14(inputPath = None):
             thisReq = requirementsQ.pop() #the name of the item we need to produce
 
             if(thisReq == "ORE"):
-                break
+                if(len(requirementsQ) != 0):
+                    # print("Warning, the dict may have exited prematurely")
+                    requirementsQ.pushBack("ORE")
+                    continue
+                else:
+                    break
+
+            doneList.append(thisReq)
+            
 
             thisElement = elementsDict[thisReq] #the element
             thisRel = thisElement.producingReactions[0] #the producing relation
@@ -102,19 +123,50 @@ def y2019d14(inputPath = None):
             thisReactionsRequired = thisCount/(thisRel[1][0][0])
 
             if(thisReactionsRequired != int(thisReactionsRequired)):
+                excessProduced = round((math.ceil(thisReactionsRequired)-thisReactionsRequired)*thisRel[1][0][0],6)
+                if(excessProduced != int(excessProduced)):
+                    raise Exception("Excess non-integer exception: " + str(excessProduced))
                 thisReactionsRequired = math.ceil(thisReactionsRequired)
                 # raise ValueError("The reaction needs to occur a non-integer number of times")
+                requirementsDict[thisReq] = -int(excessProduced)
+            else:
+                #reset the requirements dict
+                requirementsDict[thisReq] = 0
 
             #loop over the reaction inputs
             for e in thisRel[0]:
                 item = e[1]
                 count = e[0]
                 countCycles = count*thisReactionsRequired
+
+                # if(item in doneList):
+                #     if(item == 'ORE'):
+                #         print("BIG OOF")
+                #     requirementsDict[item] = 0
+                #     doneList.remove(item)
+
                 requirementsDict[item] += countCycles
-                requirementsQ.pushBack(item)
+
+                if(item not in requirementsQ):
+                    requirementsQ.pushBack(item)
+                
+
         
         print("Ore Required (Part 1): " + str(requirementsDict["ORE"]))
+
+        #now doing the conversion the other way
+        resourceCounter = {}
+        for k in elementsDict:
+            resourceCounter[k] = 0
+
+        resourceCounter["ORE"] = 1000000000000
+
+        #unsuprisingly, this is not the answer
+        # resourceCounter["FUEL"] = resourceCounter["ORE"]/requirementsDict["ORE"]
+
+        print("From one trillion ore (Part 2), "  + str(resourceCounter["FUEL"]) + " fuel can be produced.")
     
     print("===========")
 
+    #part 1:
     #436 too low

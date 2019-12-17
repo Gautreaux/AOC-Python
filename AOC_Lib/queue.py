@@ -6,6 +6,9 @@ class Queue():
         
     def __len__(self):
         return len(self.__q)
+
+    def __contains__(self, item):
+        return item in self.__q
     
     def pushBack(self, element):
         self.__q.append(element)
