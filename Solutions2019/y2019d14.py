@@ -3,6 +3,7 @@ import math
 from AOC_Lib.queue import Queue
 
 #TODO - modify this code to accept exactly one producing reaction
+#TODO - this problem part 2 is a network flow problem?
 
 class Element():
     def __init__(self, nameStr):
@@ -74,6 +75,8 @@ def y2019d14(inputPath = None):
             elif(k != 1):
                 print("Element " + str(e.name) + " has " + str(k) + " producing reactions.")
 
+        productionBool = True
+
         #assert that each product can be produced only once 
         #this ensures that no feedback loops can exist as either
         #   the product is already in the feedback loop
@@ -83,14 +86,28 @@ def y2019d14(inputPath = None):
             element = elementsDict[e]
             if(len(element.producingReactions) > 1):
                 print("Warning: looped production possible.")
+                productionBool = False
 
-        #check that each reaction has excatly one product
+            #this makes sure that everything is eventually used to produce fuel
+            if(len(element.consumingReactions) == 0 and element.name != "FUEL"):
+                print("Warning: found non-fuel terminal chain.")
+                productionBool = False
+
+        #check that each reaction has exactly one product
         for rel in relations:
             if(len(rel[1]) > 1):
                 print("Warning: multiple product production found.")
-            
+                productionBool = False
 
-        print("Passed producing check.")
+            if(len(rel[1]) == 0):
+                print("Warning: Found reaction with no products")
+                productionBool = False
+            
+        if(productionBool == True):
+            # print("Passed producing checks.")
+            pass
+        else:
+            print("Failed one or more production checks.")
         #now this has gotten pretty easy
 
         requirementsDict = {} #requirements that we are trying to satisfy
@@ -161,10 +178,15 @@ def y2019d14(inputPath = None):
 
         resourceCounter["ORE"] = 1000000000000
 
+
+        #now need to perfrom a topological ordering
+
         #unsuprisingly, this is not the answer
         # resourceCounter["FUEL"] = resourceCounter["ORE"]/requirementsDict["ORE"]
 
         print("From one trillion ore (Part 2), "  + str(resourceCounter["FUEL"]) + " fuel can be produced.")
+
+        
     
     print("===========")
 
