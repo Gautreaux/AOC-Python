@@ -22,7 +22,12 @@ def constructGenerator(positionIndex):
             i+=1
     return genFunction
 
+def getMulValue(posX, posY):
+    baseList = [0,1,0,-1]
+    return baseList[((posX+1)//posY)%4]
+
 def constructMatMul(length):
+    #while this works, there is a better way:
     mul = [None]*length
     for i in range(length):
         mul[i] = [None]*length
@@ -45,6 +50,8 @@ def constructMatMul(length):
             pass
     return mul
 
+    
+
 def getNextPhase(sourceList, mul):
     outList = [None]*len(sourceList)
 
@@ -63,6 +70,20 @@ def getNextPhase(sourceList, mul):
         #get just the ones digit
         outList[i] = abs(t)%10
     
+    return outList
+
+def getNextPhaseV2(sourceList):
+    outList = [None]*len(sourceList)
+
+    for i in range(len(sourceList)):
+        t = 0
+        for j in range(i, len(sourceList)):
+            t += getMulValue(j,i+1)*sourceList[j]
+
+        outList[i] = abs(t)%10
+
+        if(len(sourceList) > 1000 and i %500 == 0):
+            print(i/len(sourceList))
     return outList
 
 def y2019d16(inputPath = None, doPart2=False):
@@ -88,7 +109,8 @@ def y2019d16(inputPath = None, doPart2=False):
     #the rest is realtively straightforward
 
     for i in range(100):
-        inList = getNextPhase(inList, mul)
+        # inList = getNextPhase(inList, mul)
+        inList = getNextPhaseV2(inList)
 
     j = ""
     for i in range(8):
@@ -98,33 +120,33 @@ def y2019d16(inputPath = None, doPart2=False):
 
 
     if(not doPart2 and inputPath != None):
+        print("===========")
         return
 
-    inLong = ""
     #construct the super input
-    for i in range(1000):
-        inLong += inputLine
-    
     #split into a list
-    inListLong = [None]*len(inLong)
+    inListLong = [None]*len(inputLine)*1000
     inLenLong = len(inListLong)
 
     for i in range(inLenLong):
-        inListLong[i] = int(inLong[i])
+        inListLong[i] = int(inputLine[i%inLen])
     
-    mulLong = constructMatMul(inLenLong)
+    # mulLong = constructMatMul(inLenLong)
 
     print("Begining the multiplication process")
     for i in range(100):
-        inListLong = getNextPhase(inListLong, mulLong)
+        inListLong = getNextPhaseV2(inListLong)
 
-        print(str(i) + " ", end="")
+        print("==" + str(i) + "== ", end="")
 
-    print("/n")
-    offset = int(inLong[:7])
+    print("\n\n\n")
+    for e in inputLine:
+        print(e, end="")
+    print("\n")
+    offset = int(inputLine[:7])
     j = ""
     for i in range(8):
-        j+=str(inList[i+offset])
+        j+=str(inList[(i+offset)%inLen])
     print("Part 2: " + j)
 
 
