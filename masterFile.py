@@ -3,7 +3,5 @@
 if __name__ == "__main__":
     from Solutions2019.y2019d18 import y2019d18
 
-
-
     y2019d18()
 

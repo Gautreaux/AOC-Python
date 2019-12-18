@@ -1,8 +1,14 @@
 import copy
 from AOC_Lib.queue import Queue
+from AOC_Lib.pqueue import PQueue
+from math import sqrt
+import heapq
+
+def manhattanDist(sPos, ePos):
+    return sqrt((sPos[0]-ePos[0])**2+(sPos[1]-ePos[1])**2)
+
 
 #TODO - this should be reworked into a general pair-bimap class
-
 class KeyDoor():
     #the key door pair construct
     def __init__(self, key, door):
@@ -18,7 +24,18 @@ class KeyDoor():
     def __hash__(self):
         return hash((self.k, self.d))
 
+#this is a simple override of list for some hashing functionality
+#for part 2
+class PosList():
+    def __init__(self, posList):
+        self.p = posList
+    
+    def __hash__(self):
+        return hash((self.p[0],self.p[1],self.p[2],self.p[3]))
+
 class MazeState():
+    #track the key hash values
+
     def __init__(self, position, keyDoorList, d = 0, doorList = None):
         self.pos = position
         self.kList = keyDoorList
@@ -46,11 +63,30 @@ class MazeState():
         return hash((hash(self.pos), self.__kListHash()))
     
     def __eq__(self, other):
-        if(self.pos != other.pos):
-            return False
-        if(self.kList != other.kList):
-            return False
-        return True
+        try:
+            if(self.pos != other.pos):
+                return False
+            if(self.kList != other.kList):
+                return False
+            return True
+        except AttributeError as A:
+            if(type(other) == type(None)):
+                return False 
+            raise A
+
+def getHeuristicPriority(state):
+    return 1
+
+class MazeStatePriority():
+    def __init__(self, state):
+        self.state = state
+        self.__priority = state.getHeuristicPriority()
+    
+    def __lt__(self, other):
+        return self.__priority < other.__priority
+    
+    def __eq__(self, other):
+        return self.__priority == other.__priority
 
 def generateSuccessorStates(state, wallList):
     #returns a list of valid states from the current state
@@ -78,12 +114,48 @@ def generateSuccessorStates(state, wallList):
 
     return successorList
 
-
 def isValidState(state, wallList):
     if(state.pos in wallList):
         return False
     if(state.pos in state.dList):
         return False
+    return True
+
+def generateSuccessorStatesPart2(state, wallList):
+    #returns a list of valid states from the current state
+    successorList = []
+
+    transforms = [(0,1),(0,-1),(-1,0),(1,0)]
+
+    for i in range(len(state.pos)):
+        for transform in transforms:
+            newState = MazeState([(0,0)], state.kList, d=state.depth+1, doorList=state.dList)
+            newPos = state.pos
+            newPosP = (state.pos[i][0]+transform[0],state.pos[i][1]+transform[1])
+            newPos[i] = newPosP
+
+            kdPos = KeyDoor(newPosP, (0,0))
+
+            if(kdPos in state.kList):
+                #need to remove the key,door pair
+                kdList = copy.copy(state.kList)
+                kdList.remove(KeyDoor(newPosP, (0,0)))
+                newState = MazeState(newPos, kdList, d=state.depth+1)
+                pass
+            else:
+                newState.pos = newPos
+            
+            if(isValidStatePart2(newState, wallList)):
+                successorList.append(newState)
+
+    return successorList
+
+def isValidStatePart2(state, wallList):
+    for pos in state.pos:
+        if(pos in wallList):
+            return False
+        if(pos in state.dList):
+            return False
     return True
 
 def isGoalState(state):
@@ -139,12 +211,15 @@ def y2019d18(inputPath = None):
     visitedHashTable = {}
     stateQ = Queue()
     stateQ.pushBack(startState)
+    # stateQ = PQueue()
+    # stateQ.push(startState, getHeuristicPriority(startState))
     foundGoal = None
 
     nextReport = 0
 
     while(len(stateQ) > 0):
         thisState = stateQ.pop()
+        # thisState = stateQ.popMin()
         thisHash = hash(thisState)
 
         #check if state is already visited
@@ -170,10 +245,39 @@ def y2019d18(inputPath = None):
 
         for successor in successorStates:
             stateQ.pushBack(successor)
+            # stateQ.push(successor, getHeuristicPriority(successor))
         
     if(foundGoal == None):
         print("No Goal found before all states explored")  
     else:
         print("Min distance (part 1): " + str(foundGoal.depth))
+
+    #start on part 2
+    #only need to change the state representation and the successor generation
+
+    wallsListPart2 = copy.copy(wallsList)
+    
+    def newWallsGenerator():
+        k = [(-1,0), (0,0), (1,0),(0,-1), (0,1)]
+        for kk in k:
+            yield kk
+    
+    def newPosGenerator():
+        k = [-1, 1]
+        for kk in k:
+            for kkk in k:
+                yield (kk, kkk)
+
+    for t in newWallsGenerator():
+        newWall = (start[0]+t[0], start[1]+t[1])
+        assert(newWall not in wallsListPart2)
+        wallsListPart2.append(newWall)
+    
+    startPart2 = []
+    for t in newPosGenerator():
+        newPos = (start[0]+t[0], start[1]+t[1])
+        startPart2.append(newPos)
+    
+    
         
     print("===========")
