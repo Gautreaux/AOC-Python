@@ -87,19 +87,36 @@ class MazeState():
                 return False 
             raise A
 
-def getHeuristicPriority(state):
-    return 1
+#return the heuristic priority of the state
+#a lower value indicates a better chance of success
+#TODO complete
+class HeuristicManager():
+    def __init__(self):
+        self.hashMap = {} #saves some recompute time
 
-class MazeStatePriority():
-    def __init__(self, state):
-        self.state = state
-        self.__priority = state.getHeuristicPriority()
+    def getHeuristicPriority(self, state):
+        pass
+
+def getHeuristicPriority(state):
+    #using the minimal manhattan distance heuristic
+
+    kdCopy = copy.copy(state.kList)
+
+    totalDist = 0
+    while(len(kdCopy) > 0):
+        minDist = float("inf")
+        minE = None
+
+        for kd in kdCopy:
+            p = manhattanDist(state.pos, kd.k)
+            if(p < minDist):
+                minDist = p
+                minE = kd
+
+        kdCopy.remove(kd)
+        totalDist+=p
     
-    def __lt__(self, other):
-        return self.__priority < other.__priority
-    
-    def __eq__(self, other):
-        return self.__priority == other.__priority
+    return totalDist
 
 def generateSuccessorStates(state, wallList):
     #returns a list of valid states from the current state
@@ -139,20 +156,20 @@ def isGoalState(state):
     #a goal state is on in which there are no keys remaining
     return len(state.kList) == 0
 
-#todo, refactor into the lib
-def searchLoop(startState, successorGenerator, goalCheck, report=False):
+#TODO, refactor into the lib including DFS or A* options
+def searchLoop(startState, successorGenerator, goalCheck, stateHeuristic, report=False):
     visitedHashTable = {}
-    stateQ = Queue()
-    stateQ.pushBack(startState)
-    # stateQ = PQueue()
-    # stateQ.push(startState, getHeuristicPriority(startState))
+    # stateQ = Queue()
+    # stateQ.pushBack(startState)
+    stateQ = PQueue()
+    stateQ.push(startState, stateHeuristic(startState))
     foundGoal = None
 
     nextReport = 0
 
     while(len(stateQ) > 0):
-        thisState = stateQ.pop()
-        # thisState = stateQ.popMin()
+        # thisState = stateQ.pop()
+        thisState = stateQ.popMin()
         thisHash = hash(thisState)
 
         #check if state is already visited
@@ -177,8 +194,8 @@ def searchLoop(startState, successorGenerator, goalCheck, report=False):
         successorStates = successorGenerator(thisState)
 
         for successor in successorStates:
-            stateQ.pushBack(successor)
-            # stateQ.push(successor, getHeuristicPriority(successor))
+            # stateQ.pushBack(successor)
+            stateQ.push(successor, stateHeuristic(successor))
             
     return foundGoal
 
@@ -230,7 +247,7 @@ def y2019d18(inputPath = None):
     successorGenerator = lambda x:generateSuccessorStates(x, wallsList)
 
     foundGoal = None
-    # foundGoal = searchLoop(startState, successorGenerator, isGoalState, True)
+    foundGoal = searchLoop(startState, successorGenerator, isGoalState, True)
         
     if(foundGoal == None):
         print("(Part 1) No Goal found before all states explored.")  
@@ -238,7 +255,6 @@ def y2019d18(inputPath = None):
         print("Min distance (part 1): " + str(foundGoal.depth))
 
     #start on part 2
-    #only need to change the state representation and the successor generation
 
     wallsListPart2 = copy.copy(wallsList)
     
@@ -296,7 +312,7 @@ def y2019d18(inputPath = None):
             if(validators[i](startTemp, kd.k)):
                 newKDList.append(kd)
 
-        print("KDLen: " + str(len(newKDList)))
+        # print("KDLen: " + str(len(newKDList)))
 
         startStateTemp = MazeState(startTemp, newKDList)
         results[i] = searchLoop(startStateTemp, successorGenerator, isGoalState, False)
@@ -304,6 +320,9 @@ def y2019d18(inputPath = None):
 
     #the distance is the sum of all 4 distances where
     #each robot's distance is concerned solely with the key/door pairs fully in its quadrant
+    #specifically, each agent needs to collect the keys in its quadrant
+    #   with respect to any doors in its quadrant
+    #   that is, all doors with keys in other quadrants can be assumed to be open when the need to be
 
     dTotal = 0
     for r in results:
@@ -314,6 +333,6 @@ def y2019d18(inputPath = None):
             dTotal+=r.depth
     
     print("Min distance (Part 2): " + str(dTotal))
-    #part 2: 10464 - sound wrong, havent checked
+    #part 2: 10464 - sound wrong, haven't checked
 
     print("===========")
