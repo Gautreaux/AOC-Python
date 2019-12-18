@@ -301,6 +301,9 @@ def y2019d18(inputPath = None):
         newPos = (start[0]+t[0], start[1]+t[1])
         startPart2.append(newPos)
 
+    #the distance is the sum of all 4 distances where
+    #each robot's distance is concerned solely with the key/door pairs fully in its quadrant
+
     startStatePart2 = MazeState(PosList(startPart2), kdList)
 
     successorGenerator = lambda x:generateSuccessorStatesPart2(x,wallsListPart2)
