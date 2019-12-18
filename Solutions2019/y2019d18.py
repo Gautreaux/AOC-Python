@@ -134,44 +134,6 @@ def isValidState(state, wallList):
         return False
     return True
 
-def generateSuccessorStatesPart2(state, wallList):
-    #returns a list of valid states from the current state
-    successorList = []
-
-    transforms = [(0,1),(0,-1),(-1,0),(1,0)]
-
-    for i in range(len(state.pos)):
-        for transform in transforms:
-            #TODO - some of this can move into the else block as it is redundant
-            newState = MazeState([(0,0)], state.kList, d=state.depth+1, doorList=state.dList)
-            newPos = copy.deepcopy(state.pos)
-            newPosP = (state.pos[i][0]+transform[0],state.pos[i][1]+transform[1])
-            newPos[i] = newPosP
-
-            kdPos = KeyDoor(newPosP, (0,0))
-
-            if(kdPos in state.kList):
-                #need to remove the key,door pair
-                kdList = copy.copy(state.kList)
-                kdList.remove(KeyDoor(newPosP, (0,0)))
-                newState = MazeState(newPos, kdList, d=state.depth+1)
-                pass
-            else:
-                newState.pos = newPos
-            
-            if(isValidStatePart2(newState, wallList)):
-                successorList.append(newState)
-
-    return successorList
-
-def isValidStatePart2(state, wallList):
-    for pos in state.pos:
-        if(pos in wallList):
-            return False
-        if(pos in state.dList):
-            return False
-    return True
-
 def isGoalState(state):
     #returns true iff this is a goal state
     #a goal state is on in which there are no keys remaining
@@ -284,34 +246,74 @@ def y2019d18(inputPath = None):
         k = [(-1,0), (0,0), (1,0),(0,-1), (0,1)]
         for kk in k:
             yield kk
-    
-    def newPosGenerator():
-        k = [-1, 1]
-        for kk in k:
-            for kkk in k:
-                yield (kk, kkk)
-
+        
     for t in newWallsGenerator():
         newWall = (start[0]+t[0], start[1]+t[1])
         assert(newWall not in wallsListPart2)
         wallsListPart2.append(newWall)
+
     
-    startPart2 = []
-    for t in newPosGenerator():
-        newPos = (start[0]+t[0], start[1]+t[1])
-        startPart2.append(newPos)
+    def isValidUpperLeft(start, pos):
+        if(pos[1] > start[1]):
+            return False
+        if(pos[0] > start[0]):
+            return False
+        return True
+
+    def isValidUpperRight(start, pos):
+        if(pos[1] > start[1]):
+            return False
+        if(pos[0] < start[0]):
+            return False
+        return True
+
+    def isValidLowerLeft(start, pos):
+        if(pos[1] < start[1]):
+            return False
+        if(pos[0] > start[0]):
+            return False
+        return True
+
+    def isValidLowerRight(start, pos):
+        if(pos[1] < start[1]):
+            return False
+        if(pos[0] < start[0]):
+            return False
+        return True
+
+    transforms = [(-1,-1),(1,-1),(-1,1),(1,1)]
+    validators = [isValidUpperLeft, isValidUpperRight, isValidLowerLeft, isValidLowerRight]
+    results = [None]*4
+
+    for i in range(4):
+        transform = transforms[i]
+        startTemp = (start[0]+transform[0], start[1]+transform[1])
+
+        #construct a modified key door lis
+        newKDList = []
+
+        for kd in kdList:
+            if(validators[i](startTemp, kd.k)):
+                newKDList.append(kd)
+
+        print("KDLen: " + str(len(newKDList)))
+
+        startStateTemp = MazeState(startTemp, newKDList)
+        results[i] = searchLoop(startStateTemp, successorGenerator, isGoalState, False)
+        # print("DING")
 
     #the distance is the sum of all 4 distances where
     #each robot's distance is concerned solely with the key/door pairs fully in its quadrant
 
-    startStatePart2 = MazeState(PosList(startPart2), kdList)
+    dTotal = 0
+    for r in results:
+        if(r == None):
+            print("(Part 2) Failed to locate a goal for quadrant:" + str(results.index(r)))
+        else:
+            print(str(r.depth))
+            dTotal+=r.depth
+    
+    print("Min distance (Part 2): " + str(dTotal))
+    #part 2: 10464 - sound wrong, havent checked
 
-    successorGenerator = lambda x:generateSuccessorStatesPart2(x,wallsListPart2)
-
-    foundGoal2 = searchLoop(startStatePart2, successorGenerator, isGoalState, True)
-
-    if(foundGoal2 == None):
-        print("(Part 2) No Goal found before all states explored")  
-    else:
-        print("Min distance (Part 2): " + str(foundGoal2.depth))
     print("===========")
