@@ -29,9 +29,22 @@ class KeyDoor():
 class PosList():
     def __init__(self, posList):
         self.p = posList
+        self.p.sort()
     
     def __hash__(self):
         return hash((self.p[0],self.p[1],self.p[2],self.p[3]))
+    
+    def __len__(self):
+        return len(self.p)
+    
+    def __eq__(self, other):
+        return self.p == other.p
+
+    def __getitem__(self, index):
+        return self.p[index]
+    
+    def __setitem__(self, index, value):
+        self.p[index] = value
 
 class MazeState():
     #track the key hash values
@@ -129,8 +142,9 @@ def generateSuccessorStatesPart2(state, wallList):
 
     for i in range(len(state.pos)):
         for transform in transforms:
+            #TODO - some of this can move into the else block as it is redundant
             newState = MazeState([(0,0)], state.kList, d=state.depth+1, doorList=state.dList)
-            newPos = state.pos
+            newPos = copy.deepcopy(state.pos)
             newPosP = (state.pos[i][0]+transform[0],state.pos[i][1]+transform[1])
             newPos[i] = newPosP
 
@@ -162,6 +176,49 @@ def isGoalState(state):
     #returns true iff this is a goal state
     #a goal state is on in which there are no keys remaining
     return len(state.kList) == 0
+
+#todo, refactor into the lib
+def searchLoop(startState, successorGenerator, goalCheck, report=False):
+    visitedHashTable = {}
+    stateQ = Queue()
+    stateQ.pushBack(startState)
+    # stateQ = PQueue()
+    # stateQ.push(startState, getHeuristicPriority(startState))
+    foundGoal = None
+
+    nextReport = 0
+
+    while(len(stateQ) > 0):
+        thisState = stateQ.pop()
+        # thisState = stateQ.popMin()
+        thisHash = hash(thisState)
+
+        #check if state is already visited
+        if(thisHash not in visitedHashTable):
+            visitedHashTable[thisHash] = [thisState]
+        else:
+            if(thisState in visitedHashTable[thisHash]):
+                continue
+            else:
+                visitedHashTable[thisHash].append(thisState)
+
+        #check if state is goal
+        if(goalCheck(thisState)):
+            foundGoal = thisState
+            break
+
+        if(report and thisState.depth == nextReport):
+            print("Depth Report: " + str(thisState.depth))
+            nextReport+=10
+    
+        #need to add successors
+        successorStates = successorGenerator(thisState)
+
+        for successor in successorStates:
+            stateQ.pushBack(successor)
+            # stateQ.push(successor, getHeuristicPriority(successor))
+            
+    return foundGoal
 
 def y2019d18(inputPath = None):
     if(inputPath == None):
@@ -208,47 +265,13 @@ def y2019d18(inputPath = None):
         
     startState = MazeState(start, kdList)
 
-    visitedHashTable = {}
-    stateQ = Queue()
-    stateQ.pushBack(startState)
-    # stateQ = PQueue()
-    # stateQ.push(startState, getHeuristicPriority(startState))
+    successorGenerator = lambda x:generateSuccessorStates(x, wallsList)
+
     foundGoal = None
-
-    nextReport = 0
-
-    while(len(stateQ) > 0):
-        thisState = stateQ.pop()
-        # thisState = stateQ.popMin()
-        thisHash = hash(thisState)
-
-        #check if state is already visited
-        if(thisHash not in visitedHashTable):
-            visitedHashTable[thisHash] = [thisState]
-        else:
-            if(thisState in visitedHashTable[thisHash]):
-                continue
-            else:
-                visitedHashTable[thisHash].append(thisState)
-
-        #check if state is goal
-        if(isGoalState(thisState)):
-            foundGoal = thisState
-            break
-
-        if(thisState.depth == nextReport):
-            print("Depth Report: " + str(thisState.depth))
-            nextReport+=10
-    
-        #need to add successors
-        successorStates = generateSuccessorStates(thisState, wallsList)
-
-        for successor in successorStates:
-            stateQ.pushBack(successor)
-            # stateQ.push(successor, getHeuristicPriority(successor))
+    # foundGoal = searchLoop(startState, successorGenerator, isGoalState, True)
         
     if(foundGoal == None):
-        print("No Goal found before all states explored")  
+        print("(Part 1) No Goal found before all states explored.")  
     else:
         print("Min distance (part 1): " + str(foundGoal.depth))
 
@@ -277,7 +300,15 @@ def y2019d18(inputPath = None):
     for t in newPosGenerator():
         newPos = (start[0]+t[0], start[1]+t[1])
         startPart2.append(newPos)
-    
-    
-        
+
+    startStatePart2 = MazeState(PosList(startPart2), kdList)
+
+    successorGenerator = lambda x:generateSuccessorStatesPart2(x,wallsListPart2)
+
+    foundGoal2 = searchLoop(startStatePart2, successorGenerator, isGoalState, True)
+
+    if(foundGoal2 == None):
+        print("(Part 2) No Goal found before all states explored")  
+    else:
+        print("Min distance (Part 2): " + str(foundGoal2.depth))
     print("===========")
