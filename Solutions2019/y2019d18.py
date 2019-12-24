@@ -97,26 +97,34 @@ class HeuristicManager():
     def getHeuristicPriority(self, state):
         pass
 
+#TODO - finish implementing the heuristic calculator
+#   should be minimal-manhattan dist/ManhattanMST+access
+#   or should be something else?
+#       closest friend distance?
+#           ths sum of distanced from each key to the closest other key
 def getHeuristicPriority(state):
     #using the minimal manhattan distance heuristic
+    return state.depth+len(state.kList)
+    return nullHeuristic(state)
+    # return state.depth
 
-    kdCopy = copy.copy(state.kList)
+    # kdCopy = copy.copy(state.kList)
 
-    totalDist = 0
-    while(len(kdCopy) > 0):
-        minDist = float("inf")
-        minE = None
+    # totalDist = 0
+    # while(len(kdCopy) > 0):
+    #     minDist = float("inf")
+    #     minE = None
 
-        for kd in kdCopy:
-            p = manhattanDist(state.pos, kd.k)
-            if(p < minDist):
-                minDist = p
-                minE = kd
+    #     for kd in kdCopy:
+    #         p = manhattanDist(state.pos, kd.k)
+    #         if(p < minDist):
+    #             minDist = p
+    #             minE = kd
 
-        kdCopy.remove(kd)
-        totalDist+=p
+    #     kdCopy.remove(kd)
+    #     totalDist+=p
     
-    return totalDist
+    # return totalDist
 
 def generateSuccessorStates(state, wallList):
     #returns a list of valid states from the current state
@@ -156,13 +164,48 @@ def isGoalState(state):
     #a goal state is on in which there are no keys remaining
     return len(state.kList) == 0
 
+#the default heuristic method
+def nullHeuristic(state):
+    return 0
+
 #TODO, refactor into the lib including DFS or A* options
-def searchLoop(startState, successorGenerator, goalCheck, stateHeuristic, report=False):
+#TODO, implement the search state constructor for DFS,BFS,A*
+def searchLoop(startState, successorGenerator, goalCheck, stateHeuristic = nullHeuristic, report=None, searchStructureConstructor = Queue):
+    #params
+    #   startState - the first state in the search
+    #   successorGenerator
+    #       a function that maps a state to a list of all valid successor states
+    #       state -> [state]
+    #   goalCheck
+    #       a function that maps a state to a boolean T/F of whether this state satisfies the goal
+    #       state -> bool
+    #   stateHeuristic (optional)
+    #       a function that maps a state to a heuristic priority of goodness
+    #       state -> numeric
+    #       generally, only applies to A*
+    #       generally, should include depth as a factor
+    #       Defaults to the null heuristic (state -> 0)
+    #   report (optional)
+    #       a T/F boolean value that describes how often a report should be generated
+    #       this is a print statement each time the search finds the first path
+    #           or length n*report where n is a integer in the range [0..] until the search terminates
+    #       reporting is disabled with a value of None (default value)
+    #   searchStructureConstructor (optional)
+    #       a function constructor for the object to manage the search
+    #       A* - Priority Queue, BFS - FIFO Queue, DFS - Stack
+    #       The search object must support the following operations:
+    #           __len__ - (self->int)  - the length of the object, 0 when empty
+    #           pop     - (self->state) - remove the object (state) that is next in the search
+    #           push - (self, state, priority -> void) - add the object based on the priority provided
+    #               the heuristic function
+    #return
+    #   None - the search space was exhausted before a goal was found
+    #   Int - the depth from from the start state to the first goal state encountered by this algorithm
     visitedHashTable = {}
     # stateQ = Queue()
     # stateQ.pushBack(startState)
     stateQ = PQueue()
-    stateQ.push(startState, stateHeuristic(startState))
+    stateQ.push(startState, 0)
     foundGoal = None
 
     nextReport = 0
@@ -186,7 +229,7 @@ def searchLoop(startState, successorGenerator, goalCheck, stateHeuristic, report
             foundGoal = thisState
             break
 
-        if(report and thisState.depth == nextReport):
+        if(report != None and thisState.depth == nextReport):
             print("Depth Report: " + str(thisState.depth))
             nextReport+=10
     
@@ -247,7 +290,8 @@ def y2019d18(inputPath = None):
     successorGenerator = lambda x:generateSuccessorStates(x, wallsList)
 
     foundGoal = None
-    foundGoal = searchLoop(startState, successorGenerator, isGoalState, True)
+    # foundGoal = searchLoop(startState, successorGenerator, isGoalState, True)
+    foundGoal = searchLoop(startState, successorGenerator, isGoalState, getHeuristicPriority, 10)
         
     if(foundGoal == None):
         print("(Part 1) No Goal found before all states explored.")  
@@ -315,7 +359,8 @@ def y2019d18(inputPath = None):
         # print("KDLen: " + str(len(newKDList)))
 
         startStateTemp = MazeState(startTemp, newKDList)
-        results[i] = searchLoop(startStateTemp, successorGenerator, isGoalState, False)
+        # results[i] = searchLoop(startStateTemp, successorGenerator, isGoalState, False)
+        results[i] = searchLoop(startStateTemp, successorGenerator, isGoalState, getHeuristicPriority)
         # print("DING")
 
     #the distance is the sum of all 4 distances where
