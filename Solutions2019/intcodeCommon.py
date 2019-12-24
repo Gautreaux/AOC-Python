@@ -2,7 +2,7 @@
 import copy
 
 class MemoryModule:
-    __INITIAL_MEMORY_VALUE__ = 0
+    __INITIAL_MEMORY_VALUE__ = 0 #the default value for an item not in memory
 
     def __init__(self):
         self.memory = {}
@@ -33,19 +33,22 @@ def __get5LenNumber(inputNum):
 class IntProcessor:
     #operates on intcode to produce results
     NOT_STARTED = 0
-    RUNNING = 1 #reserved for asychronous behavior 
+    RUNNING = 1 #reserved for asynchronous behavior 
     FINISHED = 2
 
     #a mapping of opcode to parameter count
     PARAMETER_DICT = {1:3,2:3,3:1,4:1,5:2,6:2,7:3,8:3,9:1,99:0}
 
+    #TODO - should define basic functions that handle input (from user) and output (to consloe)
     def __init__(self, program, inputFunction = None, outputFunction = None, cache = False):
         'Initialize the IntComputer'
         #params
-        # inputFunction - the function that will be providing the input (void -->int)
-        # outputFunction - the function that will be receiving the output (int --> void)
-        # cache - should this program store a raw version of the program 
-        #   this is used for reset
+        # program - [int]
+        #   a list of integers that follows the intcode standard
+        # inputFunction - the function (void -> int) that will be providing the input 
+        # outputFunction - the function (int -> void) that will be receiving the output
+        # cache - (T/F) should this program store a raw version of the program 
+        #   this is used for reset to avoid rereading from disk
 
 
         if(__isValidProgram(program)):
@@ -61,9 +64,7 @@ class IntProcessor:
         else:
             self.cache = None
 
-        self.state = NOT_STARTED
-
-
+        self.state = IntProcessor.NOT_STARTED
 
     def loadProgram(self, program):
         #load the new program if it is valid
@@ -74,8 +75,9 @@ class IntProcessor:
             if(self.cache != None):
                 self.cache = copy.deepcopy(self.memory)
 
-            self.state = self.NOT_STARTED
-            self.relativeBase = None
+            self.state = IntProcessor.NOT_STARTED
+        else:
+            raise ValueError("In IntComputer initialization, program failed preliminary checks.");
 
     def reset(self):
         #reset the memory to its cached state  
@@ -84,7 +86,7 @@ class IntProcessor:
             raise ValueError("Cannot reset a progam which is not cached.")
     
         self.memory = copy.deepcopy(self.cache)
-        self.state = self.NOT_STARTED
+        self.state = IntProcessor.NOT_STARTED
 
     def getParameter(self, address, mode):
         #gets a parameter based on its address and mode
@@ -108,6 +110,11 @@ class IntProcessor:
 
     def run(self, programCounterIn = 0, relativeBaseIn = 0):
         #execute the intcode computer
+        #params
+        #   programCounterIn (optional) - (int) the initial value of the program counter
+        #       default 0
+        #   relativeBaseIn (optional) - (int) the initial value of the relative base
+        #       default 0
         if(self.state != self.NOT_STARTED):
             raise ValueError("The state was not NOT_STARTED (0)")
 
@@ -117,9 +124,13 @@ class IntProcessor:
         modeList = [None, None, None] #stores the modes for each item
         paramList = [None, None, None] #stores the parameter value for each item
 
-        programCounter = programCounterIn
+        self.programCounter = programCounterIn
+        self.relativeBase = relativeBaseIn
 
         while True:
+            #TODO - this is a shortcut, all should be self.programCounter
+            programCounter = self.programCounter
+            
             fiveNum = __get5LenNumber(self.memory[programCounter])
             operation = int(fiveNum[3:5])
 
@@ -145,6 +156,35 @@ class IntProcessor:
                 self.writeParameter(programCounter+1, modeList[0], int(self.inputFunction()))
             elif(operation == 4):
                 outputFunction(paramList[0])
+            elif(operation == 5):
+                if(paramList[0] != 0):
+                    self.programCounter = paramList[1]
+                    continue
+            elif(operation == 6):
+                if(paramList[0] == 0):
+                    self.programCounter = paramList[1]
+                    continue
+            elif(operation == 7):
+                if(paramList[0] < paramList[1]):
+                    writeParameter(programCounter+3, modeList[2], 1)
+                else:
+                    writeParameter(programCounter+3, modeList[2], 0)
+            elif(operation == 8):
+                if(paramList[0] == paramList[1]):
+                    writeParameter(programCounter+3, modeList[2], 1)
+                else:
+                    writeParameter(programCounter+3, modeList[2], 0)
+            elif(operation == 9):
+                self.relativeBase += paramList[0]
+            else:
+                raise ValueError("Illegal operation: " + str(operation) + " in intcode " + str(fiveNum) + " (Secondary catch, how did you get here?)")
+
+            #update the program counter appropriately
+            self.programCounter+=paramRequired+1
             #TODO finish
 
-        self.state = self.FINISHED
+        self.state = IntProcessor.FINISHED
+        #TODO - what should be returned when done?
+
+
+#TODO - should implement a common read program from file class
