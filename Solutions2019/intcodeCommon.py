@@ -11,24 +11,13 @@ class MemoryModule:
         if(key < 0):
             raise KeyError("Illegal memory address: " + str(key))
         if(key not in self.memory):
-            self.memory[key] = __INITIAL_MEMORY_VALUE__
+            self.memory[key] = MemoryModule.__INITIAL_MEMORY_VALUE__
         return self.memory[key]
     
     def __setitem__(self, key, value):
         if(key < 0):
             raise KeyError("Illegal memory address: " + str(key))
         self.memory[key] = value
-
-def __isValidProgram(program):
-    'Return true iff the program is a valid program'
-    #TODO - what does this check look like?
-    return program != None
-
-def __get5LenNumber(inputNum):
-    inputNum = str(inputNum)
-    while(len(inputNum) < 5):
-        inputNum = '0'+inputNum
-    return inputNum
 
 class IntProcessor:
     #operates on intcode to produce results
@@ -51,7 +40,7 @@ class IntProcessor:
         #   this is used for reset to avoid rereading from disk
 
 
-        if(__isValidProgram(program)):
+        if(IntProcessor.__isValidProgram(program)):
             self.memory = program
         else:
             raise ValueError("In IntComputer initialization, program failed preliminary checks.");
@@ -70,7 +59,7 @@ class IntProcessor:
         #load the new program if it is valid
         #otherwise do nothing 
 
-        if(__isValidProgram(program)):
+        if(IntProcessor.__isValidProgram(program)):
             self.memory = program
             if(self.cache != None):
                 self.cache = copy.deepcopy(self.memory)
@@ -116,7 +105,7 @@ class IntProcessor:
         #   relativeBaseIn (optional) - (int) the initial value of the relative base
         #       default 0
         if(self.state != self.NOT_STARTED):
-            raise ValueError("The state was not NOT_STARTED (0)")
+            raise ValueError("The state was not NOT_STARTED ("+str(self.NOT_STARTED)+")")
 
         self.state = self.RUNNING
 
@@ -131,11 +120,12 @@ class IntProcessor:
             #TODO - this is a shortcut, all should be self.programCounter
             programCounter = self.programCounter
             
-            fiveNum = __get5LenNumber(self.memory[programCounter])
+            fiveNum = IntProcessor.__get5LenNumber(self.memory[programCounter])
+            print(fiveNum)
             operation = int(fiveNum[3:5])
 
-            if(opcode not in self.PARAMETER_DICT):
-                raise ValueError("Illegal opcode: " + str(operation))
+            if(operation not in self.PARAMETER_DICT):
+                raise ValueError("Illegal operation: " + str(operation))
 
             paramRequired = self.PARAMETER_DICT[operation]
 
@@ -186,6 +176,18 @@ class IntProcessor:
         self.state = IntProcessor.FINISHED
         return True
         #TODO - what should be returned when done?
+    
+    def __isValidProgram(program):
+        'Return true iff the program is a valid program'
+        #TODO - what does this check look like?
+        return program != None
+
+    def __get5LenNumber(inputNum):
+        'Convert a number to its  length representation'
+        inputNum = str(inputNum)
+        while(len(inputNum) < 5):
+            inputNum = '0'+inputNum
+        return inputNum
 
 
 #TODO - should implement a common read program from file class
@@ -214,7 +216,7 @@ def readProgramFromDisk(path):
             myProgram = MemoryModule()
 
             for i in range(len(intList)):
-                myProgram[i] = intList[0]
+                myProgram[i] = int(intList[0])
 
     except FileNotFoundError as e:
         print("File Not Error reading program: " + str(e))
