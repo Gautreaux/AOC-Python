@@ -184,7 +184,39 @@ class IntProcessor:
             #TODO finish
 
         self.state = IntProcessor.FINISHED
+        return True
         #TODO - what should be returned when done?
 
 
 #TODO - should implement a common read program from file class
+def readProgramFromDisk(path):
+    #read a program from the disk
+    #params
+    #   path - the path to the file containing the program
+    #       this file should be exactly one line long with the intcode program
+    #return
+    #   None - something went wrong, and a statement is printed
+    #   MemoryModule - the program in memory module representation
+    if path == None or path == "":
+        raise ValueError("Path '" + str(path) + "' is invalid")
+    
+    try:
+        with open(path, 'r') as f:
+            line = f.readline().strip()
+
+            #TODO - what is the proper way to see if EOF reached
+            nLine = f.readline()
+            if(nLine != ""):
+                print("Warning reading program, the program file contained multiple lines.")
+
+            intList = line.replace(" ", "").split(",")
+
+            myProgram = MemoryModule()
+
+            for i in range(len(intList)):
+                myProgram[i] = intList[0]
+
+    except FileNotFoundError as e:
+        print("File Not Error reading program: " + str(e))
+
+    return myProgram
