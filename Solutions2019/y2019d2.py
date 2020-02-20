@@ -29,17 +29,21 @@ def getZeroValue(codeInstr):
 
     return codeInstr[0]
 
-def y2019d2(inputPath = None):
+def y2019d2(inputPath = None, autoTesting = False):
     if(inputPath == None):
         inputPath = "Input2019/d2.txt"
-    print("2019 day 2:")
+    if(not autoTesting):  
+        print("2019 day 2:")
 
     myProgram = readProgramFromDisk(inputPath)
     myProcessor = IntProcessor(myProgram, None, None, True)
-    if(not myProcessor.run()):
+    if(not autoTesting and not myProcessor.run()):
         print("A processor error occurred.")
     
-    print("The value in location 0 (part 1) is: " + myProcessor.memory[0])
+    if(not autoTesting):
+        print("The value in location 0 (part 1) is: " + myProcessor.memory[0])
+    part1Answer = myProcessor.memory[0]
+    part2Answer = None
 
     #part 2
     desiredAnswer = 19690720
@@ -52,21 +56,24 @@ def y2019d2(inputPath = None):
             for j in range(0, i):
                 res = getZeroValueFromInput(codeInstr, i, j)
                 if(res == desiredAnswer):
-                    print("The values for part 2 are: " + str(i) + ", " + str(j))
-                    print("The answer is: " + str(i*100+j))
+                    if(not autoTesting):
+                        print("The values for part 2 are: " + str(i) + ", " + str(j))
+                        print("The answer is: " + str(i*100+j))
+                    part2Answer = str(i*100+j)
                     raise BreakException
     except BreakException:
         pass
 
     #part 2 - iterative
-
-    if(99 in codeInstr):
-        print("There is a possible reverse solution")
-        print("But i'm not going to worry about it because there is only 10000 possible input values")
-    else:
-        print("The reverse solution is impossible")
-    
-    print("===========")
+    if(not autoTesting):
+        if(99 in codeInstr):
+            print("There is a possible reverse solution")
+            print("But i'm not going to worry about it because there is only 10000 possible input values")
+        else:
+            print("The reverse solution is impossible")
+        
+        print("===========")
+    return (part1Answer, part2Answer)
 
 
 #337076 is not correct
