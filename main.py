@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from importlib import import_module
 from inspect import getmembers
 
+from Templates.templateConverter import convertTemplate
 from Util.Util import *
 from Util.FileUtil import allFilesInDirByType
 
@@ -44,7 +45,7 @@ def runDay(dateCode:str):
 def generateBaseSolution(dateCode:str):
     '''Generate a new solution for the provided date code'''
     print(f"Generating new template file for the provided datecode {dateCode}")
-    raise NotImplementedError
+    convertTemplate(dateCode)
 
 
 if __name__ == "__main__":

@@ -15,3 +15,16 @@ def allFilesInDirByType(searchDir, fileType) -> list:
 
     return [f for f in [searchDir+'/'+f for f in os.listdir(searchDir)] if
                 os.path.isfile(f) and f[-len(fileType):] == fileType]
+
+def isFileInDir(dir:str, file:str) -> bool:
+    """Given a dir, see if a file exists"""
+    try:
+        return file in os.listdir()
+    except:
+        # Treat a directory not existing as file not present
+        return False
+
+def isPathInHeirarchy(path:str) -> bool:
+    """Given a path, see if the file exists"""
+    k = path.rfind('/')
+    return isFileInDir(path[:k], path[k+1:])
