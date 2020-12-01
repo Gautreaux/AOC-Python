@@ -15,6 +15,7 @@ def y%{year}d%{day}(inputPath = None):
 
     with open(inputPath) as f:
         for line in f:
+            line = line.strip()
             pass
         
     return (Part_1_Answer, Part_2_Answer)
@@ -26,10 +27,6 @@ Y%{year}D%{day}_DEFAULT_VALUE = "TODO" # TODO - provide the default starting val
 def y%{year}d%{day}(inputValue = Y%{year}D%{day}_DEFAULT_VALUE):
     Part_1_Answer = None
     Part_2_Answer = None
-
-    with open(inputPath) as f:
-        for line in f:
-            pass
         
     return (Part_1_Answer, Part_2_Answer)
 
@@ -46,6 +43,10 @@ def y%{year}d%{day}(inputPath = None):
 
     with open(inputPath) as f:
         line = f.readline().strip()
+
+    # iterate of the characters of the line
+    for c in line:
+        pass
         
     return (Part_1_Answer, Part_2_Answer)
 
