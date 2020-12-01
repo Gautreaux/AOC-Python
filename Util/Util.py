@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 import pytz
-from typing import Tuple
+from typing import Generator, Tuple
 
 def getLastDateCode() -> str:
     '''Return the dayCode of the last day that was released'''
@@ -24,7 +24,7 @@ def isValidDateCode(dateCode:str) -> bool:
         assert(dateCode[0] == 'y')
         assert(dateCode[5] == 'd')
         (y, d) = splitDateCode(dateCode)
-        assert(y in range(2015,2025))
+        assert(y in range(2015,2025)) # allowing some future dating
         assert(d in range(1,26))
     except:
         return False
@@ -35,3 +35,17 @@ def splitDateCode(dateCode:str) -> Tuple[int, int]:
     '''Return the elements of the date code in (year, day), raise error if invalid format'''
     return (int(dateCode[1:5]), int(dateCode[6:]))
     
+
+def genElapsedDateCodes() -> Generator[str, None, None]:
+    ''''Generator of all released dateCodes'''
+    START_DATECODE = "y2015d1"
+    assert(isValidDateCode(START_DATECODE))
+
+    startYear, startDay = splitDateCode(START_DATECODE)
+    assert(startDay == 1)
+
+    lastYear, lastDay = splitDateCode(getLastDateCode())
+
+    for year in range(startYear, lastYear +1):
+        for day in range(1, 26 if year != lastYear else lastDay + 1):
+            yield f"y{year}d{day}"
