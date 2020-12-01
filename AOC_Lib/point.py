@@ -57,6 +57,40 @@ class Point2():
         return Point2(self.x - o.x, self.y - o.y)
 
 
+Y_DOWN_2_TRANSFORMS = {
+    'U' : Point2( 0, -1),
+    'L' : Point2(-1,  0),
+    'R' : Point2( 1,  0),
+    'D' : Point2( 0,  1)
+}
+
+Y_UP_2_TRANSFORMS = {
+    'U' : Point2( 0,  1),
+    'L' : Point2(-1,  0),
+    'R' : Point2( 1,  0),
+    'D' : Point2( 0, -1),
+}
+
+Y_2_TRANSLATIONS = {
+    'N' : 'U',
+    'S' : 'D',
+    'E' : 'R',
+    'W' : 'L',
+    'U' : 'U',
+    'D' : 'D',
+    'L' : 'L',
+    'R' : 'R',
+      0 : 'U',
+      2 : 'D',
+      3 : 'L',
+      1 : 'R',
+    '^' : 'U',
+    'v' : 'D',
+    '>' : 'R',
+    '<' : 'L'
+}
+
+
 #TODO - finish point3 implementation
 class Point3():
     def __init__(self):

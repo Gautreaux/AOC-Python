@@ -1,5 +1,7 @@
+from Solutions2016.y2016d2 import y2016d2
 from AOC_Lib.boundedInt import BoundedInt
-from AOC_Lib.point import Point2
+from AOC_Lib.point import Point2, Y_2_TRANSLATIONS
+from AOC_Lib.point import Y_UP_2_TRANSFORMS as transforms
 
 # sample variant for single line inputs
 def y2015d3(inputPath = None):
@@ -13,18 +15,13 @@ def y2015d3(inputPath = None):
     with open(inputPath) as f:
         line = f.readline().strip()
 
-    transforms = {  '^' : Point2( 0,  1),
-                    'v' : Point2( 0, -1),
-                    '>' : Point2( 1,  0),
-                    '<' : Point2(-1,  0)}
-
     posSet = set()
     currentPoint = Point2(0,0)
     posSet.add(currentPoint)
 
     for c in line:
         # move
-        currentPoint += transforms[c]
+        currentPoint += transforms[Y_2_TRANSLATIONS[c]]
 
         if currentPoint not in posSet:
             posSet.add(currentPoint)
@@ -37,7 +34,7 @@ def y2015d3(inputPath = None):
     parity = BoundedInt(2)
 
     for c in line:
-        currentPoints[parity.asInt()] += transforms[c]
+        currentPoints[parity.asInt()] += transforms[Y_2_TRANSLATIONS[c]]
 
         if currentPoints[parity.asInt()] not in pt2Set:
             pt2Set.add(currentPoints[parity.asInt()])

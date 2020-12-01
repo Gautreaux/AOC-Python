@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from importlib import import_module
 from inspect import getmembers
 
+from inputDownloader import getInputForDateCode
 from solutionTesting import solutionDict
 from Templates.templateConverter import convertTemplate
 from Util.Util import *
@@ -117,6 +118,9 @@ def runDay(dateCode:str, genTemplateIfNotPresent=True):
 
 def generateBaseSolution(dateCode:str):
     '''Generate a new solution for the provided date code'''
+    print(f"Downloading input for datecode {dateCode}")
+    if getInputForDateCode(dateCode) is False:
+        print(f"Something went wrong downloading the input file")
     print(f"Generating new template file for the provided datecode {dateCode}")
     convertTemplate(dateCode)
 
