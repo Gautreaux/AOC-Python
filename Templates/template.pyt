@@ -1,4 +1,3 @@
-#no_lint
 # from AOC_Lib.name import *
 
 raise RuntimeError("Must remove excess provided templates first")
