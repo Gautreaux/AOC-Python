@@ -22,8 +22,8 @@ def y2020d1(inputPath = None):
         if sum(e) == 2020:
             Part_1_Answer = elementwiseMultiplication(e)
 
-    for (i,j,k) in allTriplesGenerator(l):
-        if i + j + k == 2020:
+    for e in allTriplesGenerator(l):
+        if sum(e) == 2020:
             Part_2_Answer = elementwiseMultiplication(e)
         
     return (Part_1_Answer, Part_2_Answer)

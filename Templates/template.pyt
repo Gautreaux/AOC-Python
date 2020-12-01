@@ -15,7 +15,7 @@ def y%{year}d%{day}(inputPath = None):
 
     with open(inputPath) as f:
         for line in f:
-            print(line)
+            pass
         
     return (Part_1_Answer, Part_2_Answer)
 
@@ -29,7 +29,23 @@ def y%{year}d%{day}(inputValue = Y%{year}D%{day}_DEFAULT_VALUE):
 
     with open(inputPath) as f:
         for line in f:
-            print(line)
+            pass
+        
+    return (Part_1_Answer, Part_2_Answer)
+
+# ================================================================
+
+# sample variant for single line inputs
+def y%{year}d%{day}(inputPath = None):
+    if(inputPath == None):
+        inputPath = "Input%{year}/d%{day}.txt"
+    print("%{year} day %{day}:")
+
+    Part_1_Answer = None
+    Part_2_Answer = None
+
+    with open(inputPath) as f:
+        line = f.readline().strip()
         
     return (Part_1_Answer, Part_2_Answer)
 

@@ -1,7 +1,10 @@
 #maintains the data structure for point(s)
 
 
-class point2():
+from typing import Type
+
+
+class Point2():
     def __init__(self, p1, p2 = None):
         try:
             if(len(p1) == 1):
@@ -24,7 +27,7 @@ class point2():
         elif(key == 1 or key == 'y'):
             return self.y
         
-        raise KeyError("Invalid key ("+str(key)") in point2")
+        raise KeyError(f"Invalid key ({str(key)}) in point2")
 
     def __setitem__(self, key, item):
         #TODO - validate item on success
@@ -33,7 +36,7 @@ class point2():
         elif(key == 0 or key == 'y'):
             self.y = item
         
-        raise KeyError("Invalid key ("+str(key)") in point2"))
+        raise KeyError(f"Invalid key ({str(key)}) in point2")
 
     def __repr__(self):
         return str(self)
@@ -44,10 +47,17 @@ class point2():
     def __hash__(self):
         return hash((self.x, self.y))
 
-    #TODO - equality and addition/subtraction
+    def __eq__(self, o: 'Point2') -> bool:
+        return self.x == o.x and self.y == o.y
+
+    def __add__(self, o: 'Point2') -> 'Point2':
+        return Point2(self.x + o.x, self.y + o.y)
+
+    def __sub__(self, o: 'Point2') -> 'Point2':
+        return Point2(self.x - o.x, self.y - o.y)
 
 
 #TODO - finish point3 implementation
-class point3():
+class Point3():
     def __init__(self):
         pass
