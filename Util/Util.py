@@ -14,7 +14,7 @@ def getLastDateCode() -> str:
     elif datetime_NY.day > 25:
         return f"y{datetime_NY.year}d25"
     else:
-        return f"Y{datetime_NY.year}d{datetime_NY.day}"
+        return f"y{datetime_NY.year}d{datetime_NY.day}"
 
 
 def isValidDateCode(dateCode:str) -> bool:
