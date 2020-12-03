@@ -52,7 +52,7 @@ class BoundedInt:
 # TODO - proper unit testing on these items
 
 class LockedInt:
-    """An integer fixed between lower and upper inclusive bound"""
+    """An integer fixed between lower and upper inclusive bound (no rollover)"""
     def __init__(self, lower_bound, upper_bound, value=None) -> None:
         assert(lower_bound <= upper_bound)
 

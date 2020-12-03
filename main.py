@@ -146,6 +146,6 @@ if __name__ == "__main__":
         print(f"Last dateCode resolved to {dateCode}")
         (part1Answer, part2Answer) = runDay(dateCode)
     
-    print(f"For day {dateCode}:")
+    print(f"Answer for day {dateCode}:")
     print(f"Part 1: {part1Answer}")
     print(f"Part 2: {part2Answer}")
