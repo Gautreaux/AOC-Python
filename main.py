@@ -15,6 +15,7 @@ class FunctionImportError(RuntimeError):
 DAY_NOT_SOLVED = 1
 GENERIC_ERROR = 2
 
+#TODO - this still isnt working correctly
 def runAll():
     '''Run over all days, print to console'''
     # TODO - multi process and/or cache results
@@ -96,7 +97,7 @@ def runDay(dateCode:str, genTemplateIfNotPresent=True):
     #check if a solution is present,
     dir = f"Solutions{y}"
     if f"{dir}/{dateCode}.py" not in allFilesInDirByType(dir, '.py'):
-        if genTemplateIfNotPresent:
+        if genTemplateIfNotPresent is True:
             # a solution is not present so we generate a new one
             generateBaseSolution(dateCode)
         else:
@@ -114,6 +115,7 @@ def runDay(dateCode:str, genTemplateIfNotPresent=True):
         if e[0] == dateCode:
             return e[1]()
 
+    # should be unreachable
     raise FunctionImportError(f"For dateCode {dateCode}: The module imported correctly, but function not found")
 
 def generateBaseSolution(dateCode:str):
@@ -137,6 +139,7 @@ if __name__ == "__main__":
         
     if args.d is not None:
         dateCode = args.d[0]
+        assert(isValidDateCode(dateCode))
         (part1Answer, part2Answer) = runDay(dateCode)
     else:
         dateCode = getLastDateCode()

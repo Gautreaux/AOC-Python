@@ -26,6 +26,7 @@ def y2020d2(inputPath = None):
             word = x.group(4)
 
             c = sum(map(lambda x: 1 if x == char else 0, word))
+            # c = len(list(filter(lambda x: x == char, word)))
 
             if c >= minC and c <= maxC:
                 Part_1_Answer += 1
