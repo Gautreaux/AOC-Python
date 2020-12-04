@@ -12,10 +12,12 @@ def y%{year}d%{day}(inputPath = None):
 
     Part_1_Answer = None
     Part_2_Answer = None
+    lineList = []
 
     with open(inputPath) as f:
         for line in f:
             line = line.strip()
+            lineList.append(line)
             pass
         
     return (Part_1_Answer, Part_2_Answer)

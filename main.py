@@ -8,6 +8,7 @@ from solutionTesting import solutionDict
 from Templates.templateConverter import convertTemplate
 from Util.Util import *
 from Util.FileUtil import allFilesInDirByType
+from Util.IntelliParseTesting import testAllIntelliParse
 
 class FunctionImportError(RuntimeError):
     pass
@@ -131,21 +132,24 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Run an advent of code trial(s). Runs the most recent day unless otherwise specified.")
     parser.add_argument('-a', action='store_true', help=runAll.__doc__)
     parser.add_argument('-d', nargs=1, help=runDay.__doc__)
+    parser.add_argument('-p', action='store_true', help=testAllIntelliParse.__doc__)
 
     args = parser.parse_args()
 
     if args.a is True:
-        runAll()
+        runAll()        
+    elif args.p is not None:
+        testAllIntelliParse()
+    else: # a particular day
+        if args.d is not None:
+            dateCode = args.d[0]
+            assert(isValidDateCode(dateCode))
+            (part1Answer, part2Answer) = runDay(dateCode)
+        else:
+            dateCode = getLastDateCode()
+            print(f"Last dateCode resolved to {dateCode}")
+            (part1Answer, part2Answer) = runDay(dateCode)
         
-    if args.d is not None:
-        dateCode = args.d[0]
-        assert(isValidDateCode(dateCode))
-        (part1Answer, part2Answer) = runDay(dateCode)
-    else:
-        dateCode = getLastDateCode()
-        print(f"Last dateCode resolved to {dateCode}")
-        (part1Answer, part2Answer) = runDay(dateCode)
-    
-    print(f"Answer for day {dateCode}:")
-    print(f"Part 1: {part1Answer}")
-    print(f"Part 2: {part2Answer}")
+        print(f"Answer for day {dateCode}:")
+        print(f"Part 1: {part1Answer}")
+        print(f"Part 2: {part2Answer}")
