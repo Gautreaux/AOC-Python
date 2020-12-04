@@ -138,8 +138,8 @@ if __name__ == "__main__":
 
     if args.a is True:
         runAll()        
-    elif args.p is not None:
-        testAllIntelliParse()
+    # elif args.p is not None:
+    #     testAllIntelliParse()
     else: # a particular day
         if args.d is not None:
             dateCode = args.d[0]
