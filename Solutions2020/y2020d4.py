@@ -1,83 +1,18 @@
 # from AOC_Lib.name import *
 
 
-def checkValid(passport:str) -> bool:
+from AOC_Lib.charSets import CHARSET_DIGITS, CHARSET_HEXADECIMAL_LOWER
 
-    expected = {
-        'byr':1,
-        'iyr':1,
-        'eyr':1,
-        'hgt':1,
-        'hcl':1,
-        'ecl':1,
-        'pid':1,
-        'cid':0,
-    }
+# moved out b/c I think this one is coming back
+eclList = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
 
-    while passport.find("  ") != -1:
-        passport.replace("  ", " ")
-    fields = passport.strip().split(" ")
-    for f in fields:
-        e = f.split(":")
-
-        if(len(e) != 2):
-            print(e)
-            print(f)
-            print(fields)
-            print(passport)
-        assert(len(e) == 2)
-
-        k = e[0]
-        v = e[1]
-
-        if k == 'cid':
-            continue
-        else:
-            if k in expected:
-                expected[k] -= 1
-            else:
-                return False
-    
-    return sum(map(lambda x: x[1], expected.items())) == 0
-
-def byrValid(v):
-    if len(v) != 4:
-        return False
-    for c in v:
-        if c not in ['0','1','2','3','4','5','6','7','8','9']:
-            return False
+def isIntInRange(v: str, lowerBound:int, upperBound:int) -> bool:
     try:
-        k = int(v)
+        i = int(v)
     except ValueError:
         return False
     
-    return k >= 1920 and k <= 2002
-
-def iyrValid(v):
-    if len(v) != 4:
-        return False
-    for c in v:
-        if c not in ['0','1','2','3','4','5','6','7','8','9']:
-            return False
-    try:
-        k = int(v)
-    except ValueError:
-        return False
-    
-    return k >= 2010 and k <= 2020
-
-def eyrValid(v):
-    if len(v) != 4:
-        return False
-    for c in v:
-        if c not in ['0','1','2','3','4','5','6','7','8','9']:
-            return False
-    try:
-        k = int(v)
-    except ValueError:
-        return False
-    
-    return k >= 2020 and k <= 2030
+    return i >= lowerBound and i <= upperBound
 
 def hgtValid(v):
     try:
@@ -101,7 +36,7 @@ def hclValid(v):
         return False
 
     for c in v[1:]:
-        if c not in ['0','1','2','3','4','5','6','7','8','9', 'a', 'b', 'c', 'd', 'e','f']:
+        if c not in CHARSET_HEXADECIMAL_LOWER:
             return False
     return True
 
@@ -109,17 +44,21 @@ def eclValid(v):
     if len(v) != 3:
         return False
     
-    return v in ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+    return v in eclList
 
 def pidValid(v):
     if len(v) != 9:
         return False
     for c in v:
-        if c not in ['0','1','2','3','4','5','6','7','8','9']:
+        if c not in CHARSET_DIGITS:
             return False
     return True
 
-def checkValid2(passport:str) -> bool:
+
+def checkValid(passport:str) -> int:
+    # returns 0 if invalid
+    #   1 if part 1 valid and not part 2 valid
+    #   2 if part 2 valid
 
     expected = {
         'byr':1,
@@ -132,28 +71,24 @@ def checkValid2(passport:str) -> bool:
         'cid':0,
     }
 
+    # function pointers to the checker functions
     checkers = {
-        'byr':byrValid,
-        'iyr':iyrValid,
-        'eyr':eyrValid,
+        'byr': lambda x: isIntInRange(x, 1920, 2002),
+        'iyr': lambda x: isIntInRange(x, 2010, 2020),
+        'eyr': lambda x: isIntInRange(x, 2020, 2030),
         'hgt':hgtValid,
         'hcl':hclValid,
         'ecl':eclValid,
         'pid':pidValid,
     }
 
+    allFieldsValid = True
+
     while passport.find("  ") != -1:
         passport.replace("  ", " ")
     fields = passport.strip().split(" ")
     for f in fields:
         e = f.split(":")
-
-        if(len(e) != 2):
-            print(e)
-            print(f)
-            print(fields)
-            print(passport)
-        assert(len(e) == 2)
 
         k = e[0]
         v = e[1]
@@ -163,15 +98,16 @@ def checkValid2(passport:str) -> bool:
         else:
             if k in expected:
                 if checkers[k](v) is False:
-                    return False
+                    allFieldsValid = False
                 expected[k] -= 1
             else:
                 return False
     
-    return sum(map(lambda x: x[1], expected.items())) == 0
+    t = sum(map(lambda x: x[1], expected.items())) == 0
+
+    return 0 if t is False else (2 if allFieldsValid is True else 1)
 
 
-# sample variant for reading data from an input file, line by line
 def y2020d4(inputPath = None):
     if(inputPath == None):
         inputPath = "Input2020/d4.txt"
@@ -192,9 +128,11 @@ def y2020d4(inputPath = None):
     thisPassport = ""
     for line in lineList:
         if line == "":
-            if checkValid(thisPassport) is True:
+            k = checkValid(thisPassport)
+            if k == 1:
                 Part_1_Answer += 1
-            if checkValid2(thisPassport) is True:
+            elif k == 2:
+                Part_1_Answer += 1
                 Part_2_Answer += 1
             thisPassport = ""
         else:

@@ -1,6 +1,5 @@
 # from AOC_Lib.name import *
 
-# sample variant for reading data from an input file, line by line
 def y%{year}d%{day}(inputPath = None):
     if(inputPath == None):
         inputPath = "Input%{year}/d%{day}.txt"

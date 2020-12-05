@@ -45,6 +45,11 @@ def IntelliParseSubstringList(strList: List[str]) -> str:
                 probableDelimiters.pop(delimiter, None)
                 print(f"Removed delimiter {delimiter} from consideration")
 
+    if len(probableDelimiters) == 0:
+        # no probable delimiters, need to find a string to capture the current situation
+        pass
+        # return most generic specific string that matches all lines?
+
     # split on a delimiters and recurse on each portion
 
     print(CharSet)
