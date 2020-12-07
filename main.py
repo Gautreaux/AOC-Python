@@ -2,6 +2,7 @@
 from argparse import ArgumentParser
 from importlib import import_module
 from inspect import getmembers
+from os import path, remove
 
 from inputDownloader import getInputForDateCode
 from solutionTesting import solutionDict
@@ -127,12 +128,26 @@ def generateBaseSolution(dateCode:str):
     print(f"Generating new template file for the provided datecode {dateCode}")
     convertTemplate(dateCode)
 
+def testDownload():
+    '''Test the input downloading behavior'''
+    savePath = "testDownload.txt"
+    v = getInputForDateCode(getLastDateCode(), savePath)
+
+    if v is True:
+        print("Downloader working")
+    else:
+        print("Downloader failed")
+    
+    if path.exists(savePath):
+        remove(savePath)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Run an advent of code trial(s). Runs the most recent day unless otherwise specified.")
     parser.add_argument('-a', action='store_true', help=runAll.__doc__)
     parser.add_argument('-d', nargs=1, help=runDay.__doc__)
     parser.add_argument('-p', action='store_true', help=testAllIntelliParse.__doc__)
+    parser.add_argument('-t', action='store_true', help=testDownload.__doc__)
 
     args = parser.parse_args()
 
@@ -140,6 +155,8 @@ if __name__ == "__main__":
         runAll()        
     # elif args.p is not None:
     #     testAllIntelliParse()
+    elif args.t is True:
+        testDownload()
     else: # a particular day
         if args.d is not None:
             dateCode = args.d[0]

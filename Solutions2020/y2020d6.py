@@ -2,6 +2,7 @@
 
 from AOC_Lib.charSets import ALPHABET_LOWER
 from collections import Counter
+from Solutions2020.y2020d4 import groupByEmptyLines
 
 # per group
 def getCount(ans:str)-> int:
@@ -25,14 +26,11 @@ def y2020d6(inputPath = None):
 
     lineList.append("")
 
-    # for multi line inputs 
-    thisPassport = ""
-    for line in lineList:
-        if line == "":
-            Part_1_Answer += getCount(thisPassport)
-            thisPassport = ""
-        else:
-            thisPassport += line + " "
+    lineGroups = groupByEmptyLines(lineList)
+    lineCount = len(lineGroups)
+
+    for line in lineGroups:
+        Part_1_Answer += getCount(line)
 
     # part 2
     i = -1

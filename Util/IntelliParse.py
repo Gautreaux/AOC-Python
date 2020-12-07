@@ -1,11 +1,112 @@
 # given a multi-lin input will attempt to extract a regex pattern for the line
+from AOC_Lib.charSets import *
 from collections import Counter
 from typing import Tuple, List
 
+def asRegexChar(c):
+    if c in ALPHABET_BOTH or c in CHARSET_DIGITS:
+        return c
+
+    escapeList = ["]", "-"]
+
+    if c in escapeList:
+        return '\\' + c
+    return c
+
+def resolveLetterCharset(charset) -> str:
+    '''Resolve the charset given that all inputs are letters a-z or A-Z'''
+    # TODO - perhaps some more distinct processing
+    #   is it all letters or just a subset?
+    hasUppercase = False
+    hasLowercase = False
+
+    for c in charset:
+        if c in ALPHABET_UPPER:
+            hasUppercase = True
+        if c in ALPHABET_LOWER: # elif should be ok?
+            hasLowercase = True
+
+    if hasUppercase is True and hasLowercase is False:
+        return REGEX_ALPHABET_UPPER
+    elif hasUppercase is False and hasLowercase is True:
+        return REGEX_ALPHABET_LOWER
+    elif hasLowercase is True and hasUppercase is True:
+        return REGEX_ALPHABET_BOTH
+
+    # Should be unreachable (both are false)
+    print(charset)
+    raise RuntimeError("In find letters set, no letters found?")
+
+def resolveDigitCharset(charset) -> str:
+    '''Determine digit coverage, i.e. is octal, decimal, binary?'''
+    raise NotImplementedError()
+
+def resolveAlphaNumericCharset(charset) -> str:
+    '''Determine the alphanumberic representation'''
+    # either (a-z + 0-9) or hexadecimal?
+    raise NotImplementedError()
+
+def resolveSpecialCharset(char) -> str:
+    # this means the group is somethign like "!!%#$%%^%/"
+    #   no letters, no numbers
+    # just enumerate them all i guess
+    #   otherwise, there are some special cases? like: [NSEW] [^><v]?
+    partialString = ""
+    for c in partialString:
+        partialString += asRegexChar(c)
+    return partialString
+
+def getREGEXCharset(charSet) -> str:
+    '''Need to detect the charset associated with strings'''
+
+    hasLetter = False
+    hasNumber = False
+    hasNonLetterNumber = False
+
+    for c in charSet:
+        if c in ALPHABET_BOTH:
+            hasLetter = True
+        if c in CHARSET_DIGITS:
+            hasNumber = True
+        # inefficient but whatever
+        if c not in ALPHABET_BOTH and c not in CHARSET_DIGITS:
+            hasNonLetterNumber = True
+
+    def NotImplementedWrapper():
+        raise NotImplementedError()
+
+    def RuntimeErrorWrapper():
+        raise RuntimeError()
+
+    # what to do in each of the eight cases
+    #   use keyError to allow falling through
+    behaviors = {
+        (False, False, False) : (lambda _: RuntimeErrorWrapper()), # nothing?
+        (False, False, True) : (lambda _: resolveSpecialCharset(charSet)), # only non-letters-numbers
+        (False, True, False) : (lambda _: resolveDigitCharset(charSet)), # only numbers
+        #(False, True, True) : (lambda _: NotImplementedWrapper()),
+        (True, False, False) : (lambda _: resolveLetterCharset(charSet)),  # only letters
+        # (True, False, True) : (lambda _: NotImplementedWrapper()),
+        (True, True, False) : (lambda _: resolveAlphaNumericCharset(charSet)), # only letters and numbers
+        # (True, True, True) : (lambda _: NotImplementedWrapper()),
+    }
+
+    stateTuple = (hasLetter, hasNumber, hasNonLetterNumber)
+
+    try:
+        return behaviors[stateTuple]()
+    except KeyError:
+        pass
+    
+    # not sure how to proceed on mixed charsets
+    raise NotImplementedError()
+
+    # check returned set against charset before returning?
 
 def IntelliParseSubstringList(strList: List[str]) -> str:
     strCount = len(strList)
 
+    # generator for iterating over all characters in the input
     def charsetGenerator():
             for l in strList:
                 for c in l:
@@ -46,13 +147,28 @@ def IntelliParseSubstringList(strList: List[str]) -> str:
                 print(f"Removed delimiter {delimiter} from consideration")
 
     if len(probableDelimiters) == 0:
-        # no probable delimiters, need to find a string to capture the current situation
-        pass
-        # return most generic specific string that matches all lines?
+        # no probable delimiters, do search for advanced delimiter
 
-    # split on a delimiters and recurse on each portion
+        #check if a delimiter appears in all lines at some position
+
+        #see if there is a charset split somewhere
+        # ex: "aaaa111111"
+
+
+        #if found, add to probable delimiters
+        raise NotImplementedError()
+
+    if len(probableDelimiters) == 0:
+        # no more delimiters, treat this string as a capture group
+        # return most specific capture group for the input
+        return getREGEXCharset(CharSet)
+
+
+    # split on a delimiter and recurse on each portion
 
     print(CharSet)
+
+    raise NotImplementedError()
 
 
 def IntelliParse(filePath : str) -> Tuple[str, str]:

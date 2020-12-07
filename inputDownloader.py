@@ -5,14 +5,14 @@ from os import path
 from inputSecrets import SESSION_KEY
 from Util.Util import *
 
-def getInputForDateCode(dateCode:str) -> bool:
+def getInputForDateCode(dateCode:str, savePath=None) -> bool:
     '''Download the input for a dateCode, true if success, false if in error'''
 
     assert(isValidDateCode(dateCode))
     year, day = splitDateCode(dateCode)
 
     url = f"https://adventofcode.com/{year}/day/{day}/input"
-    filePath = f"Input{year}/d{day}.txt"
+    filePath = f"Input{year}/d{day}.txt" if savePath is None else savePath
 
     if path.exists(filePath):
         raise FileExistsError(filePath)
