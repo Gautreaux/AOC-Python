@@ -26,27 +26,14 @@ def y2020d6(inputPath = None):
 
     lineList.append("")
 
-    lineGroups = groupByEmptyLines(lineList)
+    lineGroups, linesQty = groupByEmptyLines(lineList)
     lineCount = len(lineGroups)
 
-    for line in lineGroups:
+    for line, qty in zip(lineGroups, linesQty):
         Part_1_Answer += getCount(line)
 
-    # part 2
-    i = -1
-    charSet = Counter()
-    lines = 0
-    while i < len(lineList)-1:
-        i += 1
-        if lineList[i] == "":
-            s = sum(map(lambda x: 0 if x[0] not in ALPHABET_LOWER else (1 if x[1] == lines else 0), charSet.items()))
-            Part_2_Answer += s
-            
-            charSet = Counter()
-            lines = 0
-        else:
-            charSet.update(lineList[i])
-            lines += 1
-
+        c = Counter(line)
+        s = sum(map(lambda x: 0 if x[0] not in ALPHABET_LOWER else (1 if x[1] == qty else 0), c.items()))
+        Part_2_Answer += s
 
     return (Part_1_Answer, Part_2_Answer)

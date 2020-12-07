@@ -5,17 +5,22 @@ from typing import List, Tuple
 from AOC_Lib.charSets import CHARSET_DIGITS, CHARSET_HEXADECIMAL_LOWER
 
 
-def groupByEmptyLines(lineList: List[str]) -> List[str]:
+def groupByEmptyLines(lineList: List[str]) -> Tuple[List[str], List[int]]:
     '''concats lines (without newlines) into returnLine'''
     returnLine = []
+    returnCount = []
     tempLine = ""
+    tempCount = 0
     for line in lineList:
         if line == "":
             returnLine.append(tempLine.strip())
+            returnCount.append(tempCount)
             tempLine = ""
+            tempCount = 0
         else:
             tempLine += line + " "
-    return returnLine
+            tempCount += 1
+    return (returnLine, returnCount)
 
 # moved out b/c I think this one is coming back
 eclList = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
@@ -138,11 +143,11 @@ def y2020d4(inputPath = None):
 
     lineList.append("")
 
-    groupedLines = groupByEmptyLines(lineList)
+    groupedLines, _ = groupByEmptyLines(lineList)
     numGroups = len(groupedLines)
 
     for passport in groupedLines:
-        print(passport)
+        # print(passport)
         k = checkValid(passport)
         if k == 1:
             Part_1_Answer += 1
