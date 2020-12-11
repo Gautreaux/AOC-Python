@@ -57,10 +57,4 @@ def y2020d10(inputPath = None):
 
     Part_2_Answer = resolveChain(0)
 
-
-
-
-
-
-
     return (Part_1_Answer, Part_2_Answer)

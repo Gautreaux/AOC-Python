@@ -130,6 +130,7 @@ def generateBaseSolution(dateCode:str):
 
 def testDownload():
     '''Test the input downloading behavior'''
+    print("Testing downloader")
     savePath = "testDownload.txt"
     v = getInputForDateCode(getLastDateCode(), savePath)
 
