@@ -85,24 +85,25 @@ def doAutoGen(fileHandle, blockNo : int) -> None:
         resultsDict[y][d] = resultContents
 
     
-    resultsTable = []
-    t = [":chrismas_tree:"]
-    for i in range(25):
-        t.append((i+1))
-    resultsTable.append(t)
-
     # convert dict into a proper table
     years = list(resultsDict)
     years.sort()
-    for year in years:
-        thisYear = [year]
-        for day in resultsTable[0][1:]:
-            if day in resultsDict[year]:
-                thisYear.append(resultsDict[year][day])
-            else:
-                thisYear.append("")
-        resultsTable.append(thisYear)
 
+    resultsTable = []
+    t = [":christmas_tree:"]
+    for year in years:
+        t.append(year)
+    resultsTable.append(t)
+
+    for day in range(1, 26):
+        thisRow = [day]
+        for j in range(1, len(resultsTable[0])):
+            y = resultsTable[0][j]
+            if day in resultsDict[y]:
+                thisRow.append(resultsDict[y][day])
+            else:
+                thisRow.append("")
+        resultsTable.append(thisRow)
 
     print(f"{characterMap[TWO_STAR][0]} `{totalStars}` of `{totalItems * 2}`", file=fileHandle)
 
