@@ -50,6 +50,6 @@ def genElapsedDateCodes() -> Generator[str, None, None]:
         for day in range(1, 26 if year != lastYear else lastDay + 1):
             yield f"y{year}d{day}"
 
-def getDayURL(dateCode:str) -> str:
+def getDateCodeAsURL(dateCode:str) -> str:
     '''Get the URL for the given date code'''
-    return "http://www.adventofcode.com/{}/day/{}".format(*splitDateCode(dateCode))
+    return "http://adventofcode.com/{}/day/{}".format(*splitDateCode(dateCode))

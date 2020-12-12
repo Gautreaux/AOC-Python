@@ -5,6 +5,7 @@ from inspect import getmembers
 from os import path, remove
 
 from inputDownloader import getInputForDateCode
+from readmeFormatter import formatReadme
 from solutionTesting import solutionDict
 from Templates.templateConverter import convertTemplate
 from Util.Util import *
@@ -131,7 +132,7 @@ def generateBaseSolution(dateCode:str):
 def testDownload():
     '''Test the input downloading behavior'''
     print("Testing downloader for ", end="")
-    print(getDayURL(getLastDateCode()))
+    print(getDateCodeAsURL(getLastDateCode()))
     savePath = "testDownload.txt"
     v = getInputForDateCode(getLastDateCode(), savePath)
 
@@ -150,6 +151,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', nargs=1, help=runDay.__doc__)
     parser.add_argument('-p', action='store_true', help=testAllIntelliParse.__doc__)
     parser.add_argument('-t', action='store_true', help=testDownload.__doc__)
+    parser.add_argument('-r', action='store_true', help=formatReadme.__doc__)
 
     args = parser.parse_args()
 

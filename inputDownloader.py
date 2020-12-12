@@ -1,4 +1,5 @@
 
+from inspect import getdoc
 import requests
 from os import path
 
@@ -11,7 +12,7 @@ def getInputForDateCode(dateCode:str, savePath=None) -> bool:
     assert(isValidDateCode(dateCode))
     year, day = splitDateCode(dateCode)
 
-    url = f"https://adventofcode.com/{year}/day/{day}/input"
+    url = f"{getDateCodeAsURL(dateCode)}/input"
     filePath = f"Input{year}/d{day}.txt" if savePath is None else savePath
 
     if path.exists(filePath):
