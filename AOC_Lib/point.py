@@ -55,6 +55,9 @@ class Point2():
 
     def __sub__(self, o: 'Point2') -> 'Point2':
         return Point2(self.x - o.x, self.y - o.y)
+    
+    def __mul__(self, o: int) -> 'Point2':
+        return Point2(self.x * o, self.y * o)
 
 
 Y_DOWN_2_TRANSFORMS = {
