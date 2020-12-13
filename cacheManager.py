@@ -6,15 +6,23 @@ from Util.Util import isValidDateCode, splitDateCode
 from Util.FileUtil import getAllSubDirectories  
 from os import getcwd, path
 from time import time as nowTime
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Optional, Tuple, Union
 
-from main import runDay
+from main import FunctionImportError, runDay
+
+_DATECODE_CACHE_PATH : Final = "dateCodeCache.json"
+_DATECODE_CACHE : '_DateCodeCache' = None
+
+SolutionType = Union[Tuple[int, int], 'SolutionNotStarted', FunctionImportError, RuntimeError]
 
 class ModuleFinderException(Exception):
     pass
 
-_DATECODE_CACHE_PATH : Final = "dateCodeCache.json"
-_DATECODE_CACHE : '_DateCodeCache' = None
+class SolutionNotStarted(Exception):
+    def __str__(self) -> str:
+        return "Solution not Started"
+
+
 # class for interacting with the datecode cache
 class _DateCodeCache():
     def __init__(self) -> None:
@@ -40,7 +48,7 @@ class _DateCodeCache():
             print("DateCode cache was not found, creating new cache")
             self.cacheData = {}
 
-    def __getitem__(self, key: str) -> Any:
+    def __getitem__(self, key: str) -> SolutionType:
         '''get the item, re-evaluating/re-caching if necessary'''
         # returns None if solution not implemented
         # returns exception if one occurs
@@ -50,8 +58,21 @@ class _DateCodeCache():
             return self.getCacheValue(key)
 
         # run the actual datecode item
-        
-        raise NotImplementedError()
+        try:
+            answers = runDay(key, False)
+        except FileNotFoundError:
+            # the solution has not been started
+            answers = SolutionNotStarted
+        except FunctionImportError:
+            # the function could not be imported,
+            #   but the file exists
+            answers = FunctionImportError
+        except Exception:
+            # the solution running threw an exception
+            answers = RuntimeError
+
+        self.cacheData[key] = (nowTime(), answers)
+        return answers
     
     def getCacheValue(self, key: str) -> Any:
         '''return the item without re-evaluating if out of date'''

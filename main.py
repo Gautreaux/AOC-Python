@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from importlib import import_module
 from inspect import getmembers
 from os import path, remove
+from typing import Any
 
 from inputDownloader import getInputForDateCode
 from readmeFormatter import formatReadme
@@ -89,7 +90,7 @@ def runAll():
 
 #TODO - add extra parameter(s) for more arguments to the day
 #TODO - make this ^ a command line argument
-def runDay(dateCode:str, genTemplateIfNotPresent=True):
+def runDay(dateCode:str, genTemplateIfNotPresent=True) -> Tuple[Any, Any]:
     '''Return answer for a specific day in 'y<year>d<day>' format.'''
 
     if isValidDateCode(dateCode) is False:
@@ -104,7 +105,7 @@ def runDay(dateCode:str, genTemplateIfNotPresent=True):
             # a solution is not present so we generate a new one
             generateBaseSolution(dateCode)
         else:
-            raise FunctionImportError(f"DateCode {dateCode} not solved and template generation is false")
+            raise FileNotFoundError(f"DateCode {dateCode} not solved and template generation is false")
     
     # a solution is present, now we need to check if function is inside it
     try:
