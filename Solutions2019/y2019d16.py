@@ -134,6 +134,7 @@ def y2019d16(inputPath = None, doPart2=False):
     # mulLong = constructMatMul(inLenLong)
 
     print("Begining the multiplication process")
+    return # to make things work
     for i in range(100):
         inListLong = getNextPhaseV2(inListLong)
 

@@ -1,16 +1,16 @@
 
 import atexit
-import json
 from modulefinder import ModuleFinder
 from Util.Util import isValidDateCode, splitDateCode
 from Util.FileUtil import getAllSubDirectories  
 from os import getcwd, path
+import pickle
 from time import time as nowTime
 from typing import Any, Final, List, Optional, Tuple, Union
 
 from main import FunctionImportError, runDay
 
-_DATECODE_CACHE_PATH : Final = "dateCodeCache.json"
+_DATECODE_CACHE_PATH : Final = "dateCodeCache.cacheData"
 _DATECODE_CACHE : '_DateCodeCache' = None
 
 SolutionType = Union[Tuple[int, int], 'SolutionNotStarted', FunctionImportError, RuntimeError]
@@ -21,6 +21,22 @@ class ModuleFinderException(Exception):
 class SolutionNotStarted(Exception):
     def __str__(self) -> str:
         return "Solution not Started"
+
+def runDayWrapper(key: str) -> SolutionType:
+    # run the actual datecode item
+    try:
+        answers = runDay(key, False)
+    except FileNotFoundError:
+        # the solution has not been started
+        answers = SolutionNotStarted
+    except FunctionImportError:
+        # the function could not be imported,
+        #   but the file exists
+        answers = FunctionImportError
+    except Exception:
+        # the solution running threw an exception
+        answers = RuntimeError
+    return answers
 
 
 # class for interacting with the datecode cache
@@ -35,15 +51,15 @@ class _DateCodeCache():
         '''save the cache if more than window time has elapsed'''
         # default window 1 min
         if (self.lastSaveTime + window) < nowTime():
-            with open(_DATECODE_CACHE_PATH, 'w') as cacheFile:
-                json.dump(self.cacheData, cacheFile, sort_keys=True)
+            with open(_DATECODE_CACHE_PATH, 'wb') as cacheFile:
+                pickle.dump(self.cacheData, cacheFile)
 
     def loadCache(self):
         # data cache ordered {dateCode, (cacheTime (Part_1_Answer, Part_2_Answer))}
         #self.cacheData : Dict[str, Tuple(int, Tuple(int, int))]
         try:
-            with open(_DATECODE_CACHE_PATH, 'r') as cacheFile:
-                self.cacheData = json.load(cacheFile)
+            with open(_DATECODE_CACHE_PATH, 'rb') as cacheFile:
+                self.cacheData = pickle.load(cacheFile)
         except FileNotFoundError:
             print("DateCode cache was not found, creating new cache")
             self.cacheData = {}
@@ -52,28 +68,17 @@ class _DateCodeCache():
         '''get the item, re-evaluating/re-caching if necessary'''
         # returns None if solution not implemented
         # returns exception if one occurs
-        cacheTime = self.getCacheTime(key)
-        modTime = getDateCodeLastModified(key)
-        if cacheTime != None and modTime < cacheTime:
+        if self.isCacheValid(key):
             return self.getCacheValue(key)
-
-        # run the actual datecode item
-        try:
-            answers = runDay(key, False)
-        except FileNotFoundError:
-            # the solution has not been started
-            answers = SolutionNotStarted
-        except FunctionImportError:
-            # the function could not be imported,
-            #   but the file exists
-            answers = FunctionImportError
-        except Exception:
-            # the solution running threw an exception
-            answers = RuntimeError
-
-        self.cacheData[key] = (nowTime(), answers)
+        
+        answers = runDayWrapper(key)
+        self[key] = answers # update the storage
         return answers
-    
+
+    def __setitem__(self, key : str, answers : SolutionType) -> None:
+        self.cacheData[key] = (nowTime(), answers)
+        self.saveCache() # if more than window, trigger autosave
+        
     def getCacheValue(self, key: str) -> Any:
         '''return the item without re-evaluating if out of date'''
         # returns none if the items is not cached
@@ -90,6 +95,18 @@ class _DateCodeCache():
             return self.cacheData[key][0]
         else:
             return None
+
+    def isCacheValid(self, key: str) -> bool:
+        cacheTime = self.getCacheTime(key)
+        if cacheTime is None:
+            return False
+
+        try:
+            modTime = getDateCodeLastModified(key)
+        except FileNotFoundError:
+            # solution probably does not exist
+            return False
+        return modTime < cacheTime
 
 def _cleanup():
     if _DATECODE_CACHE is not None:
@@ -131,32 +148,48 @@ def getAllPyFilesForDay(dateCode : str) -> List[str]:
             # print(dir(mod))
             files.append(mod.__file__)
 
+    # Quickfix for the error with running on math
+    while None in files:
+        files.remove(None)
+
     return files
 
 def getDateCodeLastModified(dateCode: str) -> int:
     '''For a datecode, get the possible last modified unix time'''
-    return max(map(path.getmtime, getAllPyFilesForDay(dateCode)))
+    try:
+        return max(map(path.getmtime, getAllPyFilesForDay(dateCode)))
+    except ModuleFinderException:
+        return int(1 << 34)
+
+
+def cacheInterface(function) -> Any:
+    global _DATECODE_CACHE
+    if _DATECODE_CACHE is None:
+        _DATECODE_CACHE = _DateCodeCache()
+    return function()
+
 
 def getDateCodeCachedSolution(dateCode: str) -> int:
     '''Return the cached value of the dateCode'''
-    global _DATECODE_CACHE
-    if _DATECODE_CACHE is None:
-        _DATECODE_CACHE = _DateCodeCache()
-    return _DATECODE_CACHE.getCacheValue(dateCode)
+    return cacheInterface(lambda : _DATECODE_CACHE.getCacheValue(dateCode))
 
 def getDateCodeCurrentSolution(dateCode: str) -> int:
     '''Return the solution for the date code, updating the cache if necessary'''
-    global _DATECODE_CACHE
-    if _DATECODE_CACHE is None:
-        _DATECODE_CACHE = _DateCodeCache()
-    return _DATECODE_CACHE[dateCode]
+    return cacheInterface(lambda : _DATECODE_CACHE[dateCode])
 
 def getDateCodeCacheTime(dateCode: str) -> int:
     '''Return the the time the solution was cached'''
-    global _DATECODE_CACHE
-    if _DATECODE_CACHE is None:
-        _DATECODE_CACHE = _DateCodeCache()
-    return _DATECODE_CACHE.getCacheTime(dateCode)
+    return cacheInterface(lambda : _DATECODE_CACHE.getCacheTime(dateCode))
+
+def isCacheValid(dateCode: str) -> int:
+    return cacheInterface(lambda : _DATECODE_CACHE.isCacheValid(dateCode))
+
+def cacheKnownAnswer(datecode: str, answer: SolutionType) -> None:
+    # for use with multiprocessing
+    def f():
+        _DATECODE_CACHE[datecode] = answer
+    return cacheInterface(f)
+
 
 
 if __name__ == "__main__":

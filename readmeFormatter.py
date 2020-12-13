@@ -2,7 +2,7 @@
 import os
 from typing import Final, List
 
-from solutionTesting import getDateCodeCachedSolution, ERROR_UKN, SOLUTION_NOT_STARTED, ONE_STAR, TWO_STAR, SOLUTION_INCORRECT, SOLUTION_EXCEPTION, SOLUTION_ANS_NOT_PROVIDED
+from solutionTesting import getCachedSolutionState, ERROR_UKN, SOLUTION_NOT_STARTED, ONE_STAR, TWO_STAR, SOLUTION_INCORRECT, SOLUTION_EXCEPTION, SOLUTION_ANS_NOT_PROVIDED
 from Util.Util import genElapsedDateCodes, getDateCodeAsURL, splitDateCode
 
 
@@ -17,7 +17,7 @@ characterMap = {
     SOLUTION_NOT_STARTED : (':heavy_multiplication_x:', "Solution Not Started"),
     SOLUTION_INCORRECT : (':x:', "Solution Incorrect"),
     SOLUTION_EXCEPTION : (':exclamation:', "Error Running Solution"),
-    SOLUTION_ANS_NOT_PROVIDED : ('warning', "No known answer for solution")
+    SOLUTION_ANS_NOT_PROVIDED : (':warning:', "No known answer for solution")
 }
 
 def formatTable(table : List[List[str]]) -> str:
