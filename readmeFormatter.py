@@ -1,21 +1,14 @@
 
-from Util.Util import genElapsedDateCodes, getDateCodeAsURL, splitDateCode
+import os
 from typing import Final, List
 
-import os
+from solutionTesting import getCachedSolutionState, ERROR_UKN, SOLUTION_NOT_STARTED, ONE_STAR, TWO_STAR, SOLUTION_INCORRECT, SOLUTION_EXCEPTION, SOLUTION_ANS_NOT_PROVIDED
+from Util.Util import genElapsedDateCodes, getDateCodeAsURL, splitDateCode
+
 
 AUTO_GEN_FIRST_LINE_PREFIX : Final = "### Solution Coverage"
 AUTO_GEN_LAST_LINE_PREFIX : Final = "Last Commit Changed"
 assert(AUTO_GEN_FIRST_LINE_PREFIX != AUTO_GEN_LAST_LINE_PREFIX)
-
-
-# TODO - move into another lib?
-ERROR_UKN = -1
-SOLUTION_NOT_STARTED = 0
-ONE_STAR = 1
-TWO_STAR = 2
-SOLUTION_INCORRECT = 3
-SOLUTION_EXCEPTION = 4
 
 characterMap = {
     ERROR_UKN : (':question:', 'Unknown Error'),
@@ -23,7 +16,8 @@ characterMap = {
     ONE_STAR : (':low_brightness:', "One Star Completed"),
     SOLUTION_NOT_STARTED : (':heavy_multiplication_x:', "Solution Not Started"),
     SOLUTION_INCORRECT : (':x:', "Solution Incorrect"),
-    SOLUTION_EXCEPTION : (':exclamation:', "Error Running Solution")
+    SOLUTION_EXCEPTION : (':exclamation:', "Error Running Solution"),
+    SOLUTION_ANS_NOT_PROVIDED : (':warning:', "No known answer for solution")
 }
 
 def formatTable(table : List[List[str]]) -> str:
@@ -49,9 +43,6 @@ def formatTable(table : List[List[str]]) -> str:
         toReturn.append('\n')
     return "".join(toReturn)
 
-# TODO - this should move into another lib
-def getCachedSolutionState(dateCode : str) -> int:
-    return -1
 
 def doAutoGen(fileHandle, blockNo : int) -> None:
     # blockNo could be used to add various generation behaviors
