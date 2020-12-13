@@ -1,8 +1,46 @@
 # from AOC_Lib.name import *
 
-from math import gcd, ceil
 from functools import reduce
+from math import ceil
 from typing import List, Tuple
+
+from AOC_Lib.math import lcm
+
+def doReduce(period0, offset0, period1, offset1) -> Tuple[int, int]:
+    '''Reduce two period offset tuples into their derived period offset tuple'''
+    # the derived tuple is the one such that anytime it leaves the station,
+    #   the two componet tuples are also leaving the station
+
+    # find where the first time both leave is
+    first = None
+
+    # basically loop counter
+    i0 = 1
+    i1 = 1
+    while True:
+        # get the time that loop i# of bus # leaves the station
+        #   accounting for offset
+        k0 = (period0*i0)+offset0
+        k1 = (period1*i1)+offset1
+        
+        if k0 == k1:
+            # they started at the same time (w/ offsets)
+            # print(f"Found {period0} {period1} match at t={k0}")
+            first = k0
+            break
+        elif k0 < k1:
+            # skip ahead to the next possible loop candidate
+            #   bigly important when the periods become big numbers
+            i0 = ceil((k1 - offset0)/period0)
+        else: # k1 < k0
+            i1 = ceil((k0 - offset1)/period1)
+
+    # the new period is the lcm of the components
+    return (lcm(period0,period1), first)
+
+# wrap doReduce to work with the provided reduce() syntax
+def doReduceWrapper(periodOffset0 : Tuple[int, int], periodOffset1 : Tuple[int, int]) -> Tuple[int, int]:
+    return doReduce(*periodOffset0, *periodOffset1)
 
 def y2020d13(inputPath = None):
     if(inputPath == None):
@@ -37,8 +75,8 @@ def y2020d13(inputPath = None):
         if (earliest + wait) % int(e) == 0:
             busId = int(e)
             break
-    print(wait)
-    print(busId)
+    # print(wait)
+    # print(busId)
 
     Part_1_Answer = busId * wait
 
@@ -59,93 +97,15 @@ def y2020d13(inputPath = None):
     
     print(offsets)
 
-    def lcm(a, b):
-        return abs(a*b) // gcd(a, b)
 
-    def doReduce(p0, o0, p1, o1) -> Tuple[int, int]:
-        # find where the first intersection is
-        first = None
+    offsetsList : List = list(offsets.items())
+    # inP, inO = doReduce(*l[0], *l[1])
+    # for k,v in l[2:]:
+    #     inP,inO = doReduce(inP, inO, k, v)
 
-        i0 = 1
-        i1 = 1
-        while True:
-            k0 = (p0*i0)+o0
-            k1 = (p1*i1)+o1
-            
-            if k0 == k1:
-                print(f"Found {p0} {p1} match at {k0}")
-                first = k0
-                break
-            elif k0 < k1:
-                # skip ahead to the next possible candidate
-                i0 = ceil((k1 - o0)/p0)
-            else: # k1 < k0
-                i1 = ceil((k0 - o1)/p1)
-
-
-        return (lcm(p0,p1), first)
-
-    l = list(offsets.items())
-    inP, inO = doReduce(*l[0], *l[1])
-    for k,v in l[2:]:
-        inP,inO = doReduce(inP, inO, k, v)
+    finalPeriod, finalOffset = reduce(doReduceWrapper,offsetsList)
     
-    Part_2_Answer = (inP - inO)
+    # not sure exactly why, but the answer is this
+    Part_2_Answer = (finalPeriod - finalOffset)
     
-    return (Part_1_Answer, Part_2_Answer)
-
-    myGCD = reduce(gcd, offsets)
-    myMult = reduce(lambda x,y: x*y, offsets)
-    myLCM = myMult//myGCD
-    print(myLCM)
-
-    def infiniteGenerator():
-        i = 0
-        while True:
-            yield i*myLCM
-            i += 1
-
-    class BreakContinue(Exception):
-        pass
-
-    for i in infiniteGenerator():
-        try:
-            for k in offsets:
-                if (offsets[k]+i)%k != 0:
-                    raise BreakContinue()
-            Part_2_Answer = i
-            break
-        except BreakContinue:
-            continue
-
-
-
-
-    return (Part_1_Answer, Part_2_Answer)
-
-    def multipleGenerator(n, o):
-        i = 0
-        while True:
-            yield (i * n) - o
-            i += 1
-
-    generatorList = []
-    valuesList = []
-    for key, offset in offsets.items():
-        generatorList.append(multipleGenerator(key, offset))
-        valuesList.append(next(generatorList[-1]))
-    
-    maxValue = max(valuesList)
-    while True:
-        allMatch = True
-        for i in range(len(valuesList)):
-            while valuesList[i] < maxValue:
-                valuesList[i] = next(generatorList[i])
-            if valuesList[i] > maxValue:
-                maxValue = valuesList[i]
-                allMatch = False
-        if allMatch:
-            Part_2_Answer = valuesList[0]
-            break
-
     return (Part_1_Answer, Part_2_Answer)
