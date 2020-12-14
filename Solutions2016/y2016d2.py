@@ -51,3 +51,5 @@ def y2016d2(inputPath = None):
     Part_1_Answer = partialCode
     Part_2_Answer = partialCode2
     return (Part_1_Answer, Part_2_Answer)
+
+    

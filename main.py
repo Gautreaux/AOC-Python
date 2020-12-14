@@ -102,3 +102,6 @@ if __name__ == "__main__":
         print(f"Answer for day {dateCode}:")
         print(f"Part 1: {part1Answer}")
         print(f"Part 2: {part2Answer}")
+
+        print(str(type(part1Answer)))
+        print(str(type(part2Answer)))
