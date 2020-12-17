@@ -11,7 +11,7 @@ INACTIVE = 0
 TYPE_POSITION = Tuple[int, ...]
 TYPE_STATE = Dict[TYPE_POSITION, int]
 
-def generateSurroundingStates(position : TYPE_POSITION) -> Generator[TYPE_POSITION, None, None]:
+def generateSurroundingPositions(position : TYPE_POSITION) -> Generator[TYPE_POSITION, None, None]:
     """Dimension unaware generate all neighbors of the position"""
     transforms = (-1,0,1)
     packed = [transforms]*len(position) # need to transform for each dimension
@@ -32,7 +32,7 @@ def safeGetPosition(state : TYPE_STATE, position : TYPE_POSITION) -> int:
 
 def getSurroundingSum(state : TYPE_STATE, position : TYPE_POSITION) -> int:
     """Get the sum of all states surrounding the position"""
-    return sum(map(lambda t: safeGetPosition(state, t), generateSurroundingStates(position)))
+    return sum(map(lambda t: safeGetPosition(state, t), generateSurroundingPositions(position)))
 
 def getDimMinMax(state, dim : int) -> Tuple[int, int]:
     """Get the tuple(min, max) for the dimension"""
@@ -41,16 +41,16 @@ def getDimMinMax(state, dim : int) -> Tuple[int, int]:
 
 def genAllStatePositions(state : TYPE_STATE) -> Generator[TYPE_POSITION, None, None]:
     """Generate all possible positions from the given state"""
-    dims = []
-    nDims = len(list(state.keys())[0])
-    for i in range(nDims):
-        dims.append(getDimMinMax(state, i))
-    
-    valuesInDimension = []
-    for dim in dims:
-        valuesInDimension.append(list(range(dim[0]-1, dim[1]+2)))
 
-    for p in itertools.product(*valuesInDimension):
+    # reworking how all-states are generated
+    # should be more efficient?
+    #   not convinced it is
+
+    s = set()
+    for p in itertools.chain(state.keys(), *(map(lambda x: generateSurroundingPositions(x), state))):
+        if p in s:
+            continue
+        s.add(p)
         yield p
 
 def runBoot(inState : TYPE_STATE) -> int:
