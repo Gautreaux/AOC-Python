@@ -111,6 +111,30 @@ def printTile(tile : TILE_TYPE, tileNum : int = None) -> None:
     for r in tile:
         print("".join(r))
 
+def getAllTileSinglePermutationsGenerator(inTile):
+    t = rotateCWTile(inTile)
+    yield t
+    t = rotateCWTile(inTile)
+    yield t
+    t = rotateCWTile(inTile)
+    yield t
+    yield flipHorizontalTile(inTile)
+    yield flipVerticalTile(inTile)
+
+def getPosFromDir(position : Tuple[int, int], side : Side_TYPE) -> Tuple[int, int]:
+    x = position[0]
+    y = position[1]
+    if side == LEFT:
+        return (x-1, y)
+    elif side == UP:
+        return (x, y+1)
+    elif side == DOWN:
+        return (x, y-1)
+    elif side == RIGHT:
+        return (x+1, y)
+    else:
+        raise ValueError(side)
+
 def y2020d20(inputPath = None):
     if(inputPath == None):
         inputPath = "Input2020/d20.txt"
@@ -143,17 +167,23 @@ def y2020d20(inputPath = None):
     # generate all the tile permutations
     for tileNum in tileDict:
         l : List[TILE_TYPE] = tileDict[tileNum]
-        
-        # do all the rotations
-        # pretty sure this covers all the permutations
-        for i in range(3):
-            l.append(rotateCWTile(l[-1]))
 
-        for i in range(4):
-            l.append(flipVerticalTile(l[i]))
+        # this is super overkill
+        #   should only need a handful of carefully chosen sub rotations
+        #   but NOOOOOOOO, I cant make that work
+        #   so now here we go with all the tiles
+        expansionTiles = [l[0]]
+        i = 0   
         
-        for i in range(4):
-            l.append(rotateCWTile(l[-1]))
+        while i < len(expansionTiles):
+            thisTile = expansionTiles[i]
+            i += 1
+
+            for newTile in getAllTileSinglePermutationsGenerator(thisTile):
+                if newTile not in l:
+                    l.append(newTile)
+                    expansionTiles.append(newTile)
+
 
     thisTile = next(iter(tilesToPlace))
     tilesToPlace.remove(thisTile)
@@ -165,22 +195,54 @@ def y2020d20(inputPath = None):
     expansionEdges.add(((0,0), DOWN))
     expansionEdges.add(((0,0), RIGHT))
 
+    class BreakContinue(Exception):
+        pass
+
     while len(tilesToPlace) != 0:
-        rootPos,expandDirection = next(iter(expansionEdges))
-        candidates = []
-        for tileNum in tilesToPlace:
-            for tile in tileDict[tileNum]:
-                if doesEdgeAlign(placedTiles[rootPos], tile, expandDirection):
-                    candidates.append((tileNum, tile))
-        if len(candidates) == 1:
-            matchedNum, matchTile = candidates[0]
-            tilesToPlace.remove(matchedNum)
-            # TODO - update the placed tiles
-            # TODO - update expansion edges
-        else:
-            raise NotImplementedError()
+        try:
+            for expansionCandidate in expansionEdges:
+                rootPos = expansionCandidate[0]
+                expandDirection = expansionCandidate[1]
+                candidates = []
+
+                newPos = getPosFromDir(rootPos, expandDirection)
+                if newPos in placedTiles:
+                    expansionEdges.remove(expansionCandidate)
+                    raise BreakContinue
+
+                for tileNum in tilesToPlace:
+                    for tile in tileDict[tileNum]:
+                        if doesEdgeAlign(placedTiles[rootPos], tile, expandDirection):
+                            candidates.append((tileNum, tile))
+                if len(candidates) == 0:
+                    # print("NO MATCH POSSIBLE")
+                    pass
+                elif len(candidates) == 1:
+                    matchedNum, matchTile = candidates[0]
+                    # newPos = getPosFromDir(rootPos, expandDirection)
+                    tilesToPlace.remove(matchedNum)
+                    # print("A MATCH OCCURRED")
+                    # update the placed tiles
+                    placedTiles[newPos] = matchTile
+                    
+                    # update expansion edges
+                    for s in SIDES:
+                        nPos = getPosFromDir(newPos, s)
+                        if nPos not in placedTiles:
+                            expansionEdges.add((newPos, s))
+
+                    print(f"{len(placedTiles)} of {len(tileDict)} tiles placed")
+
+                    raise BreakContinue
+        except BreakContinue:
+            continue
+        #TODO - why is one of the rotation thingies breaking into a list,
+        #   and how to make it into a string
+        print("Not sure what to do here")
+        raise NotImplementedError()
 
     assert(len(tilesToPlace) == 0)
+    print("All tiles successfully placed")
 
     # TODO - compute the actual answer
     return (Part_1_Answer, Part_2_Answer)
