@@ -79,6 +79,7 @@ solutionDict : Dict[str, SolutionType] = {
     "y2020d17" : (247, 1392),
     "y2020d18" : (6923486965641, 70722650566361),
     "y2020d19" : (248, 381),
+    "y2020d21" : (2302, "smfz,vhkj,qzlmr,tvdvzd,lcb,lrqqqsg,dfzqlk,shp")
 }
 
 

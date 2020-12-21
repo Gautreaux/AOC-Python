@@ -89,7 +89,7 @@ def flipVerticalTile(tile : TILE_TYPE) -> TILE_TYPE:
     # flip over the vertical axis
     newTile = []
     for row in tile:
-        newTile.append(list(reversed(row)))
+        newTile.append("".join(reversed(row)))
     return newTile
 
 def flipHorizontalTile(tile : TILE_TYPE) -> TILE_TYPE:
@@ -98,7 +98,7 @@ def flipHorizontalTile(tile : TILE_TYPE) -> TILE_TYPE:
 def rotateCWTile(tile : TILE_TYPE) -> TILE_TYPE:
     newTile = []
     for k in zip(*tile):
-        newTile.append(list(reversed(k)))
+        newTile.append("".join(reversed(k)))
     return newTile
 
 def rotateCCWTile(tile : TILE_TYPE) -> TILE_TYPE:
@@ -111,7 +111,7 @@ def printTile(tile : TILE_TYPE, tileNum : int = None) -> None:
     for r in tile:
         print("".join(r))
 
-def getAllTileSinglePermutationsGenerator(inTile):
+def getAllTileSinglePermutationsGenerator(inTile : TILE_TYPE) -> Generator[TILE_TYPE, None, None]:
     t = rotateCWTile(inTile)
     yield t
     t = rotateCWTile(inTile)
@@ -120,6 +120,32 @@ def getAllTileSinglePermutationsGenerator(inTile):
     yield t
     yield flipHorizontalTile(inTile)
     yield flipVerticalTile(inTile)
+
+def getAllPermutationsOfTile(tile: TILE_TYPE) -> List[TILE_TYPE]:
+    tileList = [tile]
+    expansionTiles = [tile]
+
+    # # this is super overkill
+    # #   should only need a handful of carefully chosen sub rotations
+    # #   but NOOOOOOOO, I cant make that work
+    # #   so now here we go with all the tiles
+
+    y = 0
+    while y < len(expansionTiles):
+        thisTile = expansionTiles[y]
+        y += 1
+
+        for newTile in getAllTileSinglePermutationsGenerator(thisTile):
+            if newTile not in tileList:
+                tileList.append(newTile)
+                expansionTiles.append(newTile)
+
+    # debug checking
+    for tile in tileList:
+        assert(type(tile) == list)
+        for row in tile:
+            assert(type(row) == str)
+    return tileList
 
 def getPosFromDir(position : Tuple[int, int], side : Side_TYPE) -> Tuple[int, int]:
     x = position[0]
@@ -134,6 +160,46 @@ def getPosFromDir(position : Tuple[int, int], side : Side_TYPE) -> Tuple[int, in
         return (x+1, y)
     else:
         raise ValueError(side)
+
+SEA_MONSTER = [ "                  # ",
+                "#    ##    ##    ###",
+                " #  #  #  #  #  #   ",]
+SEA_MONSTER_CHAR = "#"
+
+POSITION_TYPE = Tuple[int, int]
+
+def seaMonsterPositionsGenerator(s=SEA_MONSTER) -> Generator[POSITION_TYPE, None, None]:
+    for y in range(len(s)):
+        for x in range(len(s[y])):
+            if s[y][x] == SEA_MONSTER_CHAR:
+                yield ((x,y))
+
+def isSeaMonsterAtPosition(pos : POSITION_TYPE, tile : TILE_TYPE, positionsList : List[POSITION_TYPE]) -> bool:
+    for x,y in positionsList:
+        if tile[pos[1] + y][pos[0] + x] != SEA_MONSTER_CHAR:
+            return False
+    return True
+
+def getAllSeaMonsterPositionsGenerator(tile : TILE_TYPE):
+    seaMonsterPositions = list(seaMonsterPositionsGenerator())
+    minY = 0
+    maxY = len(tile)
+    minX = 0
+    maxX = len(tile[0])
+
+    for y in range(minY, maxY+1):
+        for x in range(minX, maxX+1):
+            try:
+                if isSeaMonsterAtPosition((x,y), tile, seaMonsterPositions):
+                    yield (x,y)
+            except IndexError:
+                pass
+
+def getAllSeaMonsterSubPositionsGenerator(tile : TILE_TYPE):
+    seaMonsterPositions = list(seaMonsterPositionsGenerator())
+    for pos in getAllSeaMonsterPositionsGenerator(tile):
+        for k in seaMonsterPositions:
+            yield (pos[0] + k[0], pos[1] + k[1])
 
 def y2020d20(inputPath = None):
     if(inputPath == None):
@@ -162,32 +228,25 @@ def y2020d20(inputPath = None):
     # printTile(rotateCWTile(debugTile), -1)
 
     placedTiles = {}
+    placedTilesNumber = {}
     tilesToPlace = set(tileDict.keys())
 
     # generate all the tile permutations
     for tileNum in tileDict:
-        l : List[TILE_TYPE] = tileDict[tileNum]
+        assert(len(tileDict[tileNum]) == 1)
+        tileDict[tileNum] = getAllPermutationsOfTile(tileDict[tileNum][0])
 
-        # this is super overkill
-        #   should only need a handful of carefully chosen sub rotations
-        #   but NOOOOOOOO, I cant make that work
-        #   so now here we go with all the tiles
-        expansionTiles = [l[0]]
-        i = 0   
-        
-        while i < len(expansionTiles):
-            thisTile = expansionTiles[i]
-            i += 1
-
-            for newTile in getAllTileSinglePermutationsGenerator(thisTile):
-                if newTile not in l:
-                    l.append(newTile)
-                    expansionTiles.append(newTile)
+    # debug check
+    for tileNum in tileDict:
+        for tile in tileDict[tileNum]:
+            for row in tile:
+                assert(type(row) == str)
 
 
     thisTile = next(iter(tilesToPlace))
     tilesToPlace.remove(thisTile)
     placedTiles[(0,0)] = tileDict[thisTile][0]
+    placedTilesNumber[(0,0)] = thisTile
 
     expansionEdges = set()
     expansionEdges.add(((0,0), LEFT))
@@ -224,6 +283,7 @@ def y2020d20(inputPath = None):
                     # print("A MATCH OCCURRED")
                     # update the placed tiles
                     placedTiles[newPos] = matchTile
+                    placedTilesNumber[newPos] = matchedNum
                     
                     # update expansion edges
                     for s in SIDES:
@@ -231,7 +291,8 @@ def y2020d20(inputPath = None):
                         if nPos not in placedTiles:
                             expansionEdges.add((newPos, s))
 
-                    print(f"{len(placedTiles)} of {len(tileDict)} tiles placed")
+                    if len(placedTiles) % 10 == 0:
+                        print(f"{len(placedTiles)} of {len(tileDict)} tiles placed")
 
                     raise BreakContinue
         except BreakContinue:
@@ -244,5 +305,75 @@ def y2020d20(inputPath = None):
     assert(len(tilesToPlace) == 0)
     print("All tiles successfully placed")
 
-    # TODO - compute the actual answer
+    minX = min(map(lambda x: x[0], placedTiles))
+    maxX = max(map(lambda x: x[0], placedTiles))
+    minY = min(map(lambda x: x[1], placedTiles))
+    maxY = max(map(lambda x: x[1], placedTiles))
+
+    # assert that the built graph is densly packed
+    for testX in range(minX, maxX+1):
+        for testY in range(minY, maxY+1):
+            assert((testX, testY) in placedTiles)
+            assert((testX, testY) in placedTilesNumber)
+
+    def cornersGenerator():
+        yield (minX, minY)
+        yield (minX, maxY)
+        yield (maxX, minY)
+        yield (maxX, maxY)
+
+    Part_1_Answer = 1
+    for p in cornersGenerator():
+        tileNum = placedTilesNumber[p]
+        Part_1_Answer *= tileNum
+
+    print(f"Part 1 resolved to {Part_1_Answer}")
+
+    # TODO - this should auto calculate
+    tileDims = 10
+
+    # time to collapse int one giant grid
+    megaTile = []
+    for y in range(maxY, minY-1, -1):
+        rows = {}
+        
+        # initalize with empty rows
+        for yy in range(tileDims):
+            rows[yy] = []
+        
+        for x in range(minX, maxX+1):
+            thisTile = placedTiles[(x,y)]
+            assert(len(thisTile)) == tileDims
+            for ri in range(tileDims):
+                rows[ri].append(thisTile[ri])
+        
+        for yy in range(tileDims):
+            megaTile.append("".join(rows[yy]))
+
+    results = []
+    for tilePermutation in getAllPermutationsOfTile(megaTile):
+        # build a mask to check which ones are in a sea monster
+        m = []
+        for i in range(len(megaTile)):
+            r = []
+            for ii in range(len(megaTile[i])):
+                r.append("0")
+            m.append(r)
+
+        # compute the mask
+        for x,y in getAllSeaMonsterSubPositionsGenerator(megaTile):
+            m[y][x] = "1"
+
+        # now compute the score
+        score = 0
+        for y in range(len(m)):
+            for x in range(len(m[0])):
+                if m[y][x] == '1':
+                    assert(tilePermutation[y][x] == '#')
+                else:
+                    assert(m[y][x] == '0')
+                    if tilePermutation[y][x] == '#':
+                        score += 1
+        results.append(score)
+
     return (Part_1_Answer, Part_2_Answer)
