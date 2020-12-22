@@ -202,6 +202,9 @@ def y2020d20(inputPath = None):
         inputPath = "Input2020/d20.txt"
     print("2020 day 20:")
 
+    # print("DEBUG MODE ON")
+    # inputPath = "Input2020/d20-sample.txt"
+
     Part_1_Answer = None
     Part_2_Answer = None
     lineList = []
@@ -327,6 +330,7 @@ def y2020d20(inputPath = None):
 
     # TODO - this should auto calculate
     tileDims = 10
+    rowIndexes = list(range(1,tileDims-1))
 
     # time to collapse int one giant grid
     megaTile = []
@@ -334,16 +338,16 @@ def y2020d20(inputPath = None):
         rows = {}
         
         # initalize with empty rows
-        for yy in range(tileDims):
+        for yy in rowIndexes:
             rows[yy] = []
         
         for x in range(minX, maxX+1):
             thisTile = placedTiles[(x,y)]
             assert(len(thisTile)) == tileDims
-            for ri in range(tileDims):
-                rows[ri].append(thisTile[ri])
+            for ri in rowIndexes:
+                rows[ri].append(thisTile[ri][1:-1])
         
-        for yy in range(tileDims):
+        for yy in rowIndexes:
             megaTile.append("".join(rows[yy]))
 
     # debugMegaTile = [   ".#.#..#.##...#.##..#####",
@@ -388,10 +392,9 @@ def y2020d20(inputPath = None):
                 r.append(0)
             m.append(r)
 
-        # seaMonsterOffsets = seaMonsterPositionsGenerator()
-        # TODO - LEGACY DEBUG - remove
-        seaMonsterPositions = list(getAllSeaMonsterPositionsGenerator(tilePermutation))
-        print(seaMonsterPositions)
+        # LEGACY DEBUG
+        # seaMonsterPositions = list(getAllSeaMonsterPositionsGenerator(tilePermutation))
+        # print(seaMonsterPositions)
 
         # compute the mask
         for x,y in getAllSeaMonsterSubPositionsGenerator(tilePermutation):
