@@ -182,13 +182,9 @@ def isSeaMonsterAtPosition(pos : POSITION_TYPE, tile : TILE_TYPE, positionsList 
 
 def getAllSeaMonsterPositionsGenerator(tile : TILE_TYPE):
     seaMonsterPositions = list(seaMonsterPositionsGenerator())
-    minY = 0
-    maxY = len(tile)
-    minX = 0
-    maxX = len(tile[0])
 
-    for y in range(minY, maxY+1):
-        for x in range(minX, maxX+1):
+    for y in range(len(tile)):
+        for x in range(len(tile[0])):
             try:
                 if isSeaMonsterAtPosition((x,y), tile, seaMonsterPositions):
                     yield (x,y)
@@ -350,30 +346,73 @@ def y2020d20(inputPath = None):
         for yy in range(tileDims):
             megaTile.append("".join(rows[yy]))
 
+    # debugMegaTile = [   ".#.#..#.##...#.##..#####",
+    #                     "###....#.#....#..#......",
+    #                     "##.##.###.#.#..######...",
+    #                     "###.#####...#.#####.#..#",
+    #                     "##.#....#.##.####...#.##",
+    #                     "...########.#....#####.#",
+    #                     "....#..#...##..#.#.###..",
+    #                     ".####...#..#.....#......",
+    #                     "#..#.##..#..###.#.##....",
+    #                     "#.####..#.####.#.#.###..",
+    #                     "###.#.#...#.######.#..##",
+    #                     "#.####....##..########.#",
+    #                     "##..##.#...#...#.#.#.#..",
+    #                     "...#..#..#.#.##..###.###",
+    #                     ".#.#....#.##.#...###.##.",
+    #                     "###.#...#..#.##.######..",
+    #                     ".#.#.###.##.##.#..#.##..",
+    #                     ".####.###.#...###.#..#.#",
+    #                     "..#.#..#..#.#.#.####.###",
+    #                     "#..####...#.#.#.###.###.",
+    #                     "#####..#####...###....##",
+    #                     "#.##..#..#...#..####...#",
+    #                     ".#.###..##..##..####.##.",
+    #                     "...###...##...#...#..###"
+    #                 ]
+
+    # debugMonstersOrientation = rotateCWTile(flipHorizontalTile(debugMegaTile))
+    # debugOrientations = list(getAllPermutationsOfTile(debugMegaTile))
+    # assert(debugMonstersOrientation in debugOrientations)
+
+    # megaTile = debugMegaTile
+
     results = []
     for tilePermutation in getAllPermutationsOfTile(megaTile):
         # build a mask to check which ones are in a sea monster
         m = []
-        for i in range(len(megaTile)):
+        for i in range(len(tilePermutation)):
             r = []
-            for ii in range(len(megaTile[i])):
-                r.append("0")
+            for ii in range(len(tilePermutation[i])):
+                r.append(0)
             m.append(r)
 
+        # seaMonsterOffsets = seaMonsterPositionsGenerator()
+        # TODO - LEGACY DEBUG - remove
+        seaMonsterPositions = list(getAllSeaMonsterPositionsGenerator(tilePermutation))
+        print(seaMonsterPositions)
+
         # compute the mask
-        for x,y in getAllSeaMonsterSubPositionsGenerator(megaTile):
-            m[y][x] = "1"
+        for x,y in getAllSeaMonsterSubPositionsGenerator(tilePermutation):
+            m[y][x] = 1
 
         # now compute the score
         score = 0
         for y in range(len(m)):
             for x in range(len(m[0])):
-                if m[y][x] == '1':
+                if m[y][x] == 1:
                     assert(tilePermutation[y][x] == '#')
                 else:
-                    assert(m[y][x] == '0')
+                    assert(m[y][x] == 0)
                     if tilePermutation[y][x] == '#':
                         score += 1
         results.append(score)
+
+    print(results)
+    s = set(results)
+    assert(len(s) == 2)
+    Part_2_Answer = min(s)
+
 
     return (Part_1_Answer, Part_2_Answer)
