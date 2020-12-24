@@ -96,7 +96,6 @@ if __name__ == "__main__":
             (part1Answer, part2Answer) = runDay(dateCode)
         else:
             dateCode = getLastDateCode()
-            dateCode = "y2020d20"
             print(f"Last dateCode resolved to {dateCode}")
             (part1Answer, part2Answer) = runDay(dateCode)
         
