@@ -2,9 +2,6 @@
 
 from typing import Final, Generator
 
-
-from AOC_Lib.DLLNode import Circular_DLL
-
 PICKUP_COUNT : Final = 3
 # for now, this cannot be changed
 assert(PICKUP_COUNT == 3)
@@ -40,7 +37,7 @@ def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) 
 
     # print(indexLabelMapping)
     # print(nextIndexForIndex)
-    print("inputPrePrcessingCompleted")
+    print("input PreProcessing Completed")
 
     def safeDecrement(label : int) -> int:
         return (maxLabel if label - 1 < minLabel else label -1)
@@ -86,7 +83,7 @@ def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) 
         # if turn >= 5:
         #     break
 
-        if turn % 100000 == 0 and turn != 0:
+        if turn % 1000000 == 0 and turn != 0:
             print(f"Turn on {turn}")
 
     # time to build the part 1 answer
@@ -116,8 +113,6 @@ def y2020d23(inputPath = None):
             line = line.strip()
             lineList.append(line)
     
-    dll = Circular_DLL()
-
     # print("DEBUG ON")
     # lineList[-1] = "389125467"
 
