@@ -165,13 +165,9 @@ def y2019d3(inputPath = None):
     
     print("The closest intersection (part 1) is at distance "+ str(closestIntersection))
     print("The closest path intersection (part 2) is at distance "+ str(closestStepIntersection))
-
-
-
-
-        
-    
     print("===========")
+
+    return (closestIntersection, closestStepIntersection)
 
 
 #84 is not correct

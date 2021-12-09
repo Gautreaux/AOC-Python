@@ -114,5 +114,7 @@ def y2019d6(inputPath = None):
     print(planetList["SAN"]["Dist"]-2)
     print("===========")
 
+    return(totalDepth, planetList["SAN"]["Dist"]-2)
+
     #part 2 - 462 is wrong
     #367 is wrong

@@ -171,3 +171,5 @@ def y2019d10(inputPath = None):
     #part 2
     #1413 too high
     #1213 too high
+
+    return(bestCount, origAsteroid[0]*100+origAsteroid[1])

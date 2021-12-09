@@ -143,6 +143,8 @@ def y2019d12(inputPath = None):
     #         print("Heartbeat: " + str(ctr))
 
     #use an online LCM calculator, you'll get:
+
+    # TODO - remove hardcoded answer
     print("Part 2: " + str(279751820342592))
 
 
@@ -150,3 +152,5 @@ def y2019d12(inputPath = None):
 
 
     #74074531000 too high
+
+    return (totalEnergy, 279751820342592)

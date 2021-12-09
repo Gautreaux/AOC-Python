@@ -121,7 +121,7 @@ def y2019d16(inputPath = None, doPart2=False):
 
     if(not doPart2 and inputPath != None):
         print("===========")
-        return
+        return (j, None)
 
     #construct the super input
     #split into a list
@@ -134,7 +134,7 @@ def y2019d16(inputPath = None, doPart2=False):
     # mulLong = constructMatMul(inLenLong)
 
     print("Begining the multiplication process")
-    return # to make things work
+    return (j, None) # to make things work
     for i in range(100):
         inListLong = getNextPhaseV2(inListLong)
 

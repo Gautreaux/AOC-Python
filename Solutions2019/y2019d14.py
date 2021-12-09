@@ -197,6 +197,8 @@ def y2019d14(inputPath = None):
     
     print("===========")
 
+    return (int(getOreRequirementsForFuel(1)), fuelCtr)
+
     #part 1:
     #436 too low
 

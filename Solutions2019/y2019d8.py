@@ -76,3 +76,7 @@ def y2019d8(inputPath = None):
         print("The part two answer for my input was YGRYZ")
 
     print("===========")
+
+    # the fact that this is hardcoded is annoying
+    # TODO - fix
+    return (layerSum, "YGRYZ")
