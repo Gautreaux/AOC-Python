@@ -14,10 +14,10 @@ def getSegmentCollision(Seg1, Seg2):
         #calculate the intersection
         if(Seg1.start[0] == Seg2.start[0]):
             #share the x coordinate
-            if(Seg1.start[0] <= Seg2.start[0] and Seg1.end[0] >= Seg2.start[0])
+            if(Seg1.start[0] <= Seg2.start[0] and Seg1.end[0] >= Seg2.start[0]):
                 #there is some overlapping region
                 print("Need to finish horizontal region overlap checking")
-            elif(Seg1.start[0] <= Seg2.end[0] and Seg1.end[0] >= Seg2.end[0])
+            elif(Seg1.start[0] <= Seg2.end[0] and Seg1.end[0] >= Seg2.end[0]):
                 #there is some overlapping region
                 print("Need to finish horizontal region overlap checking")
             else:
