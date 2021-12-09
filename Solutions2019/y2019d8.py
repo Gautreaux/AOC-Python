@@ -79,4 +79,4 @@ def y2019d8(inputPath = None):
 
     # the fact that this is hardcoded is annoying
     # TODO - fix
-    return (str(layerSum), "YGRYZ")
+    return (layerSum, "YGRYZ")
