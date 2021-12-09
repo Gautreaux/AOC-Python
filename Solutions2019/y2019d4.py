@@ -75,6 +75,8 @@ def y2019d4(inputStr = None):
     print("The valid count (part 2) is " + str(validCount2))
     print("===========")
 
+    return (validCount, validCount2)
+
     #part 2 
     #353 not correct
     #808 not correct

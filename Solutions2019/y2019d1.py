@@ -25,3 +25,5 @@ def y2019d1(inputPath = None):
     print("The new fuel needed (part 1) is: " + str(newFuelCounter))
     print("The total new fuel needed (part 2) is: " + str(newTotalFuelCounter))
     print("===========")
+
+    return (newFuelCounter, newTotalFuelCounter)
