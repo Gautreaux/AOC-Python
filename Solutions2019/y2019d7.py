@@ -1,148 +1,101 @@
+from .IntcodeLib import *
+import itertools
+import asyncio
 
-from Solutions2019.y2019d5 import y2019d5
-from AOC_Lib.threadedProducerConsumer import ThreadedProducerConsumer
-import threading
 
-#TODO - move to lib along with on in 2019d2
-class BreakException(Exception):
-    pass
+def buildLinkedRunners(prog: IntcodeProgram, qty:int) -> list[IntcodeRunner]:
+    """Return a list of runners where the output of one runner is linked to the input of the next"""
+    runners: list[IntcodeRunner] = []
 
-def getAllInputs(charSet): #generate all permutations of character set
-    charList = []
-    inputList = []
-    for char in charSet:
-        if(char not in inputList):
-            charList.append(char)
-            inputList.append(char)
-    print("Generating with charset" + str(charList))
+    # build intcode runners
+    while len(runners) < qty:
+        if not runners:
+            r_new = IntcodeRunner(prog)
+            runners.append(r_new)
+        else:
+            # build new runners linking the inputs together
+            r_new = IntcodeRunner(prog, in_q=runners[-1].getOutputQ())
+            runners.append(r_new)
+    return runners
 
-    roundId = 1
-    while(roundId < len(charList)):
-        oldInputList = inputList
-        inputList = []
+def y2019d7(inputPath = None):
+    if(inputPath == None):
+        inputPath = "Input2019/d7.txt"
+    print("2019 day 7:")
 
-        for oldInput in oldInputList:
-            for char in charList:
-                if(char not in oldInput):
-                    inputList.append(char+oldInput)
+    Part_1_Answer = None
+    Part_2_Answer = None
+    lineList = []
+
+    with open(inputPath) as f:
+        for line in f:
+            line = line.strip()
+            lineList.append(line)
+
+    prog = IntcodeProgram(map(int, lineList[0].split(",")))
+
+    max_thrust = 0
+
+    NUM_AMPS = 5
+
+    for config in itertools.permutations(range(NUM_AMPS), NUM_AMPS):
+
+        runners = buildLinkedRunners(prog, NUM_AMPS)
+            
+        # push starting values
+        for r,c in zip(runners, config):
+            r._input_q.put_nowait(c)
+
+        # push the second input for the first item
+        runners[0]._input_q.put_nowait(0)
+
+        fut = asyncio.gather(*map(lambda x: x.run(), runners))
+
+        asyncio.get_event_loop().run_until_complete(fut)
+            
+        sc = runners[-1].getOutputQ().get_nowait()
+        max_thrust = max(sc, max_thrust)
+
+    Part_1_Answer = max_thrust
+
+    max_thrust_2 = 0
+
+    last_start = (4,4)
+
+    for config in itertools.permutations(range(5, 5 + NUM_AMPS), NUM_AMPS):
+        if config[:2] != last_start:
+            last_start = config[:2]
+            print(f"Starting: ", last_start)
+        runners = buildLinkedRunners(prog, NUM_AMPS)
+
+        # push starting valuse
+        for r,c in zip(runners, config):
+            r._input_q.put_nowait(c)
+
+        # create the tee
+        q = asyncio.Queue()
+        t = queueTee(runners[-1].getOutputQ(), [runners[0].getInputQ(), q])
+
+        # push the start instruction
+        runners[0].getInputQ().put_nowait(0)
+
+        loop = asyncio.get_event_loop()
+
+        tasks = []
+        tasks.append(loop.create_task(t))
+
+        for r in runners:
+            tasks.append(loop.create_task(r.run()))
+
+        loop.run_until_complete(runUntilHalt(runners, 0.1))
+
+        while not q.empty():
+            v = q.get_nowait()
+            max_thrust_2 = max(v, max_thrust_2)
+
+        for t in tasks:
+            t.cancel()   
         
-        roundId+=1
+    Part_2_Answer = max_thrust_2
 
-    for l in inputList:
-        if(inputList.count(l) != 1):
-            raise ValueError("Repeated input")
-
-    print("Generated length: " + str(len(inputList)) + ", all verified unique")
-    return inputList
-
-def program(inputString, inputFunction = None, outputFunction = None):
-    # global inputStr 
-    # inputStr = inputString
-    i = y2019d5("Input2019/d7.txt", inputString, inputFunction, outputFunction)
-    return i
-
-
-def y2019d7():
-
-    strCpy = None
-    maxValue = 0
-
-    myInputs = getAllInputs("01234")
-
-    for inputStr in myInputs:
-    
-        inputA = [inputStr[0],"0"]
-        resA = program(inputA)
-        inputB = [inputStr[1],resA]
-        resB = program(inputB)
-        inputC = [inputStr[2],resB]
-        resC = program(inputC)
-        inputD = [inputStr[3],resC]
-        resD = program(inputD)
-        inputE = [inputStr[4],resD]
-        resE = program(inputE)
-
-        v = int(resE)
-
-        if(v > maxValue):
-            maxValue = v
-            maxSet = inputStr
-
-    print("Max value (part 1) : " + str(maxValue) + " on str " + str(maxSet))
-
-    phase2Inputs = getAllInputs("56789")
-
-    maxV = 0
-    iterCtr = 0
-
-    for p2Input in phase2Inputs:
-        lastE = None
-        resE = "0"
-
-        aTob = ThreadedProducerConsumer()
-        bToc = ThreadedProducerConsumer()
-        cTod = ThreadedProducerConsumer()
-        dToe = ThreadedProducerConsumer()
-        eToa = ThreadedProducerConsumer()
-
-        pcStruct = [aTob, bToc, cTod, dToe, eToa]
-
-        for i in range(len(pcStruct)):
-            pcStruct[i].insert(p2Input[i])
-
-        aTob.insert("0")
-
-        threadPool = [None]*len(pcStruct)
-
-        for i in range(len(pcStruct)):
-            #start a thread for each amplifier
-            #some note here about python threading not actually being threads
-            threadPool[i] = threading.Thread(target = program, args=(None, pcStruct[i].remove, pcStruct[(i+1)%len(pcStruct)].insert))
-            threadPool[i].daemon = True
-            threadPool[i].start()
-
-        try:
-            while(True):
-
-                #try to join the thread with a 10-second timeout
-                #this only works because in the last loop, E exits
-                threadPool[4].join(10)
-                break
-
-                #busy spinning!                    
-                for i in range(len(pcStruct)):
-                    if(pcStruct[i].waitingToRemove != 1):
-                        break #one thread is running
-                    
-                for i in range(len(pcStruct)):
-                    if(len(pcStruct[i]) == 0):
-                        raise BreakException
-                
-        except BreakException:
-            pass
-
-        v = int(aTob.lastInsert)
-        if(v > maxV):
-            maxV = v
-
-        # DEBUG
-        # print(v)
-        # print(p2Input)
-        # print(aTob.insertHistory)
-        # print(bToc.insertHistory)
-        # print(cTod.insertHistory)
-        # print(dToe.insertHistory)
-        # print(eToa.insertHistory)
-        # break
-
-        if(iterCtr %10 ==0):
-            print("Iter ctr on " + str(iterCtr))
-        iterCtr+=1
-
-    print("Part2: " + str(maxV))
-
-
-    print("===========")
-
-
-#part 1 - 182 is wrong
+    return (Part_1_Answer, Part_2_Answer)

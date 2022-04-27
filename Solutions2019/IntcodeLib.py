@@ -112,6 +112,10 @@ class IntcodeRunner():
         """Return true if the program has run and is done (or crashed)"""
         return self._isTerminal
 
+    def getCycles(self) -> int:
+        """Return the current number of cycles executed"""
+        return self._cycles
+
     def _advanceInstrCounter(self, op_code):
         """Logic for advancing the instruction pointer"""
         self._instructionCounter += (op_code.qtyParameters() + 1)
@@ -312,3 +316,38 @@ class IntcodeRunner():
         x = self._instructionCounter
         print("Memory region:", self._memory[x: x+8])
         print(f"=================")
+
+
+
+async def queueTee(in_q: asyncio.Queue, out_queues: list[asyncio.Queue]):
+    """Tee the output of the in_queue into all of the out_queues
+        NOTE: the queues should be unbounded or consume at the same rate
+            otherwise this could easily deadlock
+    """
+    while True:
+        val = await in_q.get()
+        # print("TEEING: ", val)
+        for q in out_queues:
+            await q.put(val)
+        in_q.task_done()
+
+
+async def runUntilHalt(to_manage: Iterable[IntcodeRunner], polling_rate_s: float = 0.25):
+    """Manage a collection of intcode runners and notify if they all have halted"""
+    # TODO - add an `isBlocked` flag or condition variable to IntcodeRunner
+    runners = list(to_manage)
+
+    old_cycles = [0]*len(runners)
+
+    while True:
+        await asyncio.sleep(polling_rate_s)
+        cycles = list(map(lambda x: x.getCycles(), runners))
+        # print(cycles)
+
+        d = sum(map(lambda x,y: x-y, cycles, old_cycles))
+
+        if(d == 0):
+            # halt detected
+            return
+
+        old_cycles = cycles
