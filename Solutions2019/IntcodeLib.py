@@ -1,6 +1,7 @@
 
 import asyncio
 from collections import defaultdict
+from copy import deepcopy
 from enum import IntEnum, unique
 import itertools
 from operator import add, mul
@@ -91,6 +92,11 @@ class IllegalMemoryAccess(Exception):
     pass
 
 
+class IOWatchdogTimeout(Exception):
+    """Rased when the program runs for too long without I/O"""
+    pass
+
+
 class IntcodeRunner():
     """A class for running intcode programs"""
 
@@ -101,7 +107,7 @@ class IntcodeRunner():
     ) -> None:
         self._instructionCounter = 0
         self._memory = list(program)
-        self._isTerminal = False
+        self._isTerminal = asyncio.Event()
         self._cycles = 0
         self._relBase = 0
         self._extMemory = defaultdict(lambda: 0)
@@ -111,6 +117,9 @@ class IntcodeRunner():
         self._input_q = in_q if in_q is not None else asyncio.Queue()
         self._output_q = out_q if out_q is not None else asyncio.Queue()
         self._out_sema = asyncio.Semaphore(0)
+
+        self._io_blocked = asyncio.Event()
+        self._io_watchdog_counter = 0
 
     def getInputQ(self) -> asyncio.Queue:
         """Get the input Q for this execution"""
@@ -122,11 +131,19 @@ class IntcodeRunner():
 
     def terminated(self) -> bool:
         """Return true if the program has run and is done (or crashed)"""
-        return self._isTerminal
+        return self._isTerminal.is_set()
 
     def getCycles(self) -> int:
         """Return the current number of cycles executed"""
         return self._cycles
+
+    def isIOBlocked(self) -> bool:
+        """Return if the program is currently blocked waiting for I/O"""
+        return self._io_blocked.is_set()
+
+    def getIOEvent(self) -> asyncio.Event:
+        """Returns the event for blocked io"""
+        return self._io_blocked
 
     def _advanceInstrCounter(self, op_code):
         """Logic for advancing the instruction pointer"""
@@ -154,8 +171,16 @@ class IntcodeRunner():
 
     async def _input_op(self, op_code: OpCode, p_modes: tuple[ParameterMode, ...]):
         """Basic input operator"""
-        in_val = await self._input_q.get()
+        if self._input_q.empty():
+            self._io_blocked.set()
+            try:
+                in_val = await self._input_q.get()
+            finally:
+                self._io_blocked.clear()
+        else:
+            in_val = self._input_q.get_nowait()
         self._input_q.task_done()
+        self._io_watchdog_counter = self._cycles
         if self.debug:
             print(f"READ in value: {in_val}")
         # self._setModeAware(self._instructionCounter + 1, in_val, p_modes[0])
@@ -188,7 +213,15 @@ class IntcodeRunner():
         out_val = self._readModeAware(self._instructionCounter + 1, p_modes[0])
         if self.debug:
             print(f"OUT value: {out_val}")
-        await self._output_q.put(out_val)
+        if self._output_q.full():
+            self._io_blocked.set()
+            try:
+                await self._output_q.put(out_val)
+            finally:
+                self._io_blocked.clear()
+        else:
+            self._output_q.put_nowait(out_val)
+        self._io_watchdog_counter = self._cycles
         self._out_sema.release()
         self._advanceInstrCounter(op_code)
 
@@ -201,6 +234,8 @@ class IntcodeRunner():
     async def _execOneCycle(self) -> None:
         """Run one cycle"""
         op_code, p_modes = self._readOpCode()
+
+        # print("({:08X}) INST_COUNTER: {}".format(self._cycles, self._instructionCounter))
 
         if op_code == OpCode.ADD:
             await self._bin_op(op_code, p_modes)
@@ -286,6 +321,7 @@ class IntcodeRunner():
     def setAddr(self, addr:int, val: int) -> int:
         """Set the value stored at `addr` and return the value"""
         assert(isinstance(val, int))
+        # print(f"WRITE {addr} {val}")
         if addr < 0:
             raise IllegalMemoryAccess(addr)
         try:
@@ -301,14 +337,14 @@ class IntcodeRunner():
                 await self._execOneCycle()
                 self._cycles += 1
             except ProgramDone:
-                self._isTerminal = True
+                self._isTerminal.set()
                 # free the q if it is listenting
                 self._out_sema.release()
                 return
             except Exception:
                 self.printStackFrame()
 
-                self._isTerminal = True
+                self._isTerminal.set()
                 self._out_sema.release()
                 raise
 
@@ -325,7 +361,7 @@ class IntcodeRunner():
         while True:
             await self._out_sema.acquire()
 
-            if self._isTerminal:
+            if self.terminated():
                 while not self._output_q.empty():
                     outputs.append(self._output_q.get_nowait())
                 return outputs
@@ -340,14 +376,14 @@ class IntcodeRunner():
         """Run until complete"""
         futures = []
 
+        futures.append(self._collect_output())
         if inputs:
             futures.append(self._push_inputs(inputs))
-        futures.append(self._collect_output())
         futures.append(self.run())
 
         f = asyncio.gather(*futures)
         v = asyncio.get_event_loop().run_until_complete(f)
-        return v[1]
+        return v[0]
 
     def printStackFrame(self):
         print(f"=================")
@@ -360,6 +396,47 @@ class IntcodeRunner():
         # print("Memory region:", self._memory[x: x+8])
         print(f"=================")
 
+    def fork(self) -> 'IntcodeRunner':
+        """Create a copy of this program at the current point
+            NOTE: UNTESTED
+        """
+
+        # in the end this just ended up being a deep copy?
+        to_return = IntcodeRunner(self._memory)
+        to_return._instructionCounter = self._instructionCounter
+        if self._isTerminal.is_set():
+            to_return._isTerminal.set()
+        to_return._cycles = self._cycles
+        to_return._relBase = self._relBase
+        to_return._extMemory = deepcopy(self._extMemory)
+
+        to_return.debug = self.debug
+
+        # the queues are <whatever>
+
+        return to_return
+
+    async def IOWatchdog(self, cycles_limit: int = 1000, polling_freq_s: float = 0.25):
+        """Poll at some frequency and raise an Exception if 
+            cycles_limit cycles have occured without an I/O operation
+            NOTE: UNTESTED
+        """
+        while True:
+            await asyncio.sleep(polling_freq_s)
+            now_cycles = self._cycles
+            last_io = self._io_watchdog_counter
+            print("WATCHDOG: {} {} {}".format(last_io, now_cycles, self.terminated()))
+            if (now_cycles - last_io) > cycles_limit:
+                print("THROWING IO TIMEOUT")
+                raise IOWatchdogTimeout(now_cycles - last_io)
+
+    async def TerminatedWatchdog(self):
+        """Raise a ProgramDone when the program finishes
+            NOTE: UNTESTED
+        """
+        # this is necessary because I don't want to change the semantics of run
+        await self._isTerminal.wait()
+        raise ProgramDone()
 
 
 async def queueTee(in_q: asyncio.Queue, out_queues: list[asyncio.Queue]):
