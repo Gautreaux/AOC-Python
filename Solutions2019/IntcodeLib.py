@@ -1,5 +1,6 @@
 
 import asyncio
+from collections import defaultdict
 from enum import IntEnum, unique
 import itertools
 from operator import add, mul
@@ -17,6 +18,7 @@ class OpCode(IntEnum):
     JIF = 6,
     LE = 7,
     EQ = 8,
+    RBO = 9,
     DONE = 99,
 
     def qtyParameters(self) -> int:
@@ -39,6 +41,8 @@ class OpCode(IntEnum):
             return 3
         elif self == OpCode.EQ:
             return 3
+        elif self == OpCode.RBO:
+            return 1
         else:
             # unreachable?
             raise RuntimeError("Illegal op code: {} ({})".format(self, self.value))
@@ -49,6 +53,7 @@ class ParameterMode(IntEnum):
     """Enum for all parameter modes"""
     POSITION = 0,
     IMMEDIATE = 1,
+    RELATIVE = 2,
 
 
 class IntcodeProgram():
@@ -77,7 +82,12 @@ class UnrecognizedOpCode(Exception):
 
 
 class UnrecognizedParameterMode(Exception):
-    """Raise if the parameter mode is not recognized"""
+    """Raised if the parameter mode is not recognized"""
+    pass
+
+
+class IllegalMemoryAccess(Exception):
+    """Raised if an illegal memory address is accessed"""
     pass
 
 
@@ -93,6 +103,8 @@ class IntcodeRunner():
         self._memory = list(program)
         self._isTerminal = False
         self._cycles = 0
+        self._relBase = 0
+        self._extMemory = defaultdict(lambda: 0)
 
         self.debug = False
 
@@ -142,13 +154,18 @@ class IntcodeRunner():
 
     async def _input_op(self, op_code: OpCode, p_modes: tuple[ParameterMode, ...]):
         """Basic input operator"""
-        if p_modes[0] != ParameterMode.POSITION:
-            raise RuntimeError("IDK")
         in_val = await self._input_q.get()
         self._input_q.task_done()
         if self.debug:
             print(f"READ in value: {in_val}")
-        self.setAddr(self.readAddr(self._instructionCounter + 1), in_val)
+        # self._setModeAware(self._instructionCounter + 1, in_val, p_modes[0])
+        if p_modes[0] == ParameterMode.POSITION:
+            self.setAddr(self.readAddr(self._instructionCounter + 1), in_val)
+        elif p_modes[0] == ParameterMode.RELATIVE:
+            p = self.readAddr(self._instructionCounter + 1)
+            self.setAddr(p + self._relBase, in_val)
+        else:
+            raise NotADirectoryError()
         self._advanceInstrCounter(op_code)
 
     async def _jmp_op(self, op_code: OpCode, p_modes: tuple[ParameterMode, ...]):
@@ -175,6 +192,12 @@ class IntcodeRunner():
         self._out_sema.release()
         self._advanceInstrCounter(op_code)
 
+    async def _rbo_op(self, op_code: OpCode, p_modes: tuple[ParameterMode, ...]):
+        """For adjusting the relative base"""
+        param = self._readParameters(p_modes)[0]
+        self._relBase += param
+        self._advanceInstrCounter(op_code)
+
     async def _execOneCycle(self) -> None:
         """Run one cycle"""
         op_code, p_modes = self._readOpCode()
@@ -195,6 +218,8 @@ class IntcodeRunner():
             await self._bin_op(op_code, p_modes)
         elif op_code == OpCode.EQ:
             await self._bin_op(op_code, p_modes)
+        elif op_code == OpCode.RBO:
+            await self._rbo_op(op_code, p_modes)
         elif op_code == OpCode.DONE:
             raise ProgramDone()
         else:
@@ -230,6 +255,8 @@ class IntcodeRunner():
             return self.readAddr(self.readAddr(addr))
         elif p_mode == ParameterMode.IMMEDIATE:
             return self.readAddr(addr)
+        elif p_mode == ParameterMode.RELATIVE:
+            return self.readAddr(self.readAddr(addr) + self._relBase)
         else:
             raise UnrecognizedParameterMode(p_mode)
 
@@ -239,17 +266,32 @@ class IntcodeRunner():
             return self.setAddr(self.readAddr(addr), val)
         elif p_mode == ParameterMode.IMMEDIATE:
             raise RuntimeError("This will never happen - 2019d5")
+        elif p_mode == ParameterMode.RELATIVE:
+            # return self.setAddr(self.readAddr(addr), val)
+            return self.setAddr(self.readAddr(addr) + self._relBase, val)
+            # return self.setAddr(addr + self._relBase, val)
+            raise NotImplementedError()
         else:
             raise UnrecognizedParameterMode(p_mode)
 
     def readAddr(self, addr:int) -> int:
         """Return the value stored at `addr`"""
-        return self._memory[addr]
+        if addr < 0:
+            raise IllegalMemoryAccess(addr)
+        try:
+            return self._memory[addr]
+        except IndexError:
+            return self._extMemory[addr]
 
     def setAddr(self, addr:int, val: int) -> int:
         """Set the value stored at `addr` and return the value"""
         assert(isinstance(val, int))
-        self._memory[addr] = val
+        if addr < 0:
+            raise IllegalMemoryAccess(addr)
+        try:
+            self._memory[addr] = val
+        except IndexError:
+            self._extMemory[addr] = val
         return val
 
     async def run(self):
@@ -311,10 +353,11 @@ class IntcodeRunner():
         print(f"=================")
         print("Progam is done? ", self.terminated())
         print("Memory is up to: ", len(self._memory))
+        print(f"Relative Base: ", self._relBase)
         print(f"Cycles: ", self._cycles)
         print("Instruction Counter: ", self._instructionCounter)
         x = self._instructionCounter
-        print("Memory region:", self._memory[x: x+8])
+        # print("Memory region:", self._memory[x: x+8])
         print(f"=================")
 
 
