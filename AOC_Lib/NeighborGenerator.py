@@ -37,5 +37,13 @@ def neighborGeneratorFactoryND(min_limits : List[int], max_limits: List[int], al
 
 
 def neighborGeneratorFactory(max_x, max_y, min_x = 0, min_y = 0,  allow_diagonal: bool = False):
+    """Returns a factory function that, when called with the x and y value, will generate grid neighbors
+        note max_x and max_y are inclusive limits
+
+        ex: call this function with the dimensions of your grid to get the factory object
+            then for each x,y cell in the grid call the factory object to get a generator of neighbors
+            the generator yields (x,y) tuples that are bounded to within the grid
+                will not yield the own square back
+    """
     return neighborGeneratorFactoryND((min_x, min_y), (max_x, max_y), allow_diagonal)
 
