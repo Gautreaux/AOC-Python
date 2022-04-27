@@ -1,5 +1,5 @@
 
-
+raise DeprecationWarning(f"This ({__file__}) is old stuff")
 
 def __reHash(xValue, yValue):
     return hash((xValue, yValue))

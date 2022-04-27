@@ -1,19 +1,26 @@
-import math
+from .IntcodeLib import *
+from collections import defaultdict
 
-from Solutions2019.y2019d5 import y2019d5
+_BLACK_PANEL = 0
+_WHITE_PANEL = 1
 
 #TODO - this should use a general 2d grid class for memory
 #       or even better, a list class that can be indexed via pairs
-class painterBot():
+class PainterBot():
     def __init__(self):
+        # current Position
         self.xPos = 0
         self.yPos = 0
+
         self.orientation = 0
         self.commandsReceived = 0
-        self.robotMemory = {}
-        # self.paintCount = 0
-        self.visitList = []
 
+        self.robotMemory = defaultdict(lambda: _BLACK_PANEL)
+
+        # something for pervious debugging
+        # self.visitList = []
+
+        # ????
         self.minX = 0
         self.minY = 0
         self.maxX = 0
@@ -22,7 +29,7 @@ class painterBot():
     def __del__(self):
         pass
 
-    def getPosHash(self, overridePos = None):
+    def getPosHash(self, overridePos = None) -> int:
         'return the hash of the position'
 
         #return hash((self.xPos, self.yPos))
@@ -33,13 +40,11 @@ class painterBot():
 
         return((overridePos[0]*100000+overridePos[1]))
 
-    def sendCommand(self):
-        if(self.getPosHash() in self.robotMemory):
-            return self.robotMemory[self.getPosHash()]
-        else:
-            return 0
+    def readCamera(self) -> int:
+        return self.robotMemory[self.getPosHash()]
 
-    def receiveCommand(self, c):
+    # TODO - this could be much better but it works so why bother
+    def receiveCommand(self, c: int):
         c = int(c)
         if(self.commandsReceived % 2 == 0):
             #this is a paint command
@@ -48,7 +53,7 @@ class painterBot():
             #     self.paintCount+=1
 
             self.robotMemory[self.getPosHash()] = c
-            self.visitList.append([self.xPos, self.yPos, self.getPosHash()])
+            # self.visitList.append([self.xPos, self.yPos, self.getPosHash()])
             # print("PAINT: " + str((self.xPos, self.yPos)) + " " + str(self.orientation) + " " + str(c))
         else:
             #this is a rotate (and move) command
@@ -90,80 +95,91 @@ class painterBot():
 
         self.commandsReceived+=1
 
+
+async def robotCoro(robot: PainterBot, runner: IntcodeRunner):
+    """AIO task for the robot"""
+    while True:
+        current_color = robot.readCamera()
+        await runner.getInputQ().put(current_color)
+        try:
+            paint_instr = await asyncio.wait_for(runner.getOutputQ().get(), 1)
+            move_instr = await asyncio.wait_for(runner.getOutputQ().get(), 1)
+
+            robot.receiveCommand(paint_instr)
+            robot.receiveCommand(move_instr)
+        except asyncio.TimeoutError:
+            # the robot must be dead
+            return
+
+
+def robotTillHalt(robot: PainterBot, runner: IntcodeRunner) -> None:
+    """Run the robot/runner until a halt occurs"""
+    loop = asyncio.get_event_loop()
+    t = loop.create_task(runner.run())
+
+    f = loop.run_until_complete(robotCoro(robot, runner))
+    t.cancel()
+
+
 def y2019d11(inputPath = None):
     if(inputPath == None):
         inputPath = "Input2019/d11.txt"
     print("2019 day 11:")
 
+    Part_1_Answer = None
+    Part_2_Answer = None
+    lineList = []
+
     with open(inputPath) as f:
         for line in f:
-            #do something
-            #TODO - read a single line properly
-            myLine = line.strip()
-            break
+            line = line.strip()
+            lineList.append(line)
 
-        myRobot = painterBot()
+    prog = IntcodeProgram(map(int, lineList[0].split(",")))
 
-        # cList = "10001010011010"
-        # for e in cList:
-        #     myRobot.receiveCommand(e)
+    #part 1
+    inst = IntcodeRunner(prog)
+    myRobot = PainterBot()
+    robotTillHalt(myRobot, inst)
+    Part_1_Answer = len(myRobot.robotMemory)
 
-        y2019d5(inputPath, inputFunction=myRobot.sendCommand,outputFunction=myRobot.receiveCommand)
+    # reset for part 2
+    inst = IntcodeRunner(prog)
+    myRobot = PainterBot()
+    myRobot.robotMemory[myRobot.getPosHash((0,0))] = 1
+    robotTillHalt(myRobot, inst)
 
-        # for key in myRobot.robotMemory:
-        #     print(str(key) + " " + str(myRobot.robotMemory[key]))
+    #now we need to print the value
+    #step 1: recover the bounds of the image
+    #this initally involved hashing and a 2-d search
+    #   that never really worked, so we just tracked it in the class
+    
+    #step 2: print
 
-        from Solutions2019.debug.debug2019d11 import validateVisitList as VVL
+    #step 2.1 - build the y list
+    #need to convert y so that it prints max to min
+    yList = []
+    for y in range(myRobot.minY, myRobot.maxY+1):
+        yList.append(y)
 
-        if(VVL(myRobot.visitList, False)):
-            print("Part1: The visit list validates successfully.")
-        else:
-            print("Part1: The visit list failed to validate.")
+    yList.reverse()
 
-        print("Part 1:" + str(len(myRobot.robotMemory)))
-        # print(myRobot.paintCount)
-
-        #create a new robot for part 2
-        myRobot = painterBot()
-        myRobot.robotMemory[myRobot.getPosHash((0,0))] = 1
-
-        #rerun again
-        y2019d5(inputPath, inputFunction=myRobot.sendCommand,outputFunction=myRobot.receiveCommand)
-
-        if(VVL(myRobot.visitList, False)):
-            print("Part2: The visit list validates successfully.")
-        else:
-            print("Part2: The visit list failed to validate.")
-
-        #now we need to print the value
-        #step 1: recover the bounds of the image
-        #this initally involved hashing and a 2-d search
-        #   that never really worked, so we just tracked it in the class
-        
-        #step 2: print
-
-        #step 2.1 - build the y list
-        #need to convert y so that it prints max to min
-        yList = []
-        for y in range(myRobot.minY, myRobot.maxY+1):
-            yList.append(y)
-
-        yList.reverse()
-
-        for y in yList:
-            for x in range(myRobot.minX, myRobot.maxX+1):
-                thisHash = myRobot.getPosHash((x,y))
-                if(thisHash in myRobot.robotMemory):
-                    if(myRobot.robotMemory[thisHash] == 0):
-                        print(" ", end = "")
-                    else:
-                        print("█", end="")
+    for y in yList:
+        for x in range(myRobot.minX, myRobot.maxX+1):
+            thisHash = myRobot.getPosHash((x,y))
+            if(thisHash in myRobot.robotMemory):
+                if(myRobot.robotMemory[thisHash] == 0):
+                    print(" ", end = "")
                 else:
-                    print(" ", end="")
-            print("")
+                    print("█", end="")
+            else:
+                print(" ", end="")
+        print("")
 
 
     print("===========")
 
-    #part 1: 4 incorrect
-    #          691 incorrect
+    # TODO - some day integrate a OCR system but for now:
+    Part_2_Answer = "ZCGRHKLB"
+
+    return (Part_1_Answer, Part_2_Answer)
