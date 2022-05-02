@@ -438,6 +438,22 @@ class IntcodeRunner():
         await self._isTerminal.wait()
         raise ProgramDone()
 
+    # TODO - refactor 2019d13 (and others?) to use this
+    def runTillBlockOrExit(self, run_task, loop: asyncio.AbstractEventLoop) -> None:
+        """Run the program until it blocks for input or exits
+            Any output is stored in the output queue 
+        """
+        wait_task = loop.create_task(self.getIOEvent().wait())
+
+        done, pending = loop.run_until_complete(asyncio.wait(
+            [wait_task, run_task], return_when=asyncio.FIRST_COMPLETED
+        ))
+
+        if wait_task in pending:
+            # the runner terminated so cleanup
+            # print("Runner terminated?")
+            wait_task.cancel()
+
 
 async def queueTee(in_q: asyncio.Queue, out_queues: list[asyncio.Queue]):
     """Tee the output of the in_queue into all of the out_queues
