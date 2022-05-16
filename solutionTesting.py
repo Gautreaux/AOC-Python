@@ -133,6 +133,7 @@ solutionDict : Dict[str, SolutionType] = {
     "y2021d14" : (2851, object()),
     "y2021d15" : (595, 2914),
     "y2021d17" : (4278, 1994),
+    "y2021d21" : (598416, object())
 }
 
 
