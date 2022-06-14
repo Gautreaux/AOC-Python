@@ -41,6 +41,81 @@ def advance(state: str, offset: int, plant_map: dict[str, str]) -> tuple[str, in
     return (k, offset-2+num_dropped)
 
 
+def getScoreForState(state, offset:int = 0) -> int:
+    """Return the score for a given state"""
+    e = zip(itertools.count(offset), state)
+    f = filter(lambda x: x[1] == "#", e)
+    return sum(map(lambda x: x[0], f))
+
+
+def getScoreForDay_explicit(
+    initial_state,
+    plant_map,
+    target_day:int,
+    initial_offset:int=0,
+) -> int:
+    """Simulate each day for some number days and then get the score"""
+
+    state = initial_state
+    offset = initial_offset
+    assert(target_day > 0)
+    for _ in range(target_day):
+        state, offset = advance(state, offset, plant_map)
+    return getScoreForState(state, offset)
+
+
+def getScoreForDay_fast(
+    initial_state,
+    plant_map,
+    target_day: int,
+    initial_offset: int = 0,
+) -> int:
+    """Get the score for a day exploiting any looping properties"""
+
+    state = initial_state
+    offset = initial_offset
+
+    # cache states with day-offset pairs
+    h_cache = {}
+    h_cache[state] = (0, offset)
+
+    first_loop_index = None
+    first_loop_offset = None
+
+    for i in range(1, 5000):
+        state,offset = advance(state, offset, plant_map)
+        if i == target_day:
+            return getScoreForState(state, offset)
+        elif state in h_cache:
+            print(f"Found a loop at {i},{offset} back to {h_cache[state]}")
+            first_loop_index = i
+            first_loop_offset = offset
+            break
+        else:
+            h_cache[state] = (i,offset)
+
+    if first_loop_index is None:
+        raise RuntimeError(f"Could not find a looping state in first 5000 states")
+
+    base_loop_index, base_loop_offset = h_cache[state]
+
+    loop_size = first_loop_index - base_loop_index
+    offset_size = first_loop_offset - base_loop_offset
+
+    print(f"  Loop occurs in {loop_size} steps, offset changes {offset_size}")
+
+    num_steps = target_day - base_loop_index
+
+    if num_steps % loop_size != 0:
+        raise NotImplementedError(f"Loop size ({loop_size}) does not evenly divide days ({num_steps})")
+
+    num_loops = num_steps // loop_size
+
+    print(f"  Total {num_steps} days, {num_loops} loops")
+    new_offset = num_loops * offset_size + base_loop_offset
+    return getScoreForState(state, new_offset)
+
+
 def y2018d12(inputPath = None):
     if(inputPath == None):
         inputPath = "Input2018/d12.txt"
@@ -62,6 +137,7 @@ def y2018d12(inputPath = None):
     itr = iter(lineList)
 
     start = next(itr)
+    start_state = start.partition("initial state: ")[-1]
 
     for line in itr:
         if not line:
@@ -71,60 +147,20 @@ def y2018d12(inputPath = None):
         assert(len(a) == 5)
         plant_map[a] = b
 
-    ist = start.partition("initial state: ")[-1]
-    offset = 0
-
-    for _ in range(20):
-        ist, offset = advance(ist, offset, plant_map)
-    
-    e = zip(itertools.count(offset), ist)
-    f = filter(lambda x: x[1] == '#', e)
-    Part_1_Answer = sum(map(lambda x: x[0], f))
+    Part_1_Answer = getScoreForDay_explicit(start_state, plant_map, 20)
 
     # part 2
-    ist = start.partition("initial state: ")[-1]
-    offset = 0
-
-    h_cache = {}
-
-    h_cache[ist] = {0,0}
+    # for d in [20, 50, 100, 153, 154, 155, 200, 1000]:
+    #     print(f"Testing d = {d}")
+    #     a = getScoreForDay_explicit(start_state, plant_map, d)
+    #     b = getScoreForDay_fast(start_state, plant_map, d)
+    #     if a != b:
+    #         print(f"Expected: {a}, got {b}")
+    #     assert(a == b)
     
-    first_loop_index = None
-    loop_state = None
-    first_loop_offset = None
-
-    for i in range(5000):
-        if i % 1000 == 0:
-            print(f"i = {i}")
-        ist, offset = advance(ist, offset, plant_map)
-        if ist in h_cache:
-            print(f"Loop occurs at i = {i}, {offset} from {h_cache[ist]}")
-            print("\t", ist)
-            first_loop_index = i
-            loop_state = ist
-            first_loop_offset = offset
-            base_loop_index, base_loop_offset = h_cache[ist]
-            break
-        else:
-            h_cache[ist] = (i,offset)  
-
-    assert(first_loop_index is not None)
-
     target = 50000000000
+    Part_2_Answer = getScoreForDay_fast(start_state, plant_map, target)
 
-    loop_size = first_loop_index - base_loop_index
-    offset_per_loop = first_loop_offset - base_loop_offset
-
-    assert(loop_size == 1)
-    target = target - base_loop_index
-    
-    new_offset = target * offset_per_loop
-
-    e = zip(itertools.count(new_offset), loop_state)
-    f = filter(lambda x: x[1] == '#', e)
-    Part_2_Answer = sum(map(lambda x: x[0], f))
-
-    # TODO - just some off by one errors to solve for
     # assert(Part_2_Answer > 2649999996756)
 
     return (Part_1_Answer, Part_2_Answer)
