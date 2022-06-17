@@ -1,19 +1,8 @@
 # from AOC_Lib.name import *
-import collections
-from itertools import islice
+
 import itertools
 
-# from the itertools docs
-def sliding_window(iterable, n):
-    # sliding_window('ABCDEFG', 4) -> ABCD BCDE CDEF DEFG
-    it = iter(iterable)
-    window = collections.deque(islice(it, n), maxlen=n)
-    if len(window) == n:
-        yield tuple(window)
-    for x in it:
-        window.append(x)
-        yield tuple(window)
-
+from AOC_Lib.SlidingWindow import sliding_window
 
 def advance(state: str, offset: int, plant_map: dict[str, str]) -> tuple[str, int]:
     """Advance one generation based on plant_map and return the new state and offset"""
