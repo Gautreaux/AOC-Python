@@ -1,46 +1,55 @@
 # from AOC_Lib.name import *
 
 from collections import deque, namedtuple
+import itertools
 from typing import Generator, Optional
 
+
+# Effectively _is_part_2
+IS_HARD_MODE:bool = False
 
 # an effect
 Effect_T = namedtuple("Effect_T", "name duration player_armor boss_damage player_mana")
 
 # a spell
-Spell_T = namedtuple("Spell_T", "name cost damage heal effect_index")
+Spell_T = namedtuple("Spell_T", "name cost damage heal effect")
 
 # an applied effect
-AppliedEffect_t = namedtuple("AppliedEffect_T", "turns_remaining effect_index")
+AppliedEffect_t = namedtuple("AppliedEffect_T", "turns_remaining effect")
 
 # game state
 State_T = namedtuple("State_T", "player_health player_mana player_goes_next boss_health effects player_mana_spent")
 
-EFFECTS = [
-    Effect_T("Shield", 6, 7, 0, 0),
-    Effect_T("Poision", 6, 0, 3, 0),
-    Effect_T("Recharge", 5, 0, 0, 101),
+
+Effect_Shield   = Effect_T("Shield",   6, 7, 0,   0)
+Effect_Poison   = Effect_T("Poison",   6, 0, 3,   0)
+Effect_Recharge = Effect_T("Recharge", 5, 0, 0, 101)
+
+
+# List of all effects that can be applied
+EFFECTS: list[Effect_T] = [Effect_Shield, Effect_Poison, Effect_Recharge]
+
+
+# List of all spells that can be used
+SPELLS: list[Spell_T] = [
+    Spell_T("Magic Missile",  53, 4, 0,          None),
+    Spell_T("Drain",          73, 2, 2,          None),
+    Spell_T("Shield_s",      113, 0, 0, Effect_Shield),
+    Spell_T("Poison_s",      173, 0, 0, Effect_Poison),
+    Spell_T("Recharge_s",    229, 0, 0, Effect_Recharge),
 ]
-
-SPELLS = [
-    Spell_T("Magic Missile", 53, 4, 0, None),
-    Spell_T("Drain", 73, 2, 2, None),
-    Spell_T("Shield_s", 113, 0, 0, 0),
-    Spell_T("Poison_s", 173, 0, 0, 1),
-    Spell_T("Recharge_s", 229, 0, 0, 2),
-]
-
-
-class GameOver(Exception):
-    def __init__(self, player_mana_spent: int, player_wins: int) -> None:
-        super().__init__()
-        self.player_mana_spent = player_mana_spent
-        self.plyer_wins = player_wins
 
 
 def getStartState(boss_health: int, player_health: int = 50, player_mana: int = 500) -> State_T:
     """Get the starting state based on boss parameters"""
-    return State_T(player_health, player_mana, True, boss_health, [], 0)
+    return State_T(
+        player_health=player_health,
+        player_mana=player_mana, 
+        player_goes_next=True,
+        boss_health=boss_health,
+        effects=[],
+        player_mana_spent=0,
+    )
 
 
 def assertValidState(state: State_T) -> None:
@@ -48,103 +57,229 @@ def assertValidState(state: State_T) -> None:
     assert(state.player_mana >= 0)
     assert(state.player_goes_next is True or state.player_goes_next is False)
     assert(state.boss_health > 0)
-    # check that no effect is applied twice
-    assert(len(set(map(lambda x: x.effect_index, state.effects))) == len(state.effects))
-    assert(all(map(lambda x: x.turns_remaining > 0, state.effects)))
-    assert(all(map(lambda x: x.effect_index>= 0 and x.effect_index<=len(EFFECTS), state.effects)))
     assert(state.player_mana_spent >= 0)
+    # check that no effect is applied twice
+    assert(len(set(map(lambda x: x.effect, state.effects))) == len(state.effects))
+    
+    for e in state.effects:
+        assertValidActiveEffect(e)
+
+
+def assertValidActiveEffect(applied_effect: AppliedEffect_t) -> None:
+    """Assert that this is a valid applied effect"""
+    assert(applied_effect.turns_remaining > 0)
+    assert(applied_effect.effect in EFFECTS)
+
+
+def applyActiveEffects(state: State_T) -> State_T:
+    """Apply the active effects to the state and return it
+        the remaining time is updated and expired effects are removed
+    """
+
+    remaining_effects: list[Effect_T] = []
+
+    boss_health_net_change = 0
+    player_mana_net_change = 0
+
+    for applied_effect in state.effects:
+        assertValidActiveEffect(applied_effect)
+        effect: Effect_T = applied_effect.effect
+
+        # print("EFFECT: ", effect.name)
+
+        boss_health_net_change -= effect.boss_damage
+        player_mana_net_change += effect.player_mana
+
+        if applied_effect.turns_remaining > 1:
+            remaining_effects.append(AppliedEffect_t(
+                turns_remaining=applied_effect.turns_remaining-1,
+                effect=applied_effect.effect,
+            ))
+    
+    return State_T(
+        player_health=state.player_health,
+        player_mana=state.player_mana + player_mana_net_change,
+        boss_health=state.boss_health + boss_health_net_change,
+        player_goes_next=state.player_goes_next,
+        effects=remaining_effects,
+        player_mana_spent=state.player_mana_spent,
+    )
+
+
+def doBossAction(state: State_T, boss_damage: int) -> Generator[State_T, None, None]:
+    """Generate all successor states based on a boss action"""
+    assert(state.player_goes_next == False)
+
+    # determine if the player has armor
+    player_armor = 0
+    for active_effect in state.effects:
+        if active_effect.effect == Effect_Shield:
+            player_armor += Effect_Shield.player_armor
+
+    # the boss has one action which is to attack so this is easy
+    #   always do minimum one damage with an attack
+    player_net_health = -max((boss_damage - player_armor), 1)
+
+    # print("Boss Hit ", player_net_health)
+
+    yield State_T(
+        player_health=state.player_health+player_net_health,
+        player_mana=state.player_mana,
+        player_goes_next=True,
+        boss_health=state.boss_health,
+        effects=state.effects,
+        player_mana_spent=state.player_mana_spent,
+    )
+
+
+def doPlayerAction(state: State_T) -> Generator[State_T, None, None]:
+    """Generate all the states based on any player action"""
+    assert(state.player_goes_next == True)
+
+    for spell in SPELLS:
+        if  spell.cost > state.player_mana:
+            # spell is to expensive, skip
+            continue
+
+        # print("CAST:", spell.name)
+
+        if spell.effect is None:
+            # this is a straight up spell
+            #   so we can just cast it
+            # pass
+            new_effects = state.effects
+        else:
+            if spell.effect in map(lambda x: x.effect, state.effects):
+                # this effect is already applied
+                continue
+            new_effects = []
+            new_effects.extend(state.effects)
+            new_effects.append(AppliedEffect_t(
+                turns_remaining=spell.effect.duration,
+                effect=spell.effect,
+            ))
+        yield State_T(
+            player_health=state.player_health+spell.heal,
+            player_mana=state.player_mana-spell.cost,
+            player_goes_next=False,
+            boss_health=state.boss_health-spell.damage,
+            effects=new_effects,
+            player_mana_spent=state.player_mana_spent+spell.cost,
+        )
 
 
 def GenerateSuccessorStates(state: State_T, boss_damage: int) -> Generator[State_T, None, None]:
     """Generate the successor states to the current state"""
 
     assertValidState(state)
+    assert(not(isStateTerminal(state)))
+    
+    # printState(state)
 
-    p_health, p_mana, p_turn, b_health, old_effects, p_mana_spent = state
-    p_armor = 0
+    global IS_HARD_MODE
+    if IS_HARD_MODE and state.player_goes_next:
+        state = State_T(
+            player_health=state.player_health-1,
+            player_mana=state.player_mana,
+            player_goes_next=state.player_goes_next,
+            boss_health=state.boss_health,
+            effects=state.effects,
+            player_mana_spent=state.player_mana_spent,
+        )
+        if isStateTerminal(state=state):
+            return iter([state])
 
-    # apply effects
-    updated_effects = []
-    for applied_e in old_effects:
-        time_remain = applied_e.turns_remaining
-        effect_index = applied_e.effect_index
-        assert(time_remain > 0)
-        assert(effect_index >= 0 and effect_index < len(EFFECTS))
-        effect = EFFECTS[effect_index]
+    state_after_effect = applyActiveEffects(state)
 
-        b_health -= effect.boss_damage
+    if isStateTerminal(state_after_effect):
+        return iter([state_after_effect])
 
-        if b_health <= 0:
-            raise GameOver(p_mana_spent, True)
-
-        p_mana += effect.player_mana
-
-        if time_remain > 1:
-            # the player has armor for this turn
-            p_armor += effect.player_armor
-            updated_effects.append(AppliedEffect_t(time_remain - 1, effect_index))
-        # else:
-        #   # this expired
-        #   pass
-
-    # now look at the options
-    if p_turn == False:
-        # this is a boss turn and the options are easy
-        #   the boss attacks
-        new_p_health = p_health - max(boss_damage - p_armor, 1)
-        if new_p_health <= 0:
-            raise GameOver(p_mana_spent, False)
-
-        yield State_T(new_p_health, p_mana, True, b_health, updated_effects, p_mana_spent)
-        return
+    if state.player_goes_next:
+        return doPlayerAction(state_after_effect)
     else:
-        # player turn, consider all the spells we can cast
-        can_cast_some_spell: bool = False
-
-        for spell in SPELLS:
-            if p_mana < spell.cost:
-                # can't afford this spell
-                continue
-
-            if spell.effect_index is None:
-                can_cast_some_spell = True
-                new_p_mana_spent = p_mana_spent + spell.cost
-                new_p_mana = p_mana - spell.cost
-                new_p_health = p_health + spell.heal
-                new_b_health = b_health - spell.damage
-                yield State_T(new_p_health, new_p_mana, False, new_b_health, updated_effects, new_p_mana_spent)
-            else:
-                if spell.effect_index in map(lambda x: x.effect_index, updated_effects):
-                    # can't re-cast this effect
-                    continue
-                can_cast_some_spell = True
-
-                # this spell will create a new effect
-                new_p_mana_spent = p_mana + spell.cost
-                new_p_mana = p_mana - spell.cost
-                new_effects = []
-                new_effects.extend(updated_effects)
-                new_effects.append(AppliedEffect_t(EFFECTS[spell.effect_index].duration, spell.effect_index))
-                yield State_T(p_health, new_p_mana, False, b_health, new_effects, new_p_mana_spent)
-        if not can_cast_some_spell:
-            raise GameOver(p_mana_spent, False)
-        return
+        return doBossAction(state_after_effect, boss_damage)
 
 
-def updateWinMana(new_val: int, old_val: Optional[int]) -> int:
-    if old_val is None:
-        print(f"Found candidate for win: {new_val}")
-        return new_val
-    elif new_val < old_val:
-        print(f"Found better candidate: {new_val}")
-        return new_val
-    return old_val
+def isStateTerminal(state: State_T) -> bool:
+    """Return `True` iff this state is terminal and should not be continued"""
+    if state.player_health <= 0:
+        return True
+    if state.boss_health <= 0:
+        return True
+    # if state.player_mana < min(map(lambda x: x.cost, SPELLS)):
+    #     return True
+    return False
 
 
 def printState(state: State_T):
     print("-- {} turn --".format("Player" if state.player_goes_next else "Boss"))
     print("- Player has {} hit points, ?? armor, {} mana".format(state.player_health, state.player_mana))
-    print("- Player has {} hit points".format(state.boss_health))
+    print("- Boss has {} hit points".format(state.boss_health))
+
+
+def runGame(
+    boss_health: int, 
+    boss_damage:int, 
+    player_health: int = 50, 
+    player_mana:int = 500
+) -> int:
+    """Run a game, starting with the player"""
+
+    start_state = getStartState(
+        boss_health=boss_health,
+        player_health=player_health,
+        player_mana=player_mana
+    )
+
+    print("New Game: boss health {}, boss damage {}, player health {}, player mana {}".format(
+        boss_health, boss_damage, player_health, player_mana,
+    ))
+
+    # just a really big number
+    best_win_mana = 2**31
+
+    state_q: deque[State_T] = deque()
+    state_q.append(start_state)
+
+    while len(state_q) > 0:
+        this_state: State_T = state_q.popleft()
+        # print(f"<{best_win_mana} remain {len(state_q)}> {this_state}")
+
+        if this_state.boss_health <= 0:
+            assert(this_state.player_health > 0)
+            print("Found a win condition at:", this_state.player_mana_spent)
+            best_win_mana = min(this_state.player_mana_spent, best_win_mana)
+            continue
+        if this_state.player_health <= 0:
+            continue
+
+        assertValidState(this_state)
+
+        if best_win_mana < this_state.player_mana_spent:
+            # we already have a better solution, so no need to explore here
+            continue
+
+        state_q.extend(GenerateSuccessorStates(this_state, boss_damage))
+
+    assert(best_win_mana != 2**31)
+    return best_win_mana
+
+
+def guessSpellCast(v: int) -> list[int]:
+    """Debugging utility, guess what spells were cast to make up a specific total mana spent"""
+    options = list(map(lambda x: x.cost, SPELLS))
+
+    print("  Options:", options)
+
+    m = min(options)
+    rounds = (v // m) + 1
+    if rounds > 5:
+        print(f"  WARNING: guess will take up to {rounds} rounds, this may be slow")
+
+    for i in range(1, rounds+1):
+        for c in itertools.combinations_with_replacement(options, i):
+            if sum(c) == v:
+                return c
 
 
 def y2015d22(inputPath = None):
@@ -160,38 +295,30 @@ def y2015d22(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
+    assert(len(lineList) == 2)    
     boss_health, boss_damage = map(lambda x: int(x.split(" ")[-1]), lineList)
 
-    print(f"Boss Health {boss_health}, Boss Damage {boss_damage}")
+    # =============
+    # Test Cases
+    v = runGame(14, 8, 10, 250)
+    e = sum([229, 113, 73, 173, 53])
+    if e != v:
+        print("Expected: {}, got {}".format(e,v))
+        print("  Guess: {}".format(guessSpellCast(v)))
+    assert(e == v)
+    print(f"First Test Case OK")
+    v = runGame(13, 8, 10, 250)
+    e = sum([173, 53])
+    if e != v:
+        print("Expected: {}, got {}".format(e, v))
+        print("  Guess: {}".format(guessSpellCast(e)))
+    assert(e == v)
+    print(f"Second Test Case OK")
 
-    best_win_mana = None
+    # =============
 
-    state_q = deque()
-    state_q.append(getStartState(boss_health))
-    
-    while len(state_q) > 0:
-        this_state: State_T = state_q.popleft()
-
-        if this_state.boss_health <= 0:
-            best_win_mana = updateWinMana(this_state.player_mana_spent, best_win_mana)
-            continue
-        if this_state.player_health <= 0:
-            raise RuntimeError("This should be unreachable")
-
-        assertValidState(this_state)
-        
-        if best_win_mana is not None and this_state.player_mana_spent > best_win_mana:
-            # this will be no better so prune
-            continue
-        
-        try:
-            state_q.extend(GenerateSuccessorStates(this_state, boss_damage))
-        except GameOver as goe:
-            if goe.plyer_wins:
-                best_win_mana = updateWinMana(goe.player_mana_spent, best_win_mana)
-
-    Part_1_Answer = best_win_mana
+    Part_1_Answer = runGame(boss_health=boss_health, boss_damage=boss_damage)
 
     try:
         assert(Part_1_Answer != 536)
@@ -201,5 +328,9 @@ def y2015d22(inputPath = None):
     except AssertionError:
         print("Our guess was: {}".format(Part_1_Answer))
         raise
+
+    global IS_HARD_MODE
+    IS_HARD_MODE = True
+    Part_2_Answer = runGame(boss_health=boss_health, boss_damage=boss_damage)
 
     return (Part_1_Answer, Part_2_Answer)
