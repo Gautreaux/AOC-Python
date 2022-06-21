@@ -1,9 +1,13 @@
+from AOC_Lib.SlidingWindow import sliding_window
 from .IntcodeLib import IntcodeProgram, IntcodeRunner
 
+from copy import  deepcopy
 from enum import IntEnum, unique
 import itertools
 from typing import Any, Generator, Iterable, Optional, Union
 
+
+PATH_T = list[tuple[str, int]]
 
 _MAX_CHAR_PER_LINE = 20
 
@@ -164,7 +168,7 @@ class ResultSimulator:
         # TODO - remainder
 
 
-def buildIdealPath(sim: ResultSimulator) -> list[Union[str,int]]:
+def buildIdealPath(sim: ResultSimulator) -> PATH_T:
     """Build the perfect path"""
 
     out = []
@@ -208,79 +212,159 @@ def buildIdealPath(sim: ResultSimulator) -> list[Union[str,int]]:
             assert(right_is_scaffold)
             out.append('R')
             r_dir = r_dir.turnRight()
-    return out
 
-
-def pairwise(iterable: Iterable[Any]) -> Generator[tuple[Any, Any], None, None]:
-    a,b = itertools.tee(iterable)
-    _ = next(b)
-    return zip(a,b)
-
-
-def listCompressIterator(iterable: Iterable[Any], p: tuple[Any, Any]) -> Generator[Any, None, None]:
-    """Return a generator of the same thing compressed so that
-        any two consecutive elements matching p are compressed into one
-    """
-    a,b = itertools.tee(iterable)
-    _ = next(b)
-
+    out_paired = []
+    itr = iter(out)
+    assert(len(out) % 2 == 0)
     while True:
         try:
-            a_val = next(a)
+            lhs = next(itr)
+            rhs = next(itr)
+            out_paired.append((lhs, rhs))
         except StopIteration:
-            return
-        
-        try:
-            b_val = next(b)
-        except StopIteration:
-            yield a_val
-            return
-        
-        if a_val == p[0] and b_val == p[1]:
-            yield (a_val,b_val)
-            try:
-                _ = next(a)
-                _ = next(b)
-            except StopIteration:
-                pass
-        else:
-            yield a_val
+            break
+    return out_paired
 
 
-def flatten(maybe_iterable) -> Generator[Any, None, None]:
-    """Flatten nested iterables into one"""
+class Compressor:
+    """Manages compressing a `raw_path` int an Ascii-Code program"""
 
-    try:
-        a = iter(maybe_iterable)
-    except TypeError:
-        yield maybe_iterable 
-        return
+    def __init__(self) -> None:
+        self._reset()
 
-    for f in a:
-        try:
-            i = iter(f)
-            for k in i:
-                yield k
-        except TypeError:
-            yield f
+    def _reset(self):
+        """reset to a ready state"""
+    
+    def _is_full_mask(self, mask: list[Optional[str]]) -> bool:
+        """Return `True` iff the mask completely covers the path"""
+        return all(map(lambda x: x is not None, mask))
 
+    def _compressor_worker(self, raw_path: PATH_T) -> list[str]:
+        """Worker for the first layer"""
+        mask = [None]*len(raw_path)
 
+        for i,v in enumerate(raw_path):
+            if v == raw_path[0]:
+                mask[i] = 'A'
 
-def compressPath(full_path: list[Any]) -> Generator[tuple[Any, Any], None, None]:
+        if self._is_full_mask(mask):
+            return mask
 
-    tried = set()
+        mask_iter = iter(mask)
+        next(mask_iter)
+        max_function_len = 1 + sum(1 for _ in itertools.takewhile(
+            lambda x: x is None, mask_iter
+        ))
 
-    for p in pairwise(full_path):
-        if p in tried:
-            continue
-        else:
-            tried.add(p)
-            new_l = list(listCompressIterator(full_path, p))
-            new_l = list(map(lambda x: tuple(flatten(x)), new_l))
-            print(f"Compressing {p} -> {new_l}")
-            compressPath(new_l)
-            return
+        # debug
+        max_function_len = 3
+
+        print("The longest length possible for the first function is:", max_function_len)
+
+        for first_function_len in range(1, max_function_len+1):
+            mask = [None]*len(raw_path)
+            hunk = tuple(raw_path[:first_function_len])
+
+            # print('START A:', to_match)
+
+            self._sliding_window_mask(raw_path, mask, hunk, 'A')
+
+            if self._is_full_mask(mask):
+                return {'A' : hunk, 0: mask }
+
+            print("".join(map(lambda x: x if x is not None else '.', mask)))
+
+            r = self._compressor_worker_b(raw_path, mask, 'B')
+            if r is not None:
+                r['A'] = hunk
+                return r
+            # print('END A:', to_match)
+
+    def _compressor_worker_b(
+        self, 
+        raw_path: PATH_T, 
+        mask: list[Optional[str]], 
+        group: str
+    ) -> Optional[list[str]]:
+        """Handles the sub partitioning for secondary layers"""
+
+        # find the first hole
+        hunk = list(
+            map(
+                lambda x: x[0],
+                itertools.takewhile(
+                    lambda x: x[1] is None, 
+                    itertools.dropwhile(
+                        lambda x: x[1] is not None,
+                        zip(raw_path, mask)
+                    )
+                )
+            )
+        )
+
+        next_group = chr(ord(group) + 1)
+
+        # print(f"Attempting to place `{group}` into {hunk}")
+
+        old_mask = deepcopy(mask)
+
+        for function_len in range(1, len(hunk)+1):
+            # ensure that we have no side effects
+            mask = deepcopy(old_mask) 
+
+            to_match = tuple(hunk[:function_len])
+
+            # print("START", group, to_match)
+            self._sliding_window_mask(raw_path, mask, to_match, group)
+
+            print("".join(map(lambda x: x if x is not None else '.', mask)))
+            if self._is_full_mask(mask):
+                return {group: hunk, 0: mask}
             
+            if next_group <= 'C':
+                r = self._compressor_worker_b(raw_path, mask, next_group)
+                if r is not None:
+                    r[group] = hunk
+                    return r
+            # print("END", group, to_match)
+
+    def _sliding_window_mask(self, raw_path: PATH_T, mask: list[Optional[str]], hunk, val: str):
+        """Apply a sliding widow over `raw_path`
+            if the window matches `hunk` and the corresponding `mask` is entirely None,
+                update (in place) the `mask` to have `val`
+        """
+    
+        fn_len = len(hunk)
+        for i,w in enumerate(sliding_window(raw_path, fn_len)):
+            if w != hunk:
+                    continue
+
+            # make sure that this section of the mask is None
+            mask_hunk = mask[i:(i+fn_len)]
+            if any(map(lambda x: x is not None, mask_hunk)):
+                continue
+
+            for j in range(i, i+fn_len):
+                mask[j] = val
+
+
+    def compress(self, raw_path: PATH_T) -> tuple[list[str], PATH_T, PATH_T, PATH_T]:
+        """Actually do the compression"""
+
+        # The idea is that the first item in `raw_path` must the first `function`
+        #   likewise, the first piece after the first function must begin the second `function`
+        m = self._compressor_worker(raw_path)
+
+        if m is None:
+            print("Could not create a mask...")
+            assert(False)
+
+        print(f"Got Mask back:", m)
+
+        # TODO - reduce the mask back into `ABACACACB`
+        #   return
+
+
 
 
 def y2019d17(inputPath = None):
@@ -318,8 +402,8 @@ def y2019d17(inputPath = None):
 
     print(ideal)
 
-    compressPath(ideal)
-
+    c = Compressor()
+    print(c.compress(ideal))
 
     # runner = IntcodeRunner(prog)
     # runner.setAddr(0, 2)

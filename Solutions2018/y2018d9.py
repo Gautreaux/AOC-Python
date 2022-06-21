@@ -155,6 +155,6 @@ def y2018d9(inputPath = None):
         assert(e == v)
 
     Part_1_Answer = getHighestScore(num_players, last_points)
-    Part_1_Answer = getHighestScore(num_players, last_points*100)
+    Part_2_Answer = getHighestScore(num_players, last_points*100)
 
     return (Part_1_Answer, Part_2_Answer)
