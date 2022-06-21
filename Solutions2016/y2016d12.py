@@ -78,6 +78,15 @@ def runProgram(instructionSet, memory={}):
 
         programCounter += 1
 
+    # for 2016d25
+    def out(val):
+        nonlocal programCounter
+
+        if isinstance(val, str):
+            val = memory[val]
+
+        print(val, end="")
+        programCounter += 1
 
     grammer = {
         "inc": inc,
@@ -85,6 +94,7 @@ def runProgram(instructionSet, memory={}):
         "cpy": cpy,
         "jnz": jnz,
         "tgl" : tgl,
+        "out" : out,
     }
 
     try:
