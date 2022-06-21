@@ -1,6 +1,6 @@
 # from AOC_Lib.name import *
 
-from AOC_Lib.math import lcm
+from math import lcm
 
 def doReduction(diskList):
     if len(diskList) <= 1:

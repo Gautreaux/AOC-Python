@@ -4,7 +4,7 @@ Solutions for [Advent of Code](https://adventofcode.com/) coding competition.
 This is attempt 3 at collecting python solutions the the challenges. Began for 2019 challenge; prior solutions were lost or not in python.
 
 ### Solution Coverage
-:star: `262` of `350`
+:star: `264` of `350`
 |:christmas_tree:|2015|2016|2017|2018|2019|2020|2021|
 |-|-|-|-|-|-|-|-|
 |1|[:star:](http://adventofcode.com/2015/day/1)|[:star:](http://adventofcode.com/2016/day/1)|[:star:](http://adventofcode.com/2017/day/1)|[:star:](http://adventofcode.com/2018/day/1)|[:star:](http://adventofcode.com/2019/day/1)|[:star:](http://adventofcode.com/2020/day/1)|[:star:](http://adventofcode.com/2021/day/1)|
@@ -31,7 +31,7 @@ This is attempt 3 at collecting python solutions the the challenges. Began for 2
 |22|[:star:](http://adventofcode.com/2015/day/22)|[:heavy_multiplication_x:](http://adventofcode.com/2016/day/22)|[:heavy_multiplication_x:](http://adventofcode.com/2017/day/22)|[:star:](http://adventofcode.com/2018/day/22)|[:warning:](http://adventofcode.com/2019/day/22)|[:star:](http://adventofcode.com/2020/day/22)|[:heavy_multiplication_x:](http://adventofcode.com/2021/day/22)|
 |23|[:star:](http://adventofcode.com/2015/day/23)|[:exclamation:](http://adventofcode.com/2016/day/23)|[:heavy_multiplication_x:](http://adventofcode.com/2017/day/23)|[:low_brightness:](http://adventofcode.com/2018/day/23)|[:x:](http://adventofcode.com/2019/day/23)|[:star:](http://adventofcode.com/2020/day/23)|[:heavy_multiplication_x:](http://adventofcode.com/2021/day/23)|
 |24|[:star:](http://adventofcode.com/2015/day/24)|[:star:](http://adventofcode.com/2016/day/24)|[:heavy_multiplication_x:](http://adventofcode.com/2017/day/24)|[:heavy_multiplication_x:](http://adventofcode.com/2018/day/24)|[:low_brightness:](http://adventofcode.com/2019/day/24)|[:star:](http://adventofcode.com/2020/day/24)|[:heavy_multiplication_x:](http://adventofcode.com/2021/day/24)|
-|25|[:star:](http://adventofcode.com/2015/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2016/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2017/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2018/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2019/day/25)|[:star:](http://adventofcode.com/2020/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2021/day/25)|
+|25|[:star:](http://adventofcode.com/2015/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2016/day/25)|[:star:](http://adventofcode.com/2017/day/25)|[:warning:](http://adventofcode.com/2018/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2019/day/25)|[:star:](http://adventofcode.com/2020/day/25)|[:heavy_multiplication_x:](http://adventofcode.com/2021/day/25)|
 
 |:santa:|Legend|
 |-|-|
@@ -44,6 +44,8 @@ This is attempt 3 at collecting python solutions the the challenges. Began for 2
 |:warning:|No known answer for solution|
 
 Last Commit Changed`NOT_IMPLEMENTED` number of solutions
+
+
 
 
 

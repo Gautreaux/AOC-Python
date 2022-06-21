@@ -1,10 +1,9 @@
 # from AOC_Lib.name import *
 
 from functools import reduce
-from math import ceil
+from math import ceil, lcm
 from typing import List, Tuple
 
-from AOC_Lib.math import lcm
 
 def doReduce(period0, offset0, period1, offset1) -> Tuple[int, int]:
     '''Reduce two period offset tuples into their derived period offset tuple'''
