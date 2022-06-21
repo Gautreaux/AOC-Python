@@ -148,28 +148,9 @@ class ResultSimulator:
         """Return True iff the tile left of the robot is scaffold"""
         return self.isForwardScaffold(position, direction.turnRight())
 
-    @classmethod
-    def isValidProgram(cls, main: list[str], a: list[str], b: list[str], c: list[str]) -> Optional[str]:
-        """Return true if the produced output is valid syntactically
-            returns None on success
-            otherwise returns sting describing failure
-        """
-        l = [main, a, b, c]
-        if any(map(lambda x: len(x) > _MAX_CHAR_PER_LINE, l)):
-            return "One of the methods is too long"
-
-        if any(map(lambda x: len(x) != 1, itertools.chain.from_iterable(l))):
-            return "One of the commands is not a single charater"
-        
-        main_set = set(iter(main)) - {'A', 'B', 'C'}
-        if main_set:
-            return f"Illegal chars in main: {main_set}"
-
-        # TODO - remainder
-
 
 def buildIdealPath(sim: ResultSimulator) -> PATH_T:
-    """Build the perfect path"""
+    """Build the path, if there was no memory limit"""
 
     out = []
 
@@ -324,7 +305,7 @@ class Compressor:
             if next_group <= 'C':
                 r = self._compressor_worker_b(raw_path, mask, next_group)
                 if r is not None:
-                    r[group] = hunk
+                    r[group] = to_match
                     return r
             # print("END", group, to_match)
 
@@ -359,12 +340,32 @@ class Compressor:
             print("Could not create a mask...")
             assert(False)
 
-        print(f"Got Mask back:", m)
+        mask = m.pop(0)
 
-        # TODO - reduce the mask back into `ABACACACB`
-        #   return
+        print(f"Got back:", m)
+        print("Mask is:", mask)
 
+        reduced = []
+        mask_iter = iter(mask)
 
+        while True:
+            try:
+                x = next(mask_iter)
+            except StopIteration:
+                break
+            reduced.append(x)
+            # print(x, len(m[x]))
+            for _ in range(len(m[x]) - 1):
+                # not protected 
+                #   if a stop iteration is raised in here,
+                #   there is a real problem
+                next(mask_iter)
+        
+        A = list(itertools.chain.from_iterable(m['A']))
+        B = list(itertools.chain.from_iterable(m['B']))
+        C = list(itertools.chain.from_iterable(m['C']))
+
+        return ("".join(reduced), A, B, C)
 
 
 def y2019d17(inputPath = None):
@@ -403,9 +404,34 @@ def y2019d17(inputPath = None):
     print(ideal)
 
     c = Compressor()
-    print(c.compress(ideal))
+    compressed = c.compress(ideal)
 
-    # runner = IntcodeRunner(prog)
-    # runner.setAddr(0, 2)
+    print("Compressed:", compressed)
+
+    ascii_code = []
+
+    for line in compressed:
+        for token in line:
+            if isinstance(token, str):
+                ascii_code.append(ord(token))
+            else:
+                ascii_code.extend(map(ord, str(token)))
+            ascii_code.append(ord(','))
+        ascii_code[-1] = 10 # newline
+
+    ascii_code.append(ord('n')) # no graphics
+    ascii_code.append(ord('\n')) # final newline
+
+    print(ascii_code)
+
+    runner = IntcodeRunner(prog)
+    runner.setAddr(0, 2)
+    
+    o = runner.run_sync(ascii_code)
+
+    txt = "".join(map(chr, o[:-1]))
+    print(txt)
+
+    Part_2_Answer = o[-1]
 
     return (Part_1_Answer, Part_2_Answer)
