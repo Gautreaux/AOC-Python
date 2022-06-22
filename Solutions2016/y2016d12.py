@@ -1,5 +1,7 @@
 # from AOC_Lib.name import *
 
+from .AssemBunny import AssemBunnyProgram, AssemBunnyRunner
+
 # run program and return the memory map
 def runProgram(instructionSet, memory={}):
     for register in ["a", "b", "c", "d"]:
@@ -121,19 +123,15 @@ def y2016d12(inputPath = None):
             line = line.strip()
             lineList.append(line)
     
-    instructionSet = []
+    program = AssemBunnyProgram.fromStrs(lineList)
 
-    for line in lineList:
-        l = line.split(" ")
+    runner = AssemBunnyRunner(program)
+    runner.run_sync()
+    Part_1_Answer = runner.getMemValue('a')
 
-        for i in [1,2]:
-            try:
-                l[i] = int(l[i])
-            except:
-                pass
-        instructionSet.append(l)
-
-    Part_1_Answer = runProgram(instructionSet)['a']
-    Part_2_Answer = runProgram(instructionSet, memory={'c':1})['a']
+    runner = AssemBunnyRunner(program)
+    runner.setMemValue('c', 1)
+    runner.run_sync()
+    Part_2_Answer = runner.getMemValue('a')
 
     return (Part_1_Answer, Part_2_Answer)
