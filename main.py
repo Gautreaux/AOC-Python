@@ -2,7 +2,7 @@
 from argparse import ArgumentParser
 from importlib import import_module
 from inspect import getmembers
-from os import path, remove
+from os import path, remove, system, name
 from typing import Any
 
 from inputDownloader import getInputForDateCode
@@ -79,11 +79,14 @@ if __name__ == "__main__":
     parser.add_argument('-p', action='store_true', help=testAllIntelliParse.__doc__)
     parser.add_argument('-t', action='store_true', help=testDownload.__doc__)
     parser.add_argument('-r', action='store_true', help="run the readme formatter")
+    parser.add_argument('-c', action='store_true', help="clear console before running")
 
     args = parser.parse_args()
      
     # elif args.p is not None:
     #     testAllIntelliParse()
+    if args.c is True:
+        system('cls' if name == 'nt' else 'clear')
     if args.t is True:
         testDownload()
     if args.r is True:
