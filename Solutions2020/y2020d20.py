@@ -1,10 +1,9 @@
 # from AOC_Lib.name import *
 
-from readmeFormatter import doAutoGen
-from typing import Generator, List, NewType, Optional, Tuple
+from typing import Generator
 
 
-def constructTile(fileGen : Generator[str, None, None]) -> Tuple[int, List[str]]:
+def constructTile(fileGen : Generator[str, None, None]) -> tuple[int, list[str]]:
     thisTile = []
     thisNum = None
     
@@ -26,7 +25,7 @@ def constructTile(fileGen : Generator[str, None, None]) -> Tuple[int, List[str]]
 
 
 Side_TYPE = int
-TILE_TYPE = List[str]
+TILE_TYPE = list[str]
 UP = 0
 RIGHT = 1
 DOWN = 2
@@ -121,7 +120,7 @@ def getAllTileSinglePermutationsGenerator(inTile : TILE_TYPE) -> Generator[TILE_
     yield flipHorizontalTile(inTile)
     yield flipVerticalTile(inTile)
 
-def getAllPermutationsOfTile(tile: TILE_TYPE) -> List[TILE_TYPE]:
+def getAllPermutationsOfTile(tile: TILE_TYPE) -> list[TILE_TYPE]:
     tileList = [tile]
     expansionTiles = [tile]
 
@@ -147,7 +146,7 @@ def getAllPermutationsOfTile(tile: TILE_TYPE) -> List[TILE_TYPE]:
             assert(type(row) == str)
     return tileList
 
-def getPosFromDir(position : Tuple[int, int], side : Side_TYPE) -> Tuple[int, int]:
+def getPosFromDir(position : tuple[int, int], side : Side_TYPE) -> tuple[int, int]:
     x = position[0]
     y = position[1]
     if side == LEFT:
@@ -166,7 +165,7 @@ SEA_MONSTER = [ "                  # ",
                 " #  #  #  #  #  #   ",]
 SEA_MONSTER_CHAR = "#"
 
-POSITION_TYPE = Tuple[int, int]
+POSITION_TYPE = tuple[int, int]
 
 def seaMonsterPositionsGenerator(s=SEA_MONSTER) -> Generator[POSITION_TYPE, None, None]:
     for y in range(len(s)):
@@ -174,7 +173,7 @@ def seaMonsterPositionsGenerator(s=SEA_MONSTER) -> Generator[POSITION_TYPE, None
             if s[y][x] == SEA_MONSTER_CHAR:
                 yield ((x,y))
 
-def isSeaMonsterAtPosition(pos : POSITION_TYPE, tile : TILE_TYPE, positionsList : List[POSITION_TYPE]) -> bool:
+def isSeaMonsterAtPosition(pos : POSITION_TYPE, tile : TILE_TYPE, positionsList : list[POSITION_TYPE]) -> bool:
     for x,y in positionsList:
         if tile[pos[1] + y][pos[0] + x] != SEA_MONSTER_CHAR:
             return False
