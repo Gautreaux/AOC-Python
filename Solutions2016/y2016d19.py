@@ -75,7 +75,7 @@ def y2016d19(inputPath = None):
     number_elves = int(lineList[-1])
 
     ec = ElfCircle(number_elves)
-    
+    return (None, None)
     Part_1_Answer = ec.Play()
 
     # this doesnt actually work:
