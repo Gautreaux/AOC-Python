@@ -136,55 +136,24 @@ def getNewPlutonianMap(current_map: ERIS_RMAP_T) -> ERIS_RMAP_T:
                 else:
                     if num_neighbor_bugs == 1 or num_neighbor_bugs == 2:
                         new_map.add((x_value,y_value,z_layer))
+    assert(not any(map(lambda p: p[0] == 2 and p[1] == 2, new_map)))
     return new_map
 
 
-def y2019d24(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d24.txt"
-    print("2019 day 24:")
+def parseRMap(lines:list[str], base_layer:int = 0) -> ERIS_RMAP_T:
+    """Parse a map from a list of lines"""
+    assert(len(lines) == 5)
+    new_map = set()
+    for y,row in enumerate(lines):
+        assert(len(row) == 5)
+        for x,cell in enumerate(row):
+            if cell == "#":
+                new_map.add((x,y,base_layer))
+    return new_map
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
-    
-    eris_map = []
-    eris_r_map = set() # for part 2
-
-    for line in lineList:
-        assert(len(line) == 5)
-        this_row = []
-        for c in line:
-            if c == '#':
-                this_row.append(TileType.BUG)
-                eris_r_map.add((len(this_row), len(eris_map), 0))
-            elif c == ".":
-                this_row.append(TileType.EMPTY)
-            else:
-                raise RuntimeError(f"Unrecognized character `{c}`")
-        eris_map.append(this_row)
-
-    assert(len(eris_map) == 5)
-
-    seen_maps = set()
-
-    for current_map in erisMapGenerator(eris_map):
-        h = hashErisMap(current_map)
-        if h in seen_maps:
-            Part_1_Answer = getBioDiversityScore(current_map)
-            break
-        else:
-            seen_maps.add(h)
-
-    ##########
-    # Part 2 #
-    ##########
-
+def y2019d24_tests() -> bool:
+    """Just some test functions"""
     assert(sum(1 for _ in getPlutonianAdjacent(0,0,0)) == 4)
     assert(sum(1 for _ in getPlutonianAdjacent(1,0,0)) == 4)
     assert(sum(1 for _ in getPlutonianAdjacent(2,0,0)) == 4)
@@ -215,7 +184,69 @@ def y2019d24(inputPath = None):
     assert(sum(1 for _ in getPlutonianAdjacent(3,4,0)) == 4)
     assert(sum(1 for _ in getPlutonianAdjacent(4,4,0)) == 4)
 
-    eris_r_map = {
+    adv_test_cases = {
+        (0,0,0) : (4, set([(0,1,0), (1,0,0), (2,1,-1), (1,2,-1)])),
+        (1,0,0) : (4, set([(0,0,0), (2,0,0), (1,1,0), (2,1,-1)])),
+        (2,0,0) : (4, set([(1,0,0), (3,0,0), (2,1,0), (2,1,-1)])),
+        (3,0,0) : (4, set([(2,0,0), (4,0,0), (3,1,0), (2,1,-1)])),
+        (4,0,0) : (4, set([(3,0,0), (4,1,0), (2,1,-1), (3,2,-1)])),
+
+        (0,1,0) : (4, set([(0,0,0), (0,2,0), (1,1,0), (1,2,-1)])),
+        (1,1,0) : (4, set([(1,0,0), (0,1,0), (1,2,0), (2,1,0)])),
+        (2,1,0) : (8, set([(2,0,0), (1,1,0), (3,1,0), (0,0,1), (1,0,1), (2,0,1), (3,0,1), (4,0,1)])),
+        (3,1,0) : (4, set([(3,0,0), (3,2,0), (2,1,0), (4,1,0)])),
+        (4,1,0) : (4, set([(4,0,0), (4,2,0), (3,1,0), (3,2,-1)])),
+
+        (0,2,0) : (4, set([(0,1,0), (0,3,0), (1,2,0), (1,2,-1)])),
+        (1,2,0) : (8, set([(0,2,0), (1,1,0), (1,3,0), (0,0,1), (0,1,1), (0,2,1), (0,3,1), (0,4,1)])),
+        # (2,2,0) : (??, set([])),
+        (3,2,0) : (8, set([(3,1,0), (3,3,0), (4,2,0), (4,0,1), (4,1,1), (4,2,1), (4,3,1), (4,4,1)])),
+        (4,2,0) : (4, set([(4,1,0), (4,3,0), (3,2,0), (3,2,-1)])),
+
+        (0,3,0) : (4, set([(0,2,0), (0,4,0), (1,3,0), (1,2,-1)])),
+        (1,3,0) : (4, set([(0,3,0), (2,3,0), (1,2,0), (1,4,0)])),
+        (2,3,0) : (8, set([(1,3,0), (3,3,0), (2,4,0), (0,4,1), (1,4,1), (2,4,1), (3,4,1), (4,4,1)])),
+        (3,3,0) : (4, set([(2,3,0), (4,3,0), (3,2,0), (3,4,0)])),
+        (4,3,0) : (4, set([(4,2,0), (4,4,0), (3,3,0), (3,2,-1)])),
+
+        (0,4,0) : (4, set([(0,3,0), (1,4,0), (1,2,-1), (2,3,-1)])),
+        (1,4,0) : (4, set([(0,4,0), (2,4,0), (1,3,0), (2,3,-1)])),
+        (2,4,0) : (4, set([(1,4,0), (3,4,0), (2,3,0), (2,3,-1)])),
+        (3,4,0) : (4, set([(2,4,0), (4,4,0), (3,3,0), (2,3,-1)])),
+        (4,4,0) : (4, set([(3,4,0), (4,3,0), (3,2,-1), (2,3,-1)])),
+    }
+
+    for pos, (expected_len, expected_adj) in adv_test_cases.items():
+        adj = set(getPlutonianAdjacent(*pos))
+        assert(len(adj) == expected_len)
+
+        if len(expected_adj) != 0:
+            assert(pos not in expected_adj)
+            if(len(expected_adj)) != expected_len:
+                raise RuntimeError(f"The test case failed its own covariant check")
+            try:
+                assert(adj == expected_adj)
+            except AssertionError:
+                l = list(adj)
+                l.sort()
+                el = list(expected_adj)
+                el.sort()
+                print("About to fail on {}:".format(pos))
+                print("\tExpected:", el)
+                print("\tGot:     ", l)
+                raise
+    
+
+    test_eris_r_map = parseRMap([
+        "....#",
+        "#..#.",
+        "#..##",
+        "..#..",
+        "#....",
+    ])
+    
+    
+    assert(test_eris_r_map == {
         (4,0,0),
         (0,1,0),
         (3,1,0),
@@ -224,29 +255,127 @@ def y2019d24(inputPath = None):
         (4,2,0),
         (2,3,0),
         (0,4,0),
-    }
+    })
 
     for i in range(10):
-        if i % 1 == 0:
-            print(f"Minutes: {i}")
+        test_eris_r_map = getNewPlutonianMap(test_eris_r_map)
 
+    check_maps = {
+        -5 : parseRMap([
+            "..#..",
+            ".#.#.",
+            "....#",
+            ".#.#.",
+            "..#..",
+        ], base_layer=-5),
+        -4 : parseRMap([
+            "...#.",
+            "...##",
+            ".....",
+            "...##",
+            "...#.",
+        ], base_layer=-4),
+        -3 : parseRMap([
+            "#.#..",
+            ".#...",
+            ".....",
+            ".#...",
+            "#.#..",
+        ], base_layer=-3),
+        -2 : parseRMap([
+            ".#.##",
+            "....#",
+            "....#",
+            "...##",
+            ".###.",
+        ], base_layer=-2),
+        -1 : parseRMap([
+            "#..##",
+            "...##",
+            ".....",
+            "...#.",
+            ".####",
+        ], base_layer=-1),
+        00 : parseRMap([
+            ".#...",
+            ".#.##",
+            ".#...",
+            ".....",
+            ".....",
+        ], base_layer=0),
+        # TODO - other samples layers 1-5
+    }
+    
+    for layer, expected_r_map in check_maps.items():
+        assert({layer} == set(map(lambda x: x[2], expected_r_map)))
+        out_map = set(filter(lambda x: x[2] == layer, test_eris_r_map))
+        try:
+            assert(out_map == expected_r_map)
+        except AssertionError:
+            print(f"Error found when checking map {layer}")
+            raise
+
+    assert(len(test_eris_r_map) == 99)
+    return True
+
+
+def y2019d24(inputPath = None):
+    if(inputPath == None):
+        inputPath = "Input2019/d24.txt"
+    print("2019 day 24:")
+
+    Part_1_Answer = None
+    Part_2_Answer = None
+    lineList = []
+
+    with open(inputPath) as f:
+        for line in f:
+            line = line.strip()
+            lineList.append(line)
+    
+    eris_map = []
+
+    for line in lineList:
+        assert(len(line) == 5)
+        this_row = []
+        for c in line:
+            if c == '#':
+                this_row.append(TileType.BUG)
+            elif c == ".":
+                this_row.append(TileType.EMPTY)
+            else:
+                raise RuntimeError(f"Unrecognized character `{c}`")
+        eris_map.append(this_row)
+
+    assert(len(eris_map) == 5)
+
+    seen_maps = set()
+
+    for current_map in erisMapGenerator(eris_map):
+        h = hashErisMap(current_map)
+        if h in seen_maps:
+            Part_1_Answer = getBioDiversityScore(current_map)
+            break
+        else:
+            seen_maps.add(h)
+
+    ##########
+    # Part 2 #
+    ##########
+
+    eris_r_map = parseRMap(lineList)
+
+    assert(y2019d24_tests())
+
+    for i in range(200):
+        print(f"[Part 2] i == {i} of 200")
         eris_r_map = getNewPlutonianMap(eris_r_map)
-
     Part_2_Answer = len(eris_r_map)
 
-    for z_layer in range(-5, 6):
-        print("Depth {}:".format(z_layer))
-        for y_value in range(4):
-            for x_value in range(4):
-                if (x_value, y_value, z_layer) in eris_r_map:
-                    print("#", end="")
-                else:
-                    print(".", end="")
-            print("")
-        print("")
+    assert(not any(map(lambda p: p[0] == 2 and p[1] == 2, eris_r_map)))
 
-    print("Part 2 guess: ", Part_2_Answer)
-    assert(Part_2_Answer < 2012)
-    assert(Part_2_Answer < 1932)
+    # print("Part 2 guess: ", Part_2_Answer)
+    # assert(Part_2_Answer < 2012)
+    # assert(Part_2_Answer < 1932)
 
     return (Part_1_Answer, Part_2_Answer)
