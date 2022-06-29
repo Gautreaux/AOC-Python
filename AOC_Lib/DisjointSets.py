@@ -18,18 +18,20 @@ class DisjointSets():
         """Return the number of disjoint sets"""
         return self._total_sets
 
-    def union(self, a: Hashable, b: Hashable) -> None:
-        """Union the two items together, inserting them if they are new"""
-        af = self.find(a)
-        bf = self.find(b)
+    def union(self, a: Hashable, b: Hashable, force:bool = False) -> None:
+        """Union the two items together, inserting them if they are new
+            NOTE: this is always union `a` into `b`
+        """
+        af = self.find(a, force=force)
+        bf = self.find(b, force=force)
         if af != bf:
             self._d[bf] = af
             self._total_sets -= 1
 
-    def find(self, a: Hashable) -> Hashable:
+    def find(self, a: Hashable, force:bool = False) -> Hashable:
         """Find for `a` and path compress, inserting if non-existent"""
         if a not in self._d:
-            if self._allow_insert:
+            if self._allow_insert or force:
                 self._total_sets += 1
                 self._d[a] = a
                 return a
@@ -46,7 +48,9 @@ class DisjointSets():
             self._d[x] = t
         return t
 
-    def areInSameGroups(self, a: Hashable, b: Hashable) -> bool:
+    def areInSameGroups(self, a: Hashable, b: Hashable, force:bool = False) -> bool:
         """Return `True` iff a and b are in the same set"""
-        return (self.find(a) == self.find(b))
-            
+        return (self.find(a, force=force) == self.find(b, force=force))
+
+
+# s
