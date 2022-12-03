@@ -116,7 +116,10 @@ class SolutionBase:
         """Called whenever a subclass inherits this class (i.e. at load time)"""
 
         # Store a reference to `cls` by date code 
-        date_code = cls._infer_date_code()
+        try:
+            date_code = cls._infer_date_code()
+        except RuntimeError:
+            return
         if date_code in SolutionBase._known_implementations:
             raise RuntimeError(f"Multiple implementations of {date_code}: {cls.__name__}")
         SolutionBase._known_implementations[date_code] = cls

@@ -1,40 +1,20 @@
-from .IntcodeLib import *
 
-def y2019d5(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d5.txt"
-    print("2019 day 5:")
+from typing import Optional
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
+from .IntcodeLib import IntcodeSolutionBase
+from AOC_Lib.SolutionBase import Answer_T
 
-    prog = IntcodeProgram(map(int, lineList[0].split(",")))
 
-    inst = IntcodeRunner(prog)
+class Solution_2019_05(IntcodeSolutionBase):
+    """https://adventofcode.com/2019/day/5"""
 
-    outputs = inst.run_sync([1])
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+        runner = self._runner_factory()
+        return runner.run_sync([1]).pop()
 
-    # print(outputs)
-
-    Part_1_Answer = outputs.pop()
-
-    assert(all(map(lambda x: x == 0, outputs)))
-
-    inst = IntcodeRunner(prog)
-
-    outputs = inst.run_sync([5])
-
-    assert(len(outputs) == 1)
-
-    Part_2_Answer = outputs[0]
-
-    return Part_1_Answer, Part_2_Answer
-
-#part 2: 14250156 incorrect
-# 15386262 -- too high
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+        runner = self._runner_factory()
+        return runner.run_sync([5]).pop()

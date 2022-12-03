@@ -8,6 +8,8 @@ from operator import add, mul
 from typing import Iterable, Optional
 
 
+from AOC_Lib.SolutionBase import SolutionBase
+
 @unique
 class OpCode(IntEnum):
     """Enum for all supported op codes"""
@@ -487,3 +489,16 @@ async def runUntilHalt(to_manage: Iterable[IntcodeRunner], polling_rate_s: float
             return
 
         old_cycles = cycles
+
+
+class IntcodeSolutionBase(SolutionBase):
+    """Common base for Intcode Solutions"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.program = IntcodeProgram(map(int, self.input_str().split(',')))
+
+    def _runner_factory(self) -> IntcodeRunner:
+        """Factory for producing Intcode runners"""
+        return IntcodeRunner(self.program)

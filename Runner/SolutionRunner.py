@@ -1,5 +1,6 @@
 
 from inspect import getmembers
+import os
 import subprocess
 
 from AOC_Lib.SolutionBase import DateCode, SolutionBase, AnswerPair_T
@@ -11,11 +12,26 @@ from .SolutionLoader import (
     load_solution_by_date_code, 
     FunctionImportError
 )
-from .TemplateConverter import create_from_template
+from .TemplateConverter import create_from_template, append_template
 
 
+def _try_open_file(file_path: str):
+    """Try and open the file in VSCode"""
 
-def run_date_code(date_code: DateCode, create_if_missing: bool = True) -> AnswerPair_T:
+    if not os.path.exists(file_path):
+        return
+
+    try:
+        subprocess.run(['code', '-r', file_path], shell=True)
+    except:
+        pass
+
+
+def run_date_code(
+    date_code: DateCode, 
+    create_if_missing: bool = True,
+    uplift_if_legacy: bool = False,
+) -> AnswerPair_T:
     """Load and run the solution for the date code"""
 
     check_fetch_input(date_code)
@@ -23,18 +39,11 @@ def run_date_code(date_code: DateCode, create_if_missing: bool = True) -> Answer
     if not does_module_exist_for_date_code(date_code) and create_if_missing:
         create_from_template(date_code)
 
-        try:
-            solution_path = date_code_to_solution_file_path(date_code)
-            subprocess.run(['code', '-r', solution_path], shell=True)
-        except:
-            pass
+        _try_open_file(date_code_to_solution_file_path(date_code))
 
         # DO input second so it appears on top and you have to look at it
-        try:
-            input_path = date_code_to_input_file_path(date_code)
-            subprocess.run(['code', '-r', input_path], shell=True)
-        except:
-            pass
+        
+        _try_open_file(date_code_to_input_file_path(date_code))
 
     module = load_solution_by_date_code(date_code)
 
@@ -51,6 +60,12 @@ def run_date_code(date_code: DateCode, create_if_missing: bool = True) -> Answer
     to_find = date_code.to_legacy_datecode()
     for e in l:
         if e[0] == to_find:
+
+            if uplift_if_legacy:
+                print(f"Appending template to date {date_code}. The next invocation of this solution _WILL FAIL_")
+                append_template(date_code)
+                _try_open_file(date_code_to_solution_file_path(date_code))
+
             return e[1]()
 
     # should be unreachable

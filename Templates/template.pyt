@@ -8,8 +8,8 @@ from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 class Solution_{year}_{full_day}(SolutionBase):
     """https://adventofcode.com/{year}/day/{day}"""
 
-    # runs once after init
-    def __post__init__(self):
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
         
         for line in self.input_str_list(include_empty_lines=False):
             pass

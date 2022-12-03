@@ -1,45 +1,38 @@
+
+from typing import Optional
+
+from AOC_Lib.SolutionBase import Answer_T
 from .IntcodeLib import *
 
+class Solution_2019_02(IntcodeSolutionBase):
+    """https://adventofcode.com/2019/day/2"""
 
-def y2019d2(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d2.txt"
-    print("2019 day 2:")
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
+        runner = self._runner_factory()
+        runner.setAddr(1, 12)
+        runner.setAddr(2, 2)
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
+        runner.run_sync()
 
-    prog = IntcodeProgram(map(int, lineList[0].split(",")))
+        return runner.readAddr(0)
 
-    inst = IntcodeRunner(prog)
-    inst.setAddr(1, 12)
-    inst.setAddr(2, 2)
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
 
-    inst.run_sync()
+        target_value = 19690720
 
-    Part_1_Answer = inst.readAddr(0)
+        # TODO - multiprocess if slow
+        for noun in range(100):
+            for verb in range(100):
+                runner = self._runner_factory()
+                runner.setAddr(1, noun)
+                runner.setAddr(2, verb)
 
-    target_value = 19690720
+                runner.run_sync()
 
-    # TODO - multiprocess if slow
-    for noun in range(100):
-        for verb in range(100):
-            inst = IntcodeRunner(prog)
-            inst.setAddr(1, noun)
-            inst.setAddr(2, verb)
+                v = runner.readAddr(0)
 
-            inst.run_sync()
-
-            v = inst.readAddr(0)
-
-            if v == target_value:
-                Part_2_Answer = 100 * noun + verb
-                return (Part_1_Answer, Part_2_Answer)
-
-    return (Part_1_Answer, Part_2_Answer)
+                if v == target_value:
+                    return 100 * noun + verb
