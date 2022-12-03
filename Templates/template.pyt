@@ -1,23 +1,19 @@
-# from AOC_Lib.name import *
 
-def y%{year}d%{day}(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input%{year}/d%{day}.txt"
-    print("%{year} day %{day}:")
+from typing import Optional
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+
+
+class Solution_{year}_{full_day}(SolutionBase):
+    """https://adventofcode.com/{year}/day/{day}"""
+
+    # runs once after init
+    # def __post__init__(self):
     
-    # for single line inputs
-    for c in lineList[-1]:
-        pass
 
-    # for multi line inputs
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        return None
 
-    return (Part_1_Answer, Part_2_Answer)
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        return None

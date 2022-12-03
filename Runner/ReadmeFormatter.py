@@ -1,161 +1,135 @@
 
 import os
-from typing import Final, List
-
-from solutionTesting import getCachedSolutionState, ERROR_UKN, SOLUTION_NOT_STARTED, ONE_STAR, TWO_STAR, SOLUTION_INCORRECT, SOLUTION_EXCEPTION, SOLUTION_ANS_NOT_PROVIDED
-from .Util import genElapsedDateCodes, getDateCodeAsURL, splitDateCode
+from typing import List
 
 
-AUTO_GEN_FIRST_LINE_PREFIX : Final = "### Solution Coverage"
-AUTO_GEN_LAST_LINE_PREFIX : Final = "Last Commit Changed"
-assert(AUTO_GEN_FIRST_LINE_PREFIX != AUTO_GEN_LAST_LINE_PREFIX)
+from AOC_Lib.SolutionBase import DateCode
+from .SolutionTesting import TestResult, test_all_days_multiprocessed
+from .Util import listElapsedYears, genElapsedDateCodes
 
-characterMap = {
-    ERROR_UKN : (':question:', 'Unknown Error'),
-    TWO_STAR : (':star:', "Both Completed"),
-    ONE_STAR : (':low_brightness:', "One Star Completed"),
-    SOLUTION_NOT_STARTED : (':heavy_multiplication_x:', "Solution Not Started"),
-    SOLUTION_INCORRECT : (':x:', "Solution Incorrect"),
-    SOLUTION_EXCEPTION : (':exclamation:', "Error Running Solution"),
-    SOLUTION_ANS_NOT_PROVIDED : (':warning:', "No known answer for solution")
-}
 
-def formatTable(table : List[List[str]]) -> str:
+
+def formatTable(
+    table : List[List[str]],
+    headers: List[str],
+) -> str:
     '''Take the table (with table[0] as headers) and format to a markdown table'''
     toReturn = []
-    headerRow = ['|']
-    separatedRow = ['|']
-    for e in table[0]:
-        headerRow.append(str(e))
-        headerRow.append('|')
-        separatedRow.append('-')
-        separatedRow.append('|')
-    toReturn.append("".join(headerRow))
-    toReturn.append("\n")
-    toReturn.append("".join(separatedRow))
-    toReturn.append("\n")
-    for row in table[1:]:
-        t = ['|']
-        for e in row:
-            t.append(str(e))
-            t.append('|')
-        toReturn.append("".join(t))
-        toReturn.append('\n')
-    return "".join(toReturn)
-
-
-def doAutoGen(fileHandle, blockNo : int) -> None:
-    # blockNo could be used to add various generation behaviors
-    assert(blockNo == 0)
-
-    print(AUTO_GEN_FIRST_LINE_PREFIX, file=fileHandle)
-    print("Testing Mode Ongoing\n")
-
-    totalStars = 0
-    totalItems = 0
-
-    resultsDict = {}    
-
-    for dateCode in genElapsedDateCodes():
-        totalItems += 1
-        y,d = splitDateCode(dateCode)
-        k = getCachedSolutionState(dateCode)
-        if k == ONE_STAR:
-            totalStars += 1
-        elif k == TWO_STAR:
-            totalStars += 2
-        resultChar = characterMap[k][0]
-        resultContents = f"[{resultChar}]({getDateCodeAsURL(dateCode)})"
-
-        if y not in resultsDict:
-            resultsDict[y] = {}
-
-        # store the semi-formatted results in a dict
-        if d in resultsDict[y]:
-            raise RuntimeError(f"Datecode {dateCode} processed multiple times")
-        resultsDict[y][d] = resultContents
-
     
-    # convert dict into a proper table
-    years = list(resultsDict)
-    years.sort()
+    toReturn.append('|'.join(map(str, headers)))
+    toReturn.append('|'.join(map(lambda _: '-', headers)))
+    
 
-    resultsTable = []
-    t = [":christmas_tree:"]
-    for year in years:
-        t.append(year)
-    resultsTable.append(t)
+    for row in table:
+        if len(row) != len(headers):
+            print("Mis matched row. Formatting may be weird")
+        toReturn.append('|'.join(map(str, row)))
+
+    return "\n".join(toReturn)
+
+
+def header() -> str:
+    """The header for the readme"""
+
+    return """
+# Advent of Code
+Solutions for [Advent of Code](https://adventofcode.com/) coding competition.
+
+This is attempt 3 at collecting python solutions the the challenges. Began for 2019 challenge; prior solutions were lost or not in python.
+
+"""
+
+
+def footer() -> str:
+    """The footer for the readme"""
+
+    return """\n\n"""
+
+
+def build_body() -> str:
+
+    results = test_all_days_multiprocessed()
+
+    solutions_headers = [':christmas_tree:']
+    solutions_headers.extend(listElapsedYears())
+
+    solutions_rows = []
+    star_count = 0
+
+    valid_days = set(genElapsedDateCodes())
 
     for day in range(1, 26):
-        thisRow = [day]
-        for j in range(1, len(resultsTable[0])):
-            y = resultsTable[0][j]
-            if day in resultsDict[y]:
-                thisRow.append(resultsDict[y][day])
-            else:
-                thisRow.append("")
-        resultsTable.append(thisRow)
+        this_row = [day]
 
-    print(f"{characterMap[TWO_STAR][0]} `{totalStars}` of `{totalItems * 2}`", file=fileHandle)
+        for year in listElapsedYears():
 
-    print(formatTable(resultsTable), file=fileHandle)
+            dc = DateCode(year=year, day=day)
 
-    # build the legend
-    legendTable = [[":santa:", "Legend"]]
-    for k in characterMap:
-        legendTable.append(characterMap[k])
-    print(formatTable(legendTable), file=fileHandle)
+            if dc not in valid_days:
+                this_row.append(' ')
+                continue
+
+            try:
+                r = results.get(dc)
+
+                if r == TestResult.TWO_STAR:
+                    star_count += 2
+                if r == TestResult.ONE_STAR:
+                    star_count += 1
+
+                this_row.append(f"[{r.readme_str}](http://adventofcode.com/{year}/day/{day})")
+            except KeyError: 
+                print("SHOULD BE UNREACHABLE")
+                this_row.append(TestResult.SOLUTION_INCORRECT.readme_str)
+        solutions_rows.append(this_row)
+
+    stars_possible = 2*len(valid_days)
+
+    star_table = formatTable(table=solutions_rows, headers=solutions_headers)
+
+    legend_rows = []
+
+    for x in TestResult:
+        legend_rows.append([x.readme_str, x.readme_description])
+
+    legend_table = formatTable(
+        headers=[':santa:', 'Legend'],
+        table=legend_rows,
+    )
+
+    return """
+### Solution Coverage
+
+:star: `{star_count}` of `{stars_possible}`
+
+{star_table}
+
+{legend_table}    
+    """.format(
+        star_count=star_count,
+        stars_possible=stars_possible,
+        star_table=star_table,
+        legend_table=legend_table,
+    )
 
 
-    print(AUTO_GEN_LAST_LINE_PREFIX, file=fileHandle, end="")
-    # TODO - rest of this line
-    # would like to include # soltutions modified and number increased/decreased
-    print("`NOT_IMPLEMENTED` number of solutions", file=fileHandle)
-    print("\n", file=fileHandle) # 2x newline
+def format_readme(readme_path: str = "README.md"):
 
-    return
+    readme = """
+{header}
 
-def formatReadme(path:str="Readme.md" ) -> None:
-    '''Format the readme file with auto-generated contents'''
+---
 
-    # get the swap target:
-    i = 1
-    swpPath = path + ".swp"
-    while os.path.exists(swpPath):
-        swpPath = path + f".{i}.swp"
-        i += 1
+{body}
 
-    # flag variables
-    hasDoneAutoGen : bool = False
-    inAutoGen : bool = False
-    autoGenBlocks : int = 0
+---
 
-    # use a swap file to preserve the last one if things fail
-    try:
-        with open(swpPath, 'w') as outFile:
-            with open(path, 'r') as inFile:
-                for line in inFile:
-                    if inAutoGen is True:
-                        # skip all lines until we found the end of the auto-generator
-                        if line.find(AUTO_GEN_LAST_LINE_PREFIX) != -1:
-                            inAutoGen = False
-                    else:
-                        if line.find(AUTO_GEN_FIRST_LINE_PREFIX) != -1:
-                            inAutoGen = True
-                            doAutoGen(outFile, autoGenBlocks)
-                            autoGenBlocks += 1
-                        else:
-                            # copy the line to out file
-                            print(line, file=outFile, end="")      
-    except Exception as e:
-        # remove the swp file to prevent clutter
-        if os.path.exists(swpPath):
-            os.remove(swpPath)
-        raise e
+{footer}
 
-    # the file generated correctly, so time to do the swap
-    os.remove(path)
-    os.rename(swpPath, path)
-
-if __name__ == "__main__":
-    formatReadme()
+""".format(
+    header=header(),
+    body=build_body(),
+    footer=footer(),
+)
+    with open(readme_path, 'w') as out_file:
+        out_file.write(readme)
