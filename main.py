@@ -11,20 +11,26 @@ from Util.Util import *
 from Util.FileUtil import allFilesInDirByType
 from Util.IntelliParseTesting import testAllIntelliParse
 
+
+from AOC_Lib.SolutionBase import DateCode, SolutionBase
+
+
 class FunctionImportError(RuntimeError):
     pass
+
 
 #TODO - add extra parameter(s) for more arguments to the day
 #TODO - make this ^ a command line argument
 def runDay(dateCode:str, genTemplateIfNotPresent=True) -> Tuple[Any, Any]:
     '''Return answer for a specific day in 'y<year>d<day>' format.'''
 
+    # check that date code is valid
     if isValidDateCode(dateCode) is False:
         raise ValueError(f"Could not resolve the date code {dateCode}")
 
     (y, d) = splitDateCode(dateCode)
 
-    #check if a solution is present,
+    # check if a solution file is present,
     dir = f"Solutions{y}"
     if f"{dir}/{dateCode}.py" not in allFilesInDirByType(dir, '.py'):
         if genTemplateIfNotPresent is True:
@@ -33,13 +39,22 @@ def runDay(dateCode:str, genTemplateIfNotPresent=True) -> Tuple[Any, Any]:
         else:
             raise FileNotFoundError(f"DateCode {dateCode} not solved and template generation is false")
     
-    # a solution is present, now we need to check if function is inside it
+    # a solution is present, now import that module
     try:
         module = import_module(f"Solutions{y}.{dateCode}")
     except Exception as e:
-        raise FunctionImportError(f"For dateCode {dateCode}, the file was found, but the function was missing.")
+        raise FunctionImportError(f"For dateCode {dateCode}, the file was found, but failed to import")
 
-    # we know the module exists, we just need to find its pointer in the module
+    # try and see if it exposes a new class-based solution
+    date_code_obj = DateCode.from_legacy_datecode(dateCode)
+    if SolutionBase.has_known_solution(date_code_obj):
+        return SolutionBase.run_known_solution(date_code_obj)
+
+    print("Fallback to look for legacy function based implementation")
+
+    # this solution uses the legacy variant of a function called `yXXXXdYY`
+    #   where XXXX is the year and YY the day 
+    #   note: day does not have leading zeros: `1` `2` ... `15` ... `20` ... `25`
     l = getmembers(module)
     for e in l:
         if e[0] == dateCode:
@@ -56,6 +71,7 @@ def generateBaseSolution(dateCode:str):
     print(f"Generating new template file for the provided datecode {dateCode}")
     convertTemplate(dateCode)
 
+# TODO - this should be redone with tempfile
 def testDownload():
     '''Test the input downloading behavior'''
     print("Testing downloader for ", end="")

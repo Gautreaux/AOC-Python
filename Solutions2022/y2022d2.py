@@ -1,6 +1,9 @@
 # from AOC_Lib.name import *
 
 from enum import Enum, unique
+from typing import Optional
+
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 
 @unique
 class Action(Enum):
@@ -61,62 +64,33 @@ class Action(Enum):
     def ties(self, other: 'Action') -> bool:
         return self == other
 
-def y2022d2(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2022/d2.txt"
-    print("2022 day 2:")
+class Solution_2022_02(SolutionBase):
+    """https://adventofcode.com/2022/day/2"""
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
+    def score_hand(self, my_move: Action, other_move: Action) -> int:
+        if my_move.beats(other_move):
+            return 6 + my_move.value
+        elif my_move.ties(other_move):
+            return 3 + my_move.value
+        else:
+            return 0 + my_move.value
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
-    
-    # for single line inputs
-    for c in lineList[-1]:
-        pass
-
-    # for multi line inputs
-
-    running_score = 0
-
-    for line in lineList:
+    def _play_round_p1(self, line: str) -> int:
         o, m = line.split(" ")
         other_move = Action.get_action(o)
         my_move = Action.get_action(m)
 
-        if my_move.beats(other_move):
-            running_score += 6
-        elif my_move.ties(other_move):
-            running_score += 3
-        else:
-            running_score += 0
-        
-        running_score += my_move.value
-
-    Part_1_Answer = running_score
-
-    # ==== Part 2 ====
-
-    running_score = 0
-
-    for line in lineList:
+        return self.score_hand(my_move, other_move)        
+    
+    def _play_round_p2(self, line: str) -> int:
         o, m = line.split(" ")
         other_move = Action.get_action(o)
         my_move = Action.get_action_by_outcome(other_move, m)
 
-        if my_move.beats(other_move):
-            running_score += 6
-        elif my_move.ties(other_move):
-            running_score += 3
-        else:
-            running_score += 0
-        
-        running_score += my_move.value
+        return self.score_hand(my_move, other_move)        
 
-    Part_2_Answer = running_score
-
-    return (Part_1_Answer, Part_2_Answer)
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        return sum(self.map_lines(self._play_round_p1))
+    
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        return sum(self.map_lines(self._play_round_p2))
