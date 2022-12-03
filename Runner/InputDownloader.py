@@ -1,30 +1,44 @@
 
-from inspect import getdoc
 import requests
-from os import path
+from pathlib import Path
+from typing import Optional
 
+from AOC_Lib.SolutionBase import DateCode
 from inputSecrets import SESSION_KEY
-from .Util import *
+from .SolutionLoader import date_code_to_input_file_path
+from .Util import getLastDateCode
 
-def getInputForDateCode(dateCode:str, savePath=None) -> bool:
-    '''Download the input for a dateCode, true if success, false if in error'''
 
-    assert(isValidDateCode(dateCode))
-    year, day = splitDateCode(dateCode)
+url_base = "http://adventofcode.com/{}/day/{}/input"
 
-    url = f"{getDateCodeAsURL(dateCode)}/input"
-    filePath = f"Input{year}/d{day}.txt" if savePath is None else savePath
+def check_fetch_input(date_code: DateCode, overwrite: bool = False):
+    """Download the input for the date code if needed
+    and always when `overwrite == True`
+    """
 
-    if path.exists(filePath):
-        raise FileExistsError(filePath)
+    file_path = Path(date_code_to_input_file_path(date_code))
+    file_path = file_path.absolute()
 
-    r = requests.get(url, cookies={'session':SESSION_KEY})    
-    # print(r.status_code)
+    if file_path.exists() and overwrite is False:
+        return
+
+    print(f"Downloading file for {date_code}")
+
+    url = url_base.format(date_code.year, date_code.day)
+
+    r = requests.get(url, cookies={'session': SESSION_KEY})
 
     if r.status_code == 200:
-        open(filePath, 'wb').write(r.content)
+        open(file_path, 'wb').write(r.content)
+    else:
+        print(f"Bad Response: {r.status_code}")
+
+
+def test_downloader(date_code=getLastDateCode()) -> bool:
+    """Check if the downloader is working; Return `True` iff successful"""
+
+    url = url_base.format(date_code.year, date_code.day)
+
+    r = requests.get(url, cookies={'session': SESSION_KEY})
+
     return r.status_code == 200
-
-
-if __name__ == "__main__":
-    getInputForDateCode("y2015d4")
