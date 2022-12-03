@@ -1,10 +1,13 @@
 
-from AOC_Lib.SolutionBase import DateCode, SolutionBase, AnswerPair_T
 from inspect import getmembers
+import subprocess
 
+from AOC_Lib.SolutionBase import DateCode, SolutionBase, AnswerPair_T
 from .InputDownloader import check_fetch_input
 from .SolutionLoader import (
     does_module_exist_for_date_code,
+    date_code_to_input_file_path,
+    date_code_to_solution_file_path,
     load_solution_by_date_code, 
     FunctionImportError
 )
@@ -19,6 +22,19 @@ def run_date_code(date_code: DateCode, create_if_missing: bool = True) -> Answer
 
     if not does_module_exist_for_date_code(date_code) and create_if_missing:
         create_from_template(date_code)
+
+        try:
+            solution_path = date_code_to_solution_file_path(date_code)
+            subprocess.run(['code', '-r', solution_path], shell=True)
+        except:
+            pass
+
+        # DO input second so it appears on top and you have to look at it
+        try:
+            input_path = date_code_to_input_file_path(date_code)
+            subprocess.run(['code', '-r', input_path], shell=True)
+        except:
+            pass
 
     module = load_solution_by_date_code(date_code)
 
