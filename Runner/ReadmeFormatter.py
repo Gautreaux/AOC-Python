@@ -3,7 +3,7 @@ import os
 from typing import Final, List
 
 from solutionTesting import getCachedSolutionState, ERROR_UKN, SOLUTION_NOT_STARTED, ONE_STAR, TWO_STAR, SOLUTION_INCORRECT, SOLUTION_EXCEPTION, SOLUTION_ANS_NOT_PROVIDED
-from Util.Util import genElapsedDateCodes, getDateCodeAsURL, splitDateCode
+from .Util import genElapsedDateCodes, getDateCodeAsURL, splitDateCode
 
 
 AUTO_GEN_FIRST_LINE_PREFIX : Final = "### Solution Coverage"

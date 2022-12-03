@@ -2,7 +2,7 @@
 import multiprocessing
 from typing import Dict, List
 
-from cacheManager import SolutionNotStarted, SolutionType, getDateCodeCachedSolution, getDateCodeCurrentSolution, isCacheValid, runDayWrapper
+from Runner.CacheManager import SolutionNotStarted, SolutionType, getDateCodeCachedSolution, getDateCodeCurrentSolution, isCacheValid, runDayWrapper
 from main import FunctionImportError
 
 # TODO - these should become an enum

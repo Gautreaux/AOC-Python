@@ -4,7 +4,7 @@ import requests
 from os import path
 
 from inputSecrets import SESSION_KEY
-from Util.Util import *
+from .Util import *
 
 def getInputForDateCode(dateCode:str, savePath=None) -> bool:
     '''Download the input for a dateCode, true if success, false if in error'''

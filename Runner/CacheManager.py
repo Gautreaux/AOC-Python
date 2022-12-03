@@ -1,8 +1,8 @@
 
 import atexit
 from modulefinder import ModuleFinder
-from Util.Util import isValidDateCode, splitDateCode
-from Util.FileUtil import getAllSubDirectories  
+from .Util import isValidDateCode, splitDateCode
+from .FileUtil import getAllSubDirectories  
 from os import getcwd, path
 import pickle
 from time import time as nowTime

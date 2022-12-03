@@ -1,6 +1,6 @@
 from datetime import date
-from Util.FileUtil import *
-from Util.Util import isValidDateCode, splitDateCode
+from .FileUtil import *
+from .Util import isValidDateCode, splitDateCode
 
 TEMPLATE_FILE_PATH = "Templates/template.pyt"
 

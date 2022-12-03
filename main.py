@@ -5,11 +5,12 @@ from inspect import getmembers
 from os import path, remove, system, name
 from typing import Any
 
-from inputDownloader import getInputForDateCode
-from Templates.templateConverter import convertTemplate
-from Util.Util import *
-from Util.FileUtil import allFilesInDirByType
-from Util.IntelliParseTesting import testAllIntelliParse
+from Runner.FileUtil import allFilesInDirByType
+# from Runner.IntelliParse.IntelliParseTesting import testAllIntelliParse
+from Runner.InputDownloader import getInputForDateCode
+from Runner.ReadmeFormatter import formatReadme
+from Runner.TemplateConverter import convertTemplate
+from Runner.Util import *
 
 
 from AOC_Lib.SolutionBase import DateCode, SolutionBase
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Run an advent of code trial(s). Runs the most recent day unless otherwise specified.")
     # parser.add_argument('-a', action='store_true', help=runAll.__doc__)
     parser.add_argument('-d', nargs=1, help=runDay.__doc__)
-    parser.add_argument('-p', action='store_true', help=testAllIntelliParse.__doc__)
+    # parser.add_argument('-p', action='store_true', help=testAllIntelliParse.__doc__)
     parser.add_argument('-t', action='store_true', help=testDownload.__doc__)
     parser.add_argument('-r', action='store_true', help="run the readme formatter")
     parser.add_argument('-c', action='store_true', help="clear console before running")
