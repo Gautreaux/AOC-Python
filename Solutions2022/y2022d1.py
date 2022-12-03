@@ -26,7 +26,7 @@ class Solution_2022_01(SolutionBase):
         elves = []
 
         t = 0
-        for line in self.input_str_iter():
+        for line in self.input_str_list():
             if line:
                 t += int(line)
             else:

@@ -182,22 +182,25 @@ class SolutionBase:
         """Return the input decoded into a string"""
         return self.raw_input.decode(encoding)
 
-    def input_str_iter(
+    def input_str_list(
         self, 
         encoding='ascii',
         delim='\n',
-        strip:bool = True
+        strip:bool = True,
+        include_empty_lines: bool = False,
     ) -> list[str]:
         """Returns an iterator of the str, decoded, split, and possibly stripped"""
-        l = self.input_str(encoding=encoding).split(delim)
+        m = self.input_str(encoding=encoding).split(delim)
         if strip:
-            l = list(map(lambda x: x.strip(), l))
-        return l
+            m = map(lambda x: x.strip(), m)
+        if not include_empty_lines:
+            m = filter(lambda s: s, m)
+
+        return list(m)
 
     def map_lines(
         self, 
         callable: Callable[[str], _MappedType_T], 
-        include_empty_lines: bool = False,
         *args, **kwargs,
     ) -> Iterator[_MappedType_T]:
         """Map `callable` across the pieces of input determined by `input_str_iter`
@@ -206,24 +209,13 @@ class SolutionBase:
 
         By default, this is the lines of the input, with leading/trailing whitespace stripped
         """
-        if include_empty_lines:
-            return map(callable, self.input_str_iter(*args, **kwargs))
-        else:
-            return map(
-                callable,
-                filter(
-                    lambda s: s,
-                    self.input_str_iter(*args, **kwargs)
-                )
-            )
+        return map(callable, self.input_str_list(*args, **kwargs))
 
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Hook for implementing part 1"""
-        return self.part_1_answer
     
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Hook for implementing part 2"""
-        return self.part_2_answer
 
     def run(self) -> AnswerPair_T:
         """Run part 1 then part 2 then report the answers"""
