@@ -1,4 +1,6 @@
 
+from dataclasses import dataclass, field
+import itertools
 from typing import Optional
 
 

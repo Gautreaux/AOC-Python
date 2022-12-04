@@ -3,5 +3,6 @@
         "atexit",
         "nargs",
         "pytz"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

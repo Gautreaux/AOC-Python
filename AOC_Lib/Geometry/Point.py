@@ -1,6 +1,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import itertools
 from typing import Any, Iterator
 from operator import add, sub
 
@@ -27,6 +28,17 @@ class AbstractPoint(ABC):
     
     def __str__(self) -> str:
         return "({})".format(",".join(map(str, self._iter_dims())))
+
+    def __iter__(self):
+        return self._iter_dims()
+
+    def __getitem__(self, key: int):
+        """Return the value at the given dimension; Probably inefficient"""
+
+        try:
+            return next(itertools.islice(self, key, None))
+        except StopIteration:
+            raise IndexError(key) from None
 
     def dimension(self):
         """Return the dimension of this point"""
