@@ -1,5 +1,5 @@
 
-
+from copy import deepcopy
 from dataclasses import dataclass, field
 import itertools
 from typing import Optional
@@ -7,6 +7,13 @@ from typing import Optional
 
 from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 
+
+@dataclass
+class LiftOperation:
+
+    quantity: int
+    source: int
+    destination: int
 
 class Solution_2022_05(SolutionBase):
     """https://adventofcode.com/2022/day/5"""
@@ -25,80 +32,66 @@ class Solution_2022_05(SolutionBase):
             except StopIteration:
                 return
 
-        columns = list(map(lambda _: list(), range(12)))
-
-        print(columns)
+        columns: list[list[str]] = []
 
         start_lines = list(itertools.takewhile(
             lambda x: x.strip() != '',
-            self.input_str_list(include_empty_lines=True)
+            self.input_str_list(include_empty_lines=True, strip=False)
         ))[:-1]
 
-        self.end_lines = list(itertools.dropwhile(
+        for parsed_tokens in map(parser, start_lines):
+            for colum_no, token in enumerate(parsed_tokens, start=1):
+                if token == ' ':
+                    continue
+
+                # Size is dynamic to last specified column
+                while len(columns) <= colum_no:
+                    columns.append([])
+                columns[colum_no].append(token)
+
+        for i in range(len(columns)):
+            columns[i] = list(reversed(columns[i]))
+
+        self.start_columns: list[list[str]] = columns
+
+        end_lines = list(itertools.dropwhile(
             lambda x: x.strip() != "",
             self.input_str_list(include_empty_lines=True) 
         ))[1:-1]
 
-        print(self.end_lines[0])
-        print(self.end_lines[-1])
+        self.operations: list[LiftOperation] = []
 
-        self.columns: list[list[str]] = [
-            [],
-            ['S', 'L', 'W'],
-            ['J', 'T', 'N', 'Q'],
-            ['S', 'C', 'H', 'F', 'J'],
-            list(iter('TRMWNGB')),
-            list(iter('TRLSDHQB')),
-            list(iter('MJBVFHRL')),
-            list(iter('DWRNJM')),
-            list(iter('BZTFHNDJ')),
-            list(iter('HLQNBFT')),
-        ]
-        self.columns2: list[list[str]] = [
-            [],
-            ['S', 'L', 'W'],
-            ['J', 'T', 'N', 'Q'],
-            ['S', 'C', 'H', 'F', 'J'],
-            list(iter('TRMWNGB')),
-            list(iter('TRLSDHQB')),
-            list(iter('MJBVFHRL')),
-            list(iter('DWRNJM')),
-            list(iter('BZTFHNDJ')),
-            list(iter('HLQNBFT')),
-        ]
+        for instr in end_lines:
+            _, qty, __, source, ___, dest = instr.split(" ")
 
-
+            self.operations.append(LiftOperation(
+                quantity=int(qty),
+                source=int(source),
+                destination=int(dest),
+            ))
 
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""
 
-        for instr in self.end_lines:
-            _, qty, __, source, ___, dest = instr.split(" ")
+        columns = deepcopy(self.start_columns)
 
-            qty = int(qty)
-            source = int(source)
-            dest = int(dest)
+        for op in self.operations:
+            for _ in range(op.quantity):
+                columns[op.destination].append(columns[op.source].pop())
 
-            for _ in range(qty):
-                self.columns[dest].append(self.columns[source].pop())
-
-        return "".join(map(lambda x: x[-1], self.columns[1:]))
+        return "".join(map(lambda x: x[-1], columns[1:]))
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
 
-        for instr in self.end_lines:
-            _, qty, __, source, ___, dest = instr.split(" ")
+        columns = deepcopy(self.start_columns)
 
-            qty = int(qty)
-            source = int(source)
-            dest = int(dest)
-
+        for op in self.operations:
             tmp = []
 
-            for _ in range(qty):
-                tmp.append(self.columns2[source].pop())
+            for _ in range(op.quantity):
+                tmp.append(columns[op.source].pop())
             while tmp:
-                self.columns2[dest].append(tmp.pop())
+                columns[op.destination].append(tmp.pop())
 
-        return "".join(map(lambda x: x[-1], self.columns2[1:]))
+        return "".join(map(lambda x: x[-1], columns[1:]))
