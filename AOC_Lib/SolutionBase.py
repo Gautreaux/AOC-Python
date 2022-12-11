@@ -181,9 +181,12 @@ class SolutionBase:
         """Return `True` iff we have added an answer for part 2"""
         return self._part_2_answer is not None
 
-    def input_str(self, encoding='ascii') -> str:
+    def input_str(self, encoding='ascii', strip: bool = True) -> str:
         """Return the input decoded into a string"""
-        return self.raw_input.decode(encoding)
+        s = self.raw_input.decode(encoding)
+        if strip:
+            return s.strip()
+        return s
 
     def input_str_list(
         self, 

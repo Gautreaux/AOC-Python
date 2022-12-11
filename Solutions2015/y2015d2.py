@@ -1,36 +1,32 @@
-# from AOC_Lib.name import *
-import re
 
-# sample variant for reading data from an input file, line by line
-def y2015d2(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2015/d2.txt"
-    print("2015 day 2:")
-
-    Part_1_Answer = None
-    Part_2_Answer = None
-
-    paperFootage = 0
-    ribbonFootage = 0
-
-    with open(inputPath) as f:
-        for line in f:
-            x = re.search("([0-9]*)x([0-9]*)x([0-9]*)", line)
-            
-            if x is None:
-                raise ValueError(f"Regex failed on line {line}")
-            a = int(x.group(1))
-            b = int(x.group(2))
-            c = int(x.group(3))
-            k = [a*b, b*c, a*c]
-            paperFootage += 2*sum(k) + min(k)
-
-            v = [a,b,c]
-            v.sort()
-            ribbonFootage += 2*(v[0] + v[1]) + (a*b*c)
+from typing import Iterator, Optional
 
 
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+
+
+class Solution_2015_02(SolutionBase):
+    """https://adventofcode.com/2015/day/2"""
+
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
         
-    Part_1_Answer = paperFootage
-    Part_2_Answer = ribbonFootage
-    return (Part_1_Answer, Part_2_Answer)
+        self.dimensions: list[tuple[int, int, int]] = []
+
+        for line in self.input_str_list(include_empty_lines=False):
+            x,y,z = line.split('x')
+            self.dimensions.append((int(x), int(y), int(z)))
+
+    def iter_faces(self) -> Iterator[tuple[int, int, int]]:
+        """Iterate the dimensions as faces"""
+        for d in self.dimensions:
+            yield (d[0]*d[1], d[1]*d[2], d[2]*d[0])
+
+
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+        return sum(map(lambda f: 2*sum(f) + min(f), self.iter_faces()))
+
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+        return sum(map(lambda d: 2*(sum(d) - max(d)) + (d[0]*d[1]*d[2]), self.dimensions,))

@@ -1,67 +1,80 @@
-# from AOC_Lib.name import *
 
-def isNice(s:str) -> bool:
-    vowels = ['a','e', 'i','o','u']
-    illegals = ['ab', 'cd', 'pq', 'xy']
+from typing import Optional
 
-    for i in illegals:
-        if i in s:
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+from AOC_Lib.SlidingWindow import sliding_window
+
+
+class NiceString(str):
+    """A nice string"""
+
+    vowels: str = 'aeiou'
+    illegal_substrings: list[str] = ['ab', 'cd', 'pq', 'xy']
+
+    @classmethod
+    def is_nice(cls, s: str) -> bool:
+        """Return `True` iff this is a nice string"""
+        
+        vowel_count = sum(1 for c in s if c in cls.vowels)
+        if vowel_count < 3:
+            return False
+        
+        if not any(map(lambda x: x[0] == x[1], sliding_window(s, 2))):
+            return False
+        
+        if any(map(lambda x: x in s, cls.illegal_substrings)):
+            return False
+        
+        return True
+
+
+class NicerString(str):
+    """A nicer string"""
+
+    @classmethod
+    def is_nice(cls, s: str) -> bool:
+        """Return `True` iff this is a nice string"""
+
+        # Check for 'aba' structure
+        if not any(map(lambda i: s[i] == s[i+2], range(len(s) - 2))):
             return False
 
-    vowelCount = 0
-    doubleCount = 0
+        # find the double not overlapping
 
-    if s[-1] in vowels:
-        vowelCount+=1
+        seen: set[tuple[str, str]] = set()
 
-    for i in range(len(s) - 1):
-        if s[i] == s[i+1]:
-            doubleCount += 1
-        if s[i] in vowels:
-            vowelCount += 1
-        
-    return (vowelCount >= 3 and doubleCount >= 1)
+        last_seen = (' ', ' ')
 
+        # These are either "aaa" or "aaaa"
+        possible_double_doubles: list[tuple[tuple[str, str], int]] = []
 
-def isNice2(s:str) -> bool:
-    splitCount = 0
+        for i, t in enumerate(sliding_window(s, 2)):
+            if t in seen and t != last_seen:
+                return True
+            elif t not in seen:
+                last_seen = t
+                seen.add(t)
+                continue
+            
+            assert t in seen
+            assert t[0] == t[1]
+            
+            possible_double_doubles.append((t, i))
 
-    for i in range(len(s) - 2):
-        if s[i] == s[i+2]:
-            splitCount += 1
-            break
-    
-    if splitCount < 1:
+        for t, i in possible_double_doubles:
+            f = s.find("".join(t))
+            if i - f >= 2:
+                return True
         return False
 
-    for i in range(len(s) - 3):
-        if s[i:i+2] in s[i+2:]:
-            return True
-        
-    return False
 
-# sample variant for reading data from an input file, line by line
-def y2015d5(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2015/d5.txt"
-    print("2015 day 5:")
+class Solution_2015_05(SolutionBase):
+    """https://adventofcode.com/2015/day/5"""
 
-    Part_1_Answer = None
-    Part_2_Answer = None
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+        return sum(1 for s in self.input_str_list() if NiceString.is_nice(s))
 
-    niceCount = 0
-    niceCount2 = 0
-
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            if isNice(line):
-                niceCount += 1
-
-            if isNice2(line):
-                niceCount2 += 1
-
-    Part_1_Answer = niceCount
-    Part_2_Answer = niceCount2
-        
-    return (Part_1_Answer, Part_2_Answer)
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+        return sum(1 for s in self.input_str_list() if NicerString.is_nice(s))

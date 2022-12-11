@@ -10,6 +10,7 @@ from typing import Any, Iterator, Type, TypeVar, Optional
 
 from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 from AOC_Lib.Geometry.Point import DiscretePoint2
+from AOC_Lib.Geometry.PointTransforms import Direction2, DirectionsCharset_T
 
 
 class Solution_{year}_{full_day}(SolutionBase):

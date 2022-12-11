@@ -7,6 +7,7 @@ from operator import add, sub
 
 
 DerivedPoint_T = TypeVar('DerivedPoint_T', bound='AbstractPoint')
+DerivedDiscretePoint_T = TypeVar('DerivedDiscretePoint_T', bound='DiscreteAbstractPoint')
 
 @abstractmethod
 class AbstractPoint(ABC):
@@ -32,7 +33,7 @@ class AbstractPoint(ABC):
     def __str__(self) -> str:
         return "({})".format(",".join(map(str, self._iter_dims())))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[float]:
         return self._iter_dims()
 
     def __getitem__(self, key: int):
@@ -117,16 +118,21 @@ class DiscreteAbstractPoint(AbstractPoint):
     """Abstract point, but discrete (integer) space"""
     
     # This is just type-annotating the return value as int in this case
-    def manhattan_distance(self: DerivedPoint_T, other: DerivedPoint_T) -> int:
+    def manhattan_distance(self: DerivedDiscretePoint_T, other: DerivedDiscretePoint_T) -> int:
         return super().manhattan_distance(other) # type: ignore
 
-    def scale_discrete(self: DerivedPoint_T, scalar: int) -> DerivedPoint_T:
+    # This is just type-annotating the return value as int in this case
+    def scale_discrete(self: DerivedDiscretePoint_T, scalar: int) -> DerivedDiscretePoint_T:
         return super().scale(self, scalar) # type: ignore
 
+    # This is just type-annotating the return value as int in this case
+    def __iter__(self) -> Iterator[int]:
+        return super().__iter__() # type: ignore
+
     def cartesian_neighbors(
-        self: DerivedPoint_T,
+        self: DerivedDiscretePoint_T,
         include_self: bool = False
-    ) -> Iterator[DerivedPoint_T]:
+    ) -> Iterator[DerivedDiscretePoint_T]:
         """Return an iterator over the cartesian neighbors of this point"""
         
         if include_self:

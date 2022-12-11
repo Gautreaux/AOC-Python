@@ -1,48 +1,59 @@
-from Solutions2016.y2016d2 import y2016d2
-from AOC_Lib.boundedInt import BoundedInt
-from AOC_Lib.point import Point2, Y_2_TRANSLATIONS
-from AOC_Lib.point import Y_UP_2_TRANSFORMS as transforms
 
-# sample variant for single line inputs
-def y2015d3(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2015/d3.txt"
-    print("2015 day 3:")
 
-    Part_1_Answer = None
-    Part_2_Answer = None
+from typing import Optional
 
-    with open(inputPath) as f:
-        line = f.readline().strip()
 
-    posSet = set()
-    currentPoint = Point2(0,0)
-    posSet.add(currentPoint)
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+from AOC_Lib.Geometry.Point import DiscretePoint2
+from AOC_Lib.Geometry.PointTransforms import Direction2, DirectionsCharset_T
 
-    for c in line:
-        # move
-        currentPoint += transforms[Y_2_TRANSLATIONS[c]]
 
-        if currentPoint not in posSet:
-            posSet.add(currentPoint)
+class Santa:
 
-    Part_1_Answer = len(posSet)
+    def __init__(self, start_position: DiscretePoint2 = DiscretePoint2(0,0)) -> None:
+        self._pos: DiscretePoint2 = start_position
+        self._visited: set[DiscretePoint2] = set()
+        self._visited.add(start_position)
+    
+    @property
+    def position(self) -> DiscretePoint2:
+        """Get the current position"""
+        return self._pos
 
-    pt2Set = set()
-    currentPoints = [Point2(0,0), Point2(0,0)]
-    pt2Set.add(currentPoints[0])
-    parity = BoundedInt(2)
+    @property
+    def visited(self) -> set[DiscretePoint2]:
+        """Return a set of all visited locations"""
+        return self._visited
 
-    for c in line:
-        currentPoints[parity.asInt()] += transforms[Y_2_TRANSLATIONS[c]]
+    def step(self, direction: DirectionsCharset_T) -> None:
+        """Step in the provided direction"""
+        self._pos = Direction2.transform_point(self._pos, direction)
+        self._visited.add(self._pos)
 
-        if currentPoints[parity.asInt()] not in pt2Set:
-            pt2Set.add(currentPoints[parity.asInt()])
-        
-        parity += 1
 
-    Part_2_Answer = len(pt2Set)
+class Solution_2015_03(SolutionBase):
+    """https://adventofcode.com/2015/day/3"""
 
-    return (Part_1_Answer, Part_2_Answer)
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
 
-# TODO - include variant with auto pattern detection
+        santa = Santa()
+        for c in self.input_str():
+            santa.step(c) # type: ignore
+        return len(santa.visited)
+
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+
+        santa = Santa()
+        robosanta = Santa()
+
+        assert len(self.input_str()) % 2 == 0
+        itr = iter(self.input_str())
+        try:
+            while True:
+                santa.step(next(itr))  # type: ignore
+                robosanta.step(next(itr))  # type: ignore
+        except StopIteration:
+            pass
+        return len(santa.visited.union(robosanta.visited))
