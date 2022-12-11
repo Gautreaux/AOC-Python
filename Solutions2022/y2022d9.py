@@ -60,7 +60,7 @@ class PlanckRope:
             'L': DiscretePoint2(-1,0),
         }[direction] 
         
-        self.head: DiscretePoint2 = self.head + adj  # type: ignore
+        self.head: DiscretePoint2 = self.head + adj
         self.update_tail()
 
     def snap_head(self, pos: DiscretePoint2):
@@ -71,7 +71,7 @@ class PlanckRope:
     def update_tail(self):
         local = self.tail - self.head
         adjusted = get_tail_pos_head_relative(local)
-        self.tail = self.head + adjusted  # type: ignore
+        self.tail = self.head + adjusted
 
 
 class MultiRope:

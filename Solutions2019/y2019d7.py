@@ -70,8 +70,13 @@ class Solution_2019_07(IntcodeSolutionBase):
 
         loop.run_until_complete(runUntilHalt(runners, 0.1))
 
+        v = None
+
         while not q.empty():
             v = q.get_nowait()
+
+        if v is None:
+            raise RuntimeError('No Output was produced')
 
         for t in tasks:
             t.cancel()

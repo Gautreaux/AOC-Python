@@ -1,12 +1,41 @@
 # from AOC_Lib.name import *
 
-from collections import defaultdict, deque, namedtuple
+from collections import defaultdict, deque
+from dataclasses import dataclass
 from enum import IntEnum, unique
+from typing import Optional
+from dataclasses import dataclass
 
 
-Pos_T = tuple[int, int]
+from AOC_Lib.Geometry.Point import DiscretePoint2
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 
-PortalConnection_T = namedtuple("PortalConnection_T", "label outside_pos inside_pos")
+
+_DEGENERATE_POINT = DiscretePoint2(-1,-1)
+
+
+@dataclass(frozen=True)
+class PortalConnection:
+    label: str
+    inside_pos: DiscretePoint2
+    outside_pos: DiscretePoint2
+
+    @property
+    def is_single_connection(self) -> bool:
+        """Return `True` iff this is a single connection
+            i.e. at the start and end points 
+        """
+        return ((self.inside_pos == _DEGENERATE_POINT and self.outside_pos != _DEGENERATE_POINT) or 
+                (self.outside_pos == _DEGENERATE_POINT and self.inside_pos != _DEGENERATE_POINT))
+
+    @property
+    def get_single_connection(self) -> DiscretePoint2:
+        """Get the singular point in cases of a single connection
+            i.e. at the start and end points
+        """
+        assert self.is_single_connection
+        return (self.inside_pos if self.outside_pos == _DEGENERATE_POINT else self.outside_pos)
+
 
 @unique
 class TileType(IntEnum):
@@ -25,14 +54,15 @@ class TileType(IntEnum):
             return "P"
         elif self.value == TileType.WHITESPACE:
             return " "
+        raise NotImplementedError(self)
 
 
 class DonutMaze:
     
-    def __init__(self, maze:list[list[TileType]], portal_labels:dict[str, PortalConnection_T]) -> None:
-        self._maze = maze
-        self._labels_to_portals = portal_labels
-        self._positions_to_portals = self._getPositionsToPortals()
+    def __init__(self, maze:list[list[TileType]], portal_labels:dict[str, PortalConnection]) -> None:
+        self._maze: list[list[TileType]] = maze
+        self._labels_to_portals: dict[str, PortalConnection] = portal_labels
+        self._positions_to_portals: dict[DiscretePoint2, PortalConnection] = self._getPositionsToPortals()
 
     @classmethod
     def fromLines(cls, lineList: list[str]) -> 'DonutMaze':
@@ -49,7 +79,7 @@ class DonutMaze:
         assert(lineList[2][2] == "#")
 
         my_maze: list[list[TileType]] = []
-        portal_candidates = {}
+        raw_portal_labels: dict[tuple[int, int], str] = {}
 
         # parse the input and find walls, passages, tiles, etc
         for y_value, row in enumerate(lineList):
@@ -66,14 +96,14 @@ class DonutMaze:
                 elif char == "\r":
                     break
                 elif ((ord(char) >= ord('A')) and (ord(char) <= ord('Z'))):
-                    portal_candidates[(x_value, y_value)] = char
+                    raw_portal_labels[(x_value, y_value)] = char
                     maze_row.append(TileType.WHITESPACE)
                 else:
                     raise RuntimeError(f"Unrecognized character: {char}")
             my_maze.append(maze_row)
 
         # local helper function
-        def getPassagePosition(x_1,y_1,x_2, y_2) -> Pos_T:
+        def getPassagePosition(x_1, y_1, x_2, y_2) -> DiscretePoint2:
             """get the passage position from the two letter positions
                 For the two positions of the letters,
                     return the position of the adjacent PASSAGE 
@@ -97,135 +127,135 @@ class DonutMaze:
                         continue
                     # print(f"Checking {x},{y} -> ", my_maze[y][x])
                     if my_maze[y][x] == TileType.PASSAGE:
-                        return (x,y)
+                        return DiscretePoint2(x,y)
                 except IndexError:
                     pass
             raise RuntimeError("No neighboring position was a passage")
 
         # mapping of portal label to position
-        matched_portals = defaultdict(list)
+        portals_to_positions: defaultdict[str, list[DiscretePoint2]] = defaultdict(list)
         
-        # now we want to find and update all passages with their tile type
-        while portal_candidates:
-                (this_x, this_y), this_letter = next(iter(portal_candidates.items()))
+        # Build all the portals:
+        # For each letter label:
+        #   try and find the matching label (to get the two-letter portal name)
+        #   find the position of the passage this corresponds to
+        while raw_portal_labels:
+            (this_x, this_y), this_letter = next(iter(raw_portal_labels.items()))
 
-                num_matches = 0
+            num_matches = 0
 
-                for other_x, other_y in [(this_x + 1, this_y), (this_x - 1, this_y), (this_x, this_y + 1), (this_x, this_y - 1)]:
-                    try:
-                        other_letter = portal_candidates[(other_x, other_y)]
-                    except KeyError:
-                        continue
-                    
-                    if other_x > this_x:
-                        portal_name = f"{this_letter}{other_letter}"
-                    elif other_x < this_x:
-                        portal_name = f"{other_letter}{this_letter}"
-                    elif other_y > this_y:
-                        portal_name = f"{this_letter}{other_letter}"
-                    else:
-                        portal_name = f"{other_letter}{this_letter}"
-                    # print("NAME: {} at {},{}".format(portal_name, this_x, this_y))
-                    portal_pos = getPassagePosition(this_x, this_y, other_x, other_y)
-                    matched_portals[portal_name].append(portal_pos)
-                    num_matches += 1
-                    my_maze[portal_pos[1]][portal_pos[0]] = TileType.PORTAL
-                    portal_candidates.pop((this_x, this_y))
-                    portal_candidates.pop((other_x, other_y))
-                if num_matches == 0:
-                    raise RuntimeError(f"This {(this_x, this_y)} does not have another candidate nearby")
-                if num_matches > 1:
-                    raise RuntimeError(f"This {(this_x, this_y)} does not multiple candidate nearby")
+            for other_x, other_y, raw_p_name in [
+                (this_x + 1, this_y, "{this_letter}{other_letter}"), 
+                (this_x - 1, this_y, "{other_letter}{this_letter}"), 
+                (this_x, this_y + 1, "{this_letter}{other_letter}"), 
+                (this_x, this_y - 1, "{other_letter}{this_letter}")
+            ]:
+                try:
+                    other_letter = raw_portal_labels[(other_x, other_y)]
+                except KeyError:
+                    continue
+
+                portal_name = raw_p_name.format(
+                    this_letter=this_letter,
+                    other_letter=other_letter,
+                )
+                
+                portal_pos = getPassagePosition(this_x, this_y, other_x, other_y)
+                portals_to_positions[portal_name].append(portal_pos)
+                num_matches += 1
+                my_maze[portal_pos[1]][portal_pos[0]] = TileType.PORTAL
+                raw_portal_labels.pop((this_x, this_y))
+                raw_portal_labels.pop((other_x, other_y))
+            if num_matches == 0:
+                raise RuntimeError(f"This {(this_x, this_y)} does not have another candidate nearby")
+            if num_matches > 1:
+                raise RuntimeError(f"This {(this_x, this_y)} has multiple candidate nearby")
         
         # check that all the portals have exactly two candidates in their named pair
-        for k,v in matched_portals.items():
+        #   except for the start and end, which do not
+        for k,v in portals_to_positions.items():
             if k in ['ZZ', 'AA']:
                 assert(len(v) == 1)
                 continue
             if len(v) != 2:
-                print(f"Key {k} got only portal {v} ")
+                print(f"Key {k} got only one portal {v}. Two expected.")
             assert(len(v) == 2)
 
-        fixed_portals = {}
+        paired_portals: dict[str, PortalConnection] = {}
 
-        maze_w = len(my_maze[0])
-        maze_h = len(my_maze)
-        for label, positions in matched_portals.items():
+        for label, positions in portals_to_positions.items():
             first_pos = positions[0]
             first_pos_is_outside = False
 
-            does_x_imply_outside = first_pos[0] < 4 or (first_pos[0] + 4) >= maze_w
-            does_y_imply_outside = first_pos[1] < 4 or (first_pos[1] + 4) >= maze_h
+            does_x_imply_outside = first_pos[0] < 4 or (first_pos[0] + 4) >= len(my_maze[0])
+            does_y_imply_outside = first_pos[1] < 4 or (first_pos[1] + 4) >= len(my_maze)
 
-            first_pos_is_outside =  does_x_imply_outside or does_y_imply_outside
+            first_pos_is_outside = (does_x_imply_outside or does_y_imply_outside)
 
             if len(positions) == 1:
                 assert(label in ['AA', 'ZZ'])
                 assert(first_pos_is_outside)
-                positions.append(None)
+                positions.append(_DEGENERATE_POINT)
             else:
                 assert(len(positions) == 2)
             
-            if first_pos_is_outside:
-                f_portal = PortalConnection_T(
-                    label=label,
-                    outside_pos=positions[0],
-                    inside_pos=positions[1],
-                )
-            else:
-                f_portal = PortalConnection_T(
-                    label=label,
-                    outside_pos=positions[1],
-                    inside_pos=positions[0],
-                )
+            paired_portals[label] = PortalConnection(
+                label=label,
+                inside_pos=(positions[1] if first_pos_is_outside else positions[0]),
+                outside_pos=(positions[0] if first_pos_is_outside else positions[1]),
+            )
 
-            fixed_portals[label] = f_portal
+        return cls(my_maze, paired_portals)
 
-        s = cls(my_maze, fixed_portals)
-        return s
-
-    def _getPositionsToPortals(self) -> dict[Pos_T, PortalConnection_T]:
-        """Use the portal labels to positions map to get a positions to portals map"""
+    def _getPositionsToPortals(self) -> dict[DiscretePoint2, PortalConnection]:
+        """Use the portal labels to positions map to get a positions to portal connection map"""
         to_return = {}
-        for portal in self._labels_to_portals.values():
-            if portal.inside_pos:
-                assert(portal.inside_pos not in to_return)
-                to_return[portal.inside_pos] = portal
-            if portal.outside_pos:
-                assert(portal.outside_pos not in to_return)
-                to_return[portal.outside_pos] = portal
+        for portal_connection in self._labels_to_portals.values():
+            if portal_connection.is_single_connection:
+                p = portal_connection.get_single_connection
+                assert p not in to_return
+                to_return[p] = portal_connection
+            else:
+                assert portal_connection.inside_pos not in to_return
+                to_return[portal_connection.inside_pos] = portal_connection
+                assert portal_connection.outside_pos not in to_return
+                to_return[portal_connection.outside_pos] = portal_connection
         return to_return
     
     @property
-    def start_pos(self) -> Pos_T:
+    def start_pos(self) -> DiscretePoint2:
         """The position for label `AA`"""
-        p = self._labels_to_portals['AA']
-        if p.outside_pos is None:
-            return p.inside_pos
-        elif p.inside_pos is None:
-            return p.outside_pos
-        else:
-            raise RuntimeError(f"Bad format for position: {p}")
+        return self._labels_to_portals['AA'].get_single_connection
     
     @property
-    def end_pos(self) -> Pos_T:
+    def end_pos(self) -> DiscretePoint2:
         """The position for label `ZZ`"""
-        p = self._labels_to_portals['ZZ']
-        if p.outside_pos is None:
-            return p.inside_pos
-        elif p.inside_pos is None:
-            return p.outside_pos
-        else:
-            raise RuntimeError(f"Bad format for position: {p}")
+        return self._labels_to_portals['ZZ'].get_single_connection
 
-    def tileAtPos(self, pos: Pos_T) -> TileType:
+    def tileAtPos(self, pos: DiscretePoint2) -> TileType:
         """Return the tile type at a position"""
-        return self._maze[pos[1]][pos[0]]
+        return self._maze[pos.y][pos.x]
 
-    def findTimeBetweenPos(self, start_pos: Pos_T, end_pos: Pos_T, plutonian: bool = False) -> int:
-        """Return the time to move between `start_pos` and `end_pos`"""
+    def findTimeBetweenPos(
+        self, 
+        start_pos: Optional[DiscretePoint2] = None,
+        end_pos: Optional[DiscretePoint2] = None, 
+        plutonian: bool = False
+    ) -> int:
+        """
+        Return the time to move between `start_pos` and `end_pos`
+        
+        if `start_pos` or `end_pos` is not provided, use the default
+            (label `AA` or label `ZZ` respectively)
+        pass `plutonian = True` to enable plutonian search
+        """
 
-        print(f"Finding path from {start_pos} to {end_pos}")
+        if start_pos is None:
+            start_pos = self.start_pos
+        if end_pos is None:
+            end_pos = self.end_pos
+
+        print(f"Finding path from {start_pos} to {end_pos} (plutonian={plutonian})")
         if self.tileAtPos(start_pos) not in [TileType.PASSAGE, TileType.PORTAL]:
             raise RuntimeError(f"start_pos ({start_pos}) is an invalid type: {self.tileAtPos(start_pos)}")
         if self.tileAtPos(end_pos) not in [TileType.PASSAGE, TileType.PORTAL]:
@@ -234,8 +264,8 @@ class DonutMaze:
         # Since this is part 1, we are relatively bounded on depth
         #   so just do a simple BFS
         #   turns out this works on part2 too
-        best_times = {}
-        frontier = deque()
+        best_times: dict[tuple[DiscretePoint2, int], int] = {}
+        frontier: deque[tuple[DiscretePoint2, int, int]] = deque()
         frontier.append((start_pos, 0, 0))
 
         while len(frontier) > 0:
@@ -271,13 +301,9 @@ class DonutMaze:
                         frontier.append((portal.inside_pos, this_dist + 1, this_depth))
 
             # expand via cartesian neighbors
-            this_x, this_y = this_pos
-            for m_x, m_y in [(0,1),(1,0),(-1,0),(0,-1)]:
-                new_x = this_x + m_x
-                new_y = this_y + m_y
-
-                if self.tileAtPos((new_x, new_y)) in [TileType.PASSAGE, TileType.PORTAL]:
-                    frontier.append(((new_x, new_y), this_dist + 1, this_depth))
+            for new_pos in this_pos.cartesian_neighbors():
+                if self.tileAtPos(new_pos) in [TileType.PASSAGE, TileType.PORTAL]:
+                    frontier.append((new_pos, this_dist + 1, this_depth))
 
         raise RuntimeError("There was no path between start_pos and end_pos")
 
@@ -287,32 +313,18 @@ class DonutMaze:
             print("".join(map(lambda x: x.render(), row)))
 
 
-def y2019d20(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d20.txt"
-    print("2019 day 20:")
+class Solution_2019_20(SolutionBase):
+    """https://adventofcode.com/2019/day/20"""
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
+        
+        self.maze = DonutMaze.fromLines(self.input_str_list(strip=False))
 
-    with open(inputPath) as f:
-        for line in f:
-            lineList.append(line)
-    
-    maze = DonutMaze.fromLines(lineList)
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+        return self.maze.findTimeBetweenPos()
 
-    Part_1_Answer = maze.findTimeBetweenPos(
-        start_pos=maze.start_pos,
-        end_pos=maze.end_pos,
-    )
-    Part_2_Answer = maze.findTimeBetweenPos(
-        start_pos=maze.start_pos,
-        end_pos=maze.end_pos,
-        plutonian=True,
-    )
-
-    print(f"Part 2 guess: {Part_2_Answer}")
-    assert(Part_2_Answer > 3642)
-
-    return (Part_1_Answer, Part_2_Answer)
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+        return self.maze.findTimeBetweenPos(plutonian=True)

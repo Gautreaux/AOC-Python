@@ -2,8 +2,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import itertools
-from typing import Any, Iterator
+from typing import Any, Iterator, Type, TypeVar
 from operator import add, sub
+
+
+DerivedPoint_T = TypeVar('DerivedPoint_T', bound='AbstractPoint')
 
 @abstractmethod
 class AbstractPoint(ABC):
@@ -14,9 +17,9 @@ class AbstractPoint(ABC):
         """Create an iterator over the dimensions of this point"""
         raise NotImplementedError
 
-    def origin_factory(self) -> 'AbstractPoint':
+    def origin_factory(self: DerivedPoint_T) -> DerivedPoint_T:
         """Factory to create an all-zeroed point"""
-        return self.__class__(*map(lambda x: 0, self._iter_dims()))
+        return self.__class__(*map(lambda x: 0, self._iter_dims())) # type: ignore
 
     @property
     def is_origin(self) -> bool:
@@ -40,22 +43,25 @@ class AbstractPoint(ABC):
         except StopIteration:
             raise IndexError(key) from None
 
-    def dimension(self):
+    def dimension(self) -> int:
         """Return the dimension of this point"""
         return len(self)
     
-    def __add__(self, other: 'AbstractPoint') -> 'AbstractPoint':
-        return self.__class__(*map(add, self._iter_dims(), other._iter_dims()))
+    def __add__(self: DerivedPoint_T, other: DerivedPoint_T) -> DerivedPoint_T:
+        return self.__class__(*map(add, self._iter_dims(), other._iter_dims())) # type: ignore
 
-    def __sub__(self, other: 'AbstractPoint') -> 'AbstractPoint':
-        return self.__class__(*map(sub, self._iter_dims(), other._iter_dims()))
+    def __sub__(self: DerivedPoint_T, other: DerivedPoint_T) -> DerivedPoint_T:
+        return self.__class__(*map(sub, self._iter_dims(), other._iter_dims())) # type: ignore
 
-    def norm(self, other: 'AbstractPoint', X: int) -> float:
+    def scale(self: DerivedPoint_T, scalar: float) -> DerivedPoint_T:
+        return self.__class__(*map(lambda x: x*scalar, self._iter_dims)) # type: ignore
+
+    def norm(self: DerivedPoint_T, other: DerivedPoint_T, X: int) -> float:
         """Return the X-norm of this point and another point
             Probably do not call this directly
         """
 
-        # Slightly more efficient for manhattan distance
+        # Slightly more efficient for 1-norm (manhattan distance)
         if X == 1:
             return sum(map(
                 lambda a,b: abs(a-b),
@@ -81,12 +87,69 @@ class AbstractPoint(ABC):
         return self.norm(other, 1)
 
 
+@dataclass(frozen=True)
+class Point2(AbstractPoint):
+    """A Point in 2D space"""
+
+    x: float
+    y: float
+
+    def _iter_dims(self) -> Iterator[Any]:
+        yield self.x
+        yield self.y
+
+
+@dataclass(frozen=True)
+class Point3(AbstractPoint):
+    """A Point in 3D space"""
+
+    x: float
+    y: float
+    z: float
+
+    def _iter_dims(self) -> Iterator[Any]:
+        yield self.x
+        yield self.y
+        yield self.z
+
+
 class DiscreteAbstractPoint(AbstractPoint):
     """Abstract point, but discrete (integer) space"""
     
     # This is just type-annotating the return value as int in this case
-    def manhattan_distance(self, other: 'DiscreteAbstractPoint') -> int:
-        return super().manhattan_distance(other)
+    def manhattan_distance(self: DerivedPoint_T, other: DerivedPoint_T) -> int:
+        return super().manhattan_distance(other) # type: ignore
+
+    def scale_discrete(self: DerivedPoint_T, scalar: int) -> DerivedPoint_T:
+        return super().scale(self, scalar) # type: ignore
+
+    def cartesian_neighbors(
+        self: DerivedPoint_T,
+        include_self: bool = False
+    ) -> Iterator[DerivedPoint_T]:
+        """Return an iterator over the cartesian neighbors of this point"""
+        
+        if include_self:
+            yield self
+
+        dim = len(self)
+        for i in range(dim):
+            yield self.__class__(*map(lambda a,b: b+1 if a == i else b, range(dim), self._iter_dims())) # type: ignore
+            yield self.__class__(*map(lambda a,b: b-1 if a == i else b, range(dim), self._iter_dims())) # type: ignore
+
+    def cartesian_neighbors_with_diagonals(
+        self: DerivedPoint_T,
+        include_self: bool = False
+    ) -> Iterator[DerivedPoint_T]:
+        """Return an iterator over the cartesian neighbors of this point, with diagonals"""
+
+        dims = (-1, 0, 1)
+        iters = map(lambda _: dims, range(len(self)))
+
+        for t in itertools.product(*iters):
+            if all(map(lambda x: x == 0, t)) and not include_self:
+                 continue
+            yield self.__class__(*map(lambda a,b: a+b, t, self._iter_dims())) # type: ignore
 
 
 @dataclass(frozen=True)
@@ -101,6 +164,10 @@ class DiscretePoint2(DiscreteAbstractPoint):
         yield self.x
         yield self.y
 
+    def scale(self, scalar: float) -> Point2:
+        return Point2(self.x*scalar, self.y*scalar)
+
+
 @dataclass(frozen=True)
 class DiscretePoint3(DiscreteAbstractPoint):
     """A point in 3D space, with integer coordinates"""
@@ -114,3 +181,7 @@ class DiscretePoint3(DiscreteAbstractPoint):
         yield self.x
         yield self.y
         yield self.z
+
+    def scale(self, scalar: float) -> Point3:
+        return Point3(self.x*scalar, self.y*scalar, self.z*scalar)
+
