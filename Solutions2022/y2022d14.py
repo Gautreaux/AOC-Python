@@ -83,11 +83,60 @@ class Solution_2022_14(SolutionBase):
             return pos
         return None
 
+    def _smart_add_sand(
+        self, 
+        entry_pos: DiscretePoint2 = DiscretePoint2(500, 0),
+    ) -> Optional[DiscretePoint2]:
+        """Add sand until one falls out the bottom or the `entry_pos` position is placed
+        
+            Returns `None` if sand falls out the bottom
+            Otherwise returns the last placed position (which should be `entry_pos`)
+        """
+
+        last_rock_y =  max(map(lambda p: p.y, self.rock_tiles)) + 2
+
+        positions: list[DiscretePoint2] = []
+        positions.append(entry_pos)
+
+        while positions:
+            this_pos = positions[-1]
+
+            if not self._is_open_tile(this_pos):
+                assert this_pos != entry_pos
+                positions.pop()
+                continue
+
+            if this_pos.y > last_rock_y:
+                # We have fallen out the bottom
+                return None
+            
+            try:
+                for t in [
+                    DiscretePoint2(0,1),
+                    DiscretePoint2(-1,1),
+                    DiscretePoint2(1,1),
+                ]:
+                    new_pos = this_pos + t
+                    if self._is_open_tile(new_pos):
+                        positions.append(new_pos)
+                        raise BreakContinue
+            except BreakContinue:
+                continue
+
+            # The sand has come to rest
+            self.sand_tiles.add(this_pos)
+            positions.pop()
+            if this_pos == entry_pos:
+                return entry_pos
+            else:
+                continue
+        raise RuntimeError("Neither end condition was met")
+
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""
 
-        while self._add_one_sand() is not None:
-            pass
+        r = self._smart_add_sand()
+        assert r is None
         return len(self.sand_tiles)
 
     def _part_2_hook(self) -> Optional[Answer_T]:
@@ -101,16 +150,12 @@ class Solution_2022_14(SolutionBase):
         )
 
         for pt in seg.iter_points():
+            assert self._is_open_tile(pt)
             self.rock_tiles.add(pt)
+        
+        # Doing this would be detrimental
+        # self.sand_tiles = set()
 
-        while True:
-            r = self._add_one_sand()
-            if r is None:
-                raise RuntimeError("reached infinity")
-
-            if r == DiscretePoint2(500,  0):
-                break
-
-            if len(self.sand_tiles) % 1000 == 0:
-                print(f"Placed {len(self.sand_tiles)} ")
+        r = self._smart_add_sand()
+        assert r is not None
         return len(self.sand_tiles)
