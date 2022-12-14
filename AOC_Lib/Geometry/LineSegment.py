@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterator, Optional
 
 from .Point import DiscretePoint2
 
@@ -121,3 +121,24 @@ class Segment2_DiscreteAA:
                 point.x >= self.min_x and 
                 point.x <= self.max_x
             )
+
+    def iter_points(self) -> Iterator[DiscretePoint2]:
+        """Iterate from the start to the end point, inclusive"""
+
+        if self.start_pos == self.end_pos:
+            yield self.start_pos
+            return
+
+        m = self.end_pos - self.start_pos
+        
+        modifier = DiscretePoint2(
+            0 if m.x == 0 else (1 if m.x > 0 else -1),
+            0 if m.y == 0 else (1 if m.y > 0 else -1),
+        )
+
+        t = self.start_pos
+
+        while t != self.end_pos:
+            yield t
+            t += modifier
+        yield self.end_pos
