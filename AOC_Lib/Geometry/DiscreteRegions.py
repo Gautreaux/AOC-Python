@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from functools import reduce
 import itertools
 from operator import mul
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Iterator, Union
 
-from .Point import DerivedDiscretePoint_T, DiscreteAbstractPoint
+from .Point import DerivedDiscretePoint_T, DiscreteAbstractPoint, DiscretePoint1
 
 
 DimensionBounds_T = tuple[int, ...]
@@ -110,6 +110,30 @@ class DiscreteAABBbounds:
         """
 
         return reduce(mul, map(lambda mx, mi: mx - mi + 1, self.upper, self.lower))
+
+    def mask_intersection(self, aabb_iterable: Iterable['DiscreteAABBbounds']) -> Iterator['DiscreteAABBbounds']:
+        """
+        Apply self as a mask over the `aabb_iterable`, generating a series of new AABB that contain only the common regions
+        
+        NOTE: the generate sequence is potentially much different (usually larger) in size
+        """
+        
+        # This is not _terribly_ difficult to implement for higher dimensions
+        #   but im not doing it right now
+        assert isinstance(self.lower, DiscretePoint1)
+
+        for other in aabb_iterable:
+            if not self.intersects(other):
+                continue
+
+            yield DiscreteAABBbounds(max(self.lower, other.lower), min(self.upper, other.upper))
+    
+    def mask_difference(self, aabb_iterable: Iterable['DiscreteAABBbounds']) -> Iterator['DiscreteAABBbounds']:
+        """
+        Apply self as difference over the `aabb_iterable`, generating a series of new AABB that contain
+          the region in 
+        """
+        # TODO 
 
 
 if __name__ == "__main__":

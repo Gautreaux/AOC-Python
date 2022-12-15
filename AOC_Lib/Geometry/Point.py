@@ -36,6 +36,19 @@ class AbstractPoint(ABC):
     def __iter__(self) -> Iterator[float]:
         return self._iter_dims()
 
+    def __eq__(self, other) -> bool:
+        assert isinstance(other, self.__class__)
+        return all(map(lambda a,b: a==b, self._iter_dims(), other._iter_dims()))
+
+    def __lt__(self, other) -> bool:
+        assert isinstance(other, self.__class__)
+        for a,b in zip(self._iter_dims(), other._iter_dims()):
+            if a < b:
+                return True
+            elif a > b:
+                return False
+        return False
+
     def __getitem__(self, key: int):
         """Return the value at the given dimension; Probably inefficient"""
 
@@ -87,6 +100,15 @@ class AbstractPoint(ABC):
         """Return the manhattan distance between this point and other point"""
         return self.norm(other, 1)
 
+
+@dataclass(frozen=True)
+class Point1(AbstractPoint):
+    """A Point in 1D space"""
+
+    x: float
+
+    def _iter_dims(self) -> Iterator[Any]:
+        yield self.x
 
 @dataclass(frozen=True)
 class Point2(AbstractPoint):
@@ -157,6 +179,19 @@ class DiscreteAbstractPoint(AbstractPoint):
                  continue
             yield self.__class__(*map(lambda a,b: a+b, t, self._iter_dims())) # type: ignore
 
+
+@dataclass(frozen=True)
+class DiscretePoint1(DiscreteAbstractPoint):
+    """A point in 1D space, with integer coordinates"""
+
+    x: int
+
+    def _iter_dims(self) -> Iterator[int]:
+        """Iterate across the dimensions"""
+        yield self.x
+
+    def scale(self, scalar: float) -> Point1:
+        return Point1(self.x*scalar)
 
 @dataclass(frozen=True)
 class DiscretePoint2(DiscreteAbstractPoint):
