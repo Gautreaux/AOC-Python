@@ -1,19 +1,19 @@
-
-
 from typing import Optional
 
 
 from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 from AOC_Lib.SlidingWindow import sliding_window
 
+
 class Solution_2022_06(SolutionBase):
     """https://adventofcode.com/2022/day/6"""
-
 
     def _find_first_n_unique_sequence(self, size: int) -> int:
         """Find and return the start index of the first sequence of `size` characters in input"""
 
-        for start_index, window in enumerate(sliding_window(self.input_str().strip(), size)):
+        for start_index, window in enumerate(
+            sliding_window(self.input_str().strip(), size)
+        ):
             if len(set(window)) == size:
                 return start_index
         raise RuntimeError()

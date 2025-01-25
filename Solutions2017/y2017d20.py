@@ -7,8 +7,15 @@ ParticleVelocity_T = tuple[int, int, int]
 ParticlePosition_T = tuple[int, int, int]
 ParticleAcceleration_T = tuple[int, int, int]
 
+
 class Particle:
-    def __init__(self, p:ParticlePosition_T, v:ParticleVelocity_T, a:ParticleAcceleration_T, number: int = -1) -> None:
+    def __init__(
+        self,
+        p: ParticlePosition_T,
+        v: ParticleVelocity_T,
+        a: ParticleAcceleration_T,
+        number: int = -1,
+    ) -> None:
         self.p: ParticlePosition_T = p
         self.v: ParticleVelocity_T = v
         self.a: ParticleAcceleration_T = a
@@ -23,7 +30,7 @@ class Particle:
     def start_speed(self) -> int:
         """Return the starting "manhattan speed" of the particle"""
         return sum(map(abs, self.v))
-    
+
     @property
     def start_dist(self) -> int:
         """Return the starting manhattan distance of the particle"""
@@ -36,8 +43,8 @@ class Particle:
         yield last_pos
 
         while True:
-            last_vel = tuple(map(lambda x,y: x+y, last_vel, self.a))
-            last_pos = tuple(map(lambda x,y: x+y, last_pos, last_vel))
+            last_vel = tuple(map(lambda x, y: x + y, last_vel, self.a))
+            last_pos = tuple(map(lambda x, y: x + y, last_pos, last_vel))
             yield last_pos
 
 
@@ -53,8 +60,8 @@ def parseParticle(s: str, number: int = -1) -> Particle:
     return Particle(*map(parseValues, s), number=number)
 
 
-def y2017d20(inputPath = None):
-    if(inputPath == None):
+def y2017d20(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d20.txt"
     print("2017 day 20:")
 
@@ -66,10 +73,10 @@ def y2017d20(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     particles = []
 
-    for i,l in enumerate(lineList):
+    for i, l in enumerate(lineList):
         particles.append(parseParticle(l, i))
 
     m_a = min(map(lambda x: x.delta_speed, particles))
@@ -81,7 +88,7 @@ def y2017d20(inputPath = None):
     m_p = min(map(lambda x: x.start_dist, l))
     f = filter(lambda x: x.start_dist == m_p, l)
     l = list(f)
-    assert(len(l) == 1)
+    assert len(l) == 1
     Part_1_Answer = l[0].number
 
     # Part 2
@@ -94,7 +101,7 @@ def y2017d20(inputPath = None):
     #   1. Same velocity and accel
     #   ...
 
-    particles_and_positions = {x:x.positions() for x in particles}
+    particles_and_positions = {x: x.positions() for x in particles}
 
     # TODO - this could be smarter, but it works
     #   at minimum can threshold on acceleration or velocity to know when to stop
@@ -104,7 +111,7 @@ def y2017d20(inputPath = None):
         new_pos = {}
         to_remove = set()
 
-        for k,v in particles_and_positions.items():
+        for k, v in particles_and_positions.items():
             n = next(v)
             if n in new_pos:
                 to_remove.add(k)

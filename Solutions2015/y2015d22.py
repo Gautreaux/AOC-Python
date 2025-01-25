@@ -6,7 +6,7 @@ from typing import Generator, Optional
 
 
 # Effectively _is_part_2
-IS_HARD_MODE:bool = False
+IS_HARD_MODE: bool = False
 
 # an effect
 Effect_T = namedtuple("Effect_T", "name duration player_armor boss_damage player_mana")
@@ -18,11 +18,14 @@ Spell_T = namedtuple("Spell_T", "name cost damage heal effect")
 AppliedEffect_t = namedtuple("AppliedEffect_T", "turns_remaining effect")
 
 # game state
-State_T = namedtuple("State_T", "player_health player_mana player_goes_next boss_health effects player_mana_spent")
+State_T = namedtuple(
+    "State_T",
+    "player_health player_mana player_goes_next boss_health effects player_mana_spent",
+)
 
 
-Effect_Shield   = Effect_T("Shield",   6, 7, 0,   0)
-Effect_Poison   = Effect_T("Poison",   6, 0, 3,   0)
+Effect_Shield = Effect_T("Shield", 6, 7, 0, 0)
+Effect_Poison = Effect_T("Poison", 6, 0, 3, 0)
 Effect_Recharge = Effect_T("Recharge", 5, 0, 0, 101)
 
 
@@ -32,19 +35,21 @@ EFFECTS: list[Effect_T] = [Effect_Shield, Effect_Poison, Effect_Recharge]
 
 # List of all spells that can be used
 SPELLS: list[Spell_T] = [
-    Spell_T("Magic Missile",  53, 4, 0,          None),
-    Spell_T("Drain",          73, 2, 2,          None),
-    Spell_T("Shield_s",      113, 0, 0, Effect_Shield),
-    Spell_T("Poison_s",      173, 0, 0, Effect_Poison),
-    Spell_T("Recharge_s",    229, 0, 0, Effect_Recharge),
+    Spell_T("Magic Missile", 53, 4, 0, None),
+    Spell_T("Drain", 73, 2, 2, None),
+    Spell_T("Shield_s", 113, 0, 0, Effect_Shield),
+    Spell_T("Poison_s", 173, 0, 0, Effect_Poison),
+    Spell_T("Recharge_s", 229, 0, 0, Effect_Recharge),
 ]
 
 
-def getStartState(boss_health: int, player_health: int = 50, player_mana: int = 500) -> State_T:
+def getStartState(
+    boss_health: int, player_health: int = 50, player_mana: int = 500
+) -> State_T:
     """Get the starting state based on boss parameters"""
     return State_T(
         player_health=player_health,
-        player_mana=player_mana, 
+        player_mana=player_mana,
         player_goes_next=True,
         boss_health=boss_health,
         effects=[],
@@ -53,27 +58,27 @@ def getStartState(boss_health: int, player_health: int = 50, player_mana: int = 
 
 
 def assertValidState(state: State_T) -> None:
-    assert(state.player_health > 0)
-    assert(state.player_mana >= 0)
-    assert(state.player_goes_next is True or state.player_goes_next is False)
-    assert(state.boss_health > 0)
-    assert(state.player_mana_spent >= 0)
+    assert state.player_health > 0
+    assert state.player_mana >= 0
+    assert state.player_goes_next is True or state.player_goes_next is False
+    assert state.boss_health > 0
+    assert state.player_mana_spent >= 0
     # check that no effect is applied twice
-    assert(len(set(map(lambda x: x.effect, state.effects))) == len(state.effects))
-    
+    assert len(set(map(lambda x: x.effect, state.effects))) == len(state.effects)
+
     for e in state.effects:
         assertValidActiveEffect(e)
 
 
 def assertValidActiveEffect(applied_effect: AppliedEffect_t) -> None:
     """Assert that this is a valid applied effect"""
-    assert(applied_effect.turns_remaining > 0)
-    assert(applied_effect.effect in EFFECTS)
+    assert applied_effect.turns_remaining > 0
+    assert applied_effect.effect in EFFECTS
 
 
 def applyActiveEffects(state: State_T) -> State_T:
     """Apply the active effects to the state and return it
-        the remaining time is updated and expired effects are removed
+    the remaining time is updated and expired effects are removed
     """
 
     remaining_effects: list[Effect_T] = []
@@ -91,11 +96,13 @@ def applyActiveEffects(state: State_T) -> State_T:
         player_mana_net_change += effect.player_mana
 
         if applied_effect.turns_remaining > 1:
-            remaining_effects.append(AppliedEffect_t(
-                turns_remaining=applied_effect.turns_remaining-1,
-                effect=applied_effect.effect,
-            ))
-    
+            remaining_effects.append(
+                AppliedEffect_t(
+                    turns_remaining=applied_effect.turns_remaining - 1,
+                    effect=applied_effect.effect,
+                )
+            )
+
     return State_T(
         player_health=state.player_health,
         player_mana=state.player_mana + player_mana_net_change,
@@ -108,7 +115,7 @@ def applyActiveEffects(state: State_T) -> State_T:
 
 def doBossAction(state: State_T, boss_damage: int) -> Generator[State_T, None, None]:
     """Generate all successor states based on a boss action"""
-    assert(state.player_goes_next == False)
+    assert state.player_goes_next == False
 
     # determine if the player has armor
     player_armor = 0
@@ -123,7 +130,7 @@ def doBossAction(state: State_T, boss_damage: int) -> Generator[State_T, None, N
     # print("Boss Hit ", player_net_health)
 
     yield State_T(
-        player_health=state.player_health+player_net_health,
+        player_health=state.player_health + player_net_health,
         player_mana=state.player_mana,
         player_goes_next=True,
         boss_health=state.boss_health,
@@ -134,10 +141,10 @@ def doBossAction(state: State_T, boss_damage: int) -> Generator[State_T, None, N
 
 def doPlayerAction(state: State_T) -> Generator[State_T, None, None]:
     """Generate all the states based on any player action"""
-    assert(state.player_goes_next == True)
+    assert state.player_goes_next == True
 
     for spell in SPELLS:
-        if  spell.cost > state.player_mana:
+        if spell.cost > state.player_mana:
             # spell is to expensive, skip
             continue
 
@@ -154,32 +161,36 @@ def doPlayerAction(state: State_T) -> Generator[State_T, None, None]:
                 continue
             new_effects = []
             new_effects.extend(state.effects)
-            new_effects.append(AppliedEffect_t(
-                turns_remaining=spell.effect.duration,
-                effect=spell.effect,
-            ))
+            new_effects.append(
+                AppliedEffect_t(
+                    turns_remaining=spell.effect.duration,
+                    effect=spell.effect,
+                )
+            )
         yield State_T(
-            player_health=state.player_health+spell.heal,
-            player_mana=state.player_mana-spell.cost,
+            player_health=state.player_health + spell.heal,
+            player_mana=state.player_mana - spell.cost,
             player_goes_next=False,
-            boss_health=state.boss_health-spell.damage,
+            boss_health=state.boss_health - spell.damage,
             effects=new_effects,
-            player_mana_spent=state.player_mana_spent+spell.cost,
+            player_mana_spent=state.player_mana_spent + spell.cost,
         )
 
 
-def GenerateSuccessorStates(state: State_T, boss_damage: int) -> Generator[State_T, None, None]:
+def GenerateSuccessorStates(
+    state: State_T, boss_damage: int
+) -> Generator[State_T, None, None]:
     """Generate the successor states to the current state"""
 
     assertValidState(state)
-    assert(not(isStateTerminal(state)))
-    
+    assert not (isStateTerminal(state))
+
     # printState(state)
 
     global IS_HARD_MODE
     if IS_HARD_MODE and state.player_goes_next:
         state = State_T(
-            player_health=state.player_health-1,
+            player_health=state.player_health - 1,
             player_mana=state.player_mana,
             player_goes_next=state.player_goes_next,
             boss_health=state.boss_health,
@@ -213,27 +224,31 @@ def isStateTerminal(state: State_T) -> bool:
 
 def printState(state: State_T):
     print("-- {} turn --".format("Player" if state.player_goes_next else "Boss"))
-    print("- Player has {} hit points, ?? armor, {} mana".format(state.player_health, state.player_mana))
+    print(
+        "- Player has {} hit points, ?? armor, {} mana".format(
+            state.player_health, state.player_mana
+        )
+    )
     print("- Boss has {} hit points".format(state.boss_health))
 
 
 def runGame(
-    boss_health: int, 
-    boss_damage:int, 
-    player_health: int = 50, 
-    player_mana:int = 500
+    boss_health: int, boss_damage: int, player_health: int = 50, player_mana: int = 500
 ) -> int:
     """Run a game, starting with the player"""
 
     start_state = getStartState(
-        boss_health=boss_health,
-        player_health=player_health,
-        player_mana=player_mana
+        boss_health=boss_health, player_health=player_health, player_mana=player_mana
     )
 
-    print("New Game: boss health {}, boss damage {}, player health {}, player mana {}".format(
-        boss_health, boss_damage, player_health, player_mana,
-    ))
+    print(
+        "New Game: boss health {}, boss damage {}, player health {}, player mana {}".format(
+            boss_health,
+            boss_damage,
+            player_health,
+            player_mana,
+        )
+    )
 
     # just a really big number
     best_win_mana = 2**31
@@ -246,7 +261,7 @@ def runGame(
         # print(f"<{best_win_mana} remain {len(state_q)}> {this_state}")
 
         if this_state.boss_health <= 0:
-            assert(this_state.player_health > 0)
+            assert this_state.player_health > 0
             print("Found a win condition at:", this_state.player_mana_spent)
             best_win_mana = min(this_state.player_mana_spent, best_win_mana)
             continue
@@ -261,7 +276,7 @@ def runGame(
 
         state_q.extend(GenerateSuccessorStates(this_state, boss_damage))
 
-    assert(best_win_mana != 2**31)
+    assert best_win_mana != 2**31
     return best_win_mana
 
 
@@ -276,14 +291,14 @@ def guessSpellCast(v: int) -> list[int]:
     if rounds > 5:
         print(f"  WARNING: guess will take up to {rounds} rounds, this may be slow")
 
-    for i in range(1, rounds+1):
+    for i in range(1, rounds + 1):
         for c in itertools.combinations_with_replacement(options, i):
             if sum(c) == v:
                 return c
 
 
-def y2015d22(inputPath = None):
-    if(inputPath == None):
+def y2015d22(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d22.txt"
     print("2015 day 22:")
 
@@ -296,7 +311,7 @@ def y2015d22(inputPath = None):
             line = line.strip()
             lineList.append(line)
 
-    assert(len(lineList) == 2)    
+    assert len(lineList) == 2
     boss_health, boss_damage = map(lambda x: int(x.split(" ")[-1]), lineList)
 
     # =============
@@ -304,16 +319,16 @@ def y2015d22(inputPath = None):
     v = runGame(14, 8, 10, 250)
     e = sum([229, 113, 73, 173, 53])
     if e != v:
-        print("Expected: {}, got {}".format(e,v))
+        print("Expected: {}, got {}".format(e, v))
         print("  Guess: {}".format(guessSpellCast(v)))
-    assert(e == v)
+    assert e == v
     print(f"First Test Case OK")
     v = runGame(13, 8, 10, 250)
     e = sum([173, 53])
     if e != v:
         print("Expected: {}, got {}".format(e, v))
         print("  Guess: {}".format(guessSpellCast(e)))
-    assert(e == v)
+    assert e == v
     print(f"Second Test Case OK")
 
     # =============
@@ -321,10 +336,10 @@ def y2015d22(inputPath = None):
     Part_1_Answer = runGame(boss_health=boss_health, boss_damage=boss_damage)
 
     try:
-        assert(Part_1_Answer != 536)
-        assert(Part_1_Answer > 400)
-        assert(Part_1_Answer > 373)
-        assert(Part_1_Answer != 367)
+        assert Part_1_Answer != 536
+        assert Part_1_Answer > 400
+        assert Part_1_Answer > 373
+        assert Part_1_Answer != 367
     except AssertionError:
         print("Our guess was: {}".format(Part_1_Answer))
         raise

@@ -1,4 +1,3 @@
-
 import asyncio
 from collections import defaultdict
 from copy import deepcopy
@@ -10,19 +9,21 @@ from typing import Iterable, Optional
 
 from AOC_Lib.SolutionBase import SolutionBase
 
+
 @unique
 class OpCode(IntEnum):
     """Enum for all supported op codes"""
-    ADD = 1,
-    MUL = 2,
-    INPUT = 3,
-    OUTPUT = 4,
-    JIT = 5,
-    JIF = 6,
-    LE = 7,
-    EQ = 8,
-    RBO = 9,
-    DONE = 99,
+
+    ADD = (1,)
+    MUL = (2,)
+    INPUT = (3,)
+    OUTPUT = (4,)
+    JIT = (5,)
+    JIF = (6,)
+    LE = (7,)
+    EQ = (8,)
+    RBO = (9,)
+    DONE = (99,)
 
     def qtyParameters(self) -> int:
         """Return the number of parameters associated with this OpCode"""
@@ -54,12 +55,13 @@ class OpCode(IntEnum):
 @unique
 class ParameterMode(IntEnum):
     """Enum for all parameter modes"""
-    POSITION = 0,
-    IMMEDIATE = 1,
-    RELATIVE = 2,
+
+    POSITION = (0,)
+    IMMEDIATE = (1,)
+    RELATIVE = (2,)
 
 
-class IntcodeProgram():
+class IntcodeProgram:
     """A class representing a intcode program"""
 
     def __init__(self, iterable):
@@ -71,40 +73,47 @@ class IntcodeProgram():
 
 class ProgramDone(Exception):
     """Raised when the program encounters a done instruction"""
+
     pass
 
 
 class ProgramCrashed(Exception):
     """Raised when the program encounters a crash"""
+
     pass
 
 
 class UnrecognizedOpCode(Exception):
     """Raised when the program encounters an unrecognized op code"""
+
     pass
 
 
 class UnrecognizedParameterMode(Exception):
     """Raised if the parameter mode is not recognized"""
+
     pass
 
 
 class IllegalMemoryAccess(Exception):
     """Raised if an illegal memory address is accessed"""
+
     pass
 
 
 class IOWatchdogTimeout(Exception):
     """Rased when the program runs for too long without I/O"""
+
     pass
 
 
-class IntcodeRunner():
+class IntcodeRunner:
     """A class for running intcode programs"""
 
-    def __init__(self, 
-        program: IntcodeProgram, 
-        in_q: Optional[asyncio.Queue] = None, 
+    def __init__(
+        self,
+        program: IntcodeProgram,
+        in_q: Optional[asyncio.Queue] = None,
         out_q: Optional[asyncio.Queue] = None,
     ) -> None:
         self._instructionCounter = 0
@@ -149,9 +158,11 @@ class IntcodeRunner():
 
     def _advanceInstrCounter(self, op_code):
         """Logic for advancing the instruction pointer"""
-        self._instructionCounter += (op_code.qtyParameters() + 1)
+        self._instructionCounter += op_code.qtyParameters() + 1
 
-    async def _bin_op(self, op_code: OpCode, p_modes: tuple[ParameterMode, ...]) -> None:
+    async def _bin_op(
+        self, op_code: OpCode, p_modes: tuple[ParameterMode, ...]
+    ) -> None:
         """Basic binary operators, all with 3 parameters"""
         if op_code == OpCode.ADD:
             operator = add
@@ -160,9 +171,14 @@ class IntcodeRunner():
         elif op_code == OpCode.LE:
             # from operator import le
             #   returns true and false vs 1 and 0
-            operator = (lambda x, y: 1 if x < y else 0)
+            def operator(x, y):
+                return 1 if x < y else 0
+
         elif op_code == OpCode.EQ:
-            operator = (lambda x, y: 1 if x == y else 0)
+
+            def operator(x, y):
+                return 1 if x == y else 0
+
         else:
             raise RuntimeError("Bad op code for binary operation: {}".format(op_code))
 
@@ -199,9 +215,14 @@ class IntcodeRunner():
         """Jump operators"""
 
         if op_code == OpCode.JIT:
-            operator = lambda x : x != 0
+
+            def operator(x):
+                return x != 0
+
         elif op_code == OpCode.JIF:
-            operator = lambda x : x == 0
+
+            def operator(x):
+                return x == 0
 
         val_a, val_b = self._readParameters(p_modes[:2])
 
@@ -275,16 +296,24 @@ class IntcodeRunner():
         except StopIteration:
             pass
 
-        p_mode_gen = itertools.chain(map(lambda x: ParameterMode(int(x)), s), itertools.repeat(ParameterMode(0)))
+        p_mode_gen = itertools.chain(
+            map(lambda x: ParameterMode(int(x)), s), itertools.repeat(ParameterMode(0))
+        )
         p_modes = tuple(itertools.islice(p_mode_gen, op_code.qtyParameters()))
         return (op_code, p_modes)
 
-    def _readParameters(self, p_modes: tuple[ParameterMode,...]) -> tuple[int, ...]:
+    def _readParameters(self, p_modes: tuple[ParameterMode, ...]) -> tuple[int, ...]:
         """Read all the parameters according to mode"""
-        return tuple(map(
-            (lambda x: self._readModeAware(self._instructionCounter + x + 1, p_modes[x])),
-            range(len(p_modes))
-        ))
+        return tuple(
+            map(
+                (
+                    lambda x: self._readModeAware(
+                        self._instructionCounter + x + 1, p_modes[x]
+                    )
+                ),
+                range(len(p_modes)),
+            )
+        )
 
     def _readModeAware(self, addr: int, p_mode: ParameterMode) -> int:
         """Read interpreting `addr` according to `mode`"""
@@ -297,7 +326,7 @@ class IntcodeRunner():
         else:
             raise UnrecognizedParameterMode(p_mode)
 
-    def _setModeAware(self, addr:int, val: int, p_mode: ParameterMode) -> int:
+    def _setModeAware(self, addr: int, val: int, p_mode: ParameterMode) -> int:
         """Set the `val` at `addr` according to `p_mode`"""
         if p_mode == ParameterMode.POSITION:
             return self.setAddr(self.readAddr(addr), val)
@@ -311,7 +340,7 @@ class IntcodeRunner():
         else:
             raise UnrecognizedParameterMode(p_mode)
 
-    def readAddr(self, addr:int) -> int:
+    def readAddr(self, addr: int) -> int:
         """Return the value stored at `addr`"""
         if addr < 0:
             raise IllegalMemoryAccess(addr)
@@ -320,9 +349,9 @@ class IntcodeRunner():
         except IndexError:
             return self._extMemory[addr]
 
-    def setAddr(self, addr:int, val: int) -> int:
+    def setAddr(self, addr: int, val: int) -> int:
         """Set the value stored at `addr` and return the value"""
-        assert(isinstance(val, int))
+        assert isinstance(val, int)
         # print(f"WRITE {addr} {val}")
         if addr < 0:
             raise IllegalMemoryAccess(addr)
@@ -354,7 +383,7 @@ class IntcodeRunner():
         """CO-RO to push the contents of iterable to the input"""
         # TODO - this may block a clean exit but whatever
         for f in iterable:
-            assert(isinstance(f, int))
+            assert isinstance(f, int)
             await self._input_q.put(f)
 
     async def _collect_output(self):
@@ -372,7 +401,7 @@ class IntcodeRunner():
                     outputs.append(self._output_q.get_nowait())
                     self._output_q.task_done()
                 except asyncio.QueueEmpty:
-                    pass  
+                    pass
 
     def run_sync(self, inputs: Optional[Iterable] = None) -> list[str]:
         """Run until complete"""
@@ -398,9 +427,9 @@ class IntcodeRunner():
         # print("Memory region:", self._memory[x: x+8])
         print(f"=================")
 
-    def fork(self) -> 'IntcodeRunner':
+    def fork(self) -> "IntcodeRunner":
         """Create a copy of this program at the current point
-            NOTE: UNTESTED
+        NOTE: UNTESTED
         """
 
         # in the end this just ended up being a deep copy?
@@ -419,9 +448,9 @@ class IntcodeRunner():
         return to_return
 
     async def IOWatchdog(self, cycles_limit: int = 1000, polling_freq_s: float = 0.25):
-        """Poll at some frequency and raise an Exception if 
-            cycles_limit cycles have occured without an I/O operation
-            NOTE: UNTESTED
+        """Poll at some frequency and raise an Exception if
+        cycles_limit cycles have occured without an I/O operation
+        NOTE: UNTESTED
         """
         while True:
             await asyncio.sleep(polling_freq_s)
@@ -434,7 +463,7 @@ class IntcodeRunner():
 
     async def TerminatedWatchdog(self):
         """Raise a ProgramDone when the program finishes
-            NOTE: UNTESTED
+        NOTE: UNTESTED
         """
         # this is necessary because I don't want to change the semantics of run
         await self._isTerminal.wait()
@@ -443,13 +472,13 @@ class IntcodeRunner():
     # TODO - refactor 2019d13 (and others?) to use this
     def runTillBlockOrExit(self, run_task, loop: asyncio.AbstractEventLoop) -> None:
         """Run the program until it blocks for input or exits
-            Any output is stored in the output queue 
+        Any output is stored in the output queue
         """
         wait_task = loop.create_task(self.getIOEvent().wait())
 
-        done, pending = loop.run_until_complete(asyncio.wait(
-            [wait_task, run_task], return_when=asyncio.FIRST_COMPLETED
-        ))
+        done, pending = loop.run_until_complete(
+            asyncio.wait([wait_task, run_task], return_when=asyncio.FIRST_COMPLETED)
+        )
 
         if wait_task in pending:
             # the runner terminated so cleanup
@@ -459,8 +488,8 @@ class IntcodeRunner():
 
 async def queueTee(in_q: asyncio.Queue, out_queues: list[asyncio.Queue]):
     """Tee the output of the in_queue into all of the out_queues
-        NOTE: the queues should be unbounded or consume at the same rate
-            otherwise this could easily deadlock
+    NOTE: the queues should be unbounded or consume at the same rate
+        otherwise this could easily deadlock
     """
     while True:
         val = await in_q.get()
@@ -470,21 +499,23 @@ async def queueTee(in_q: asyncio.Queue, out_queues: list[asyncio.Queue]):
         in_q.task_done()
 
 
-async def runUntilHalt(to_manage: Iterable[IntcodeRunner], polling_rate_s: float = 0.25):
+async def runUntilHalt(
+    to_manage: Iterable[IntcodeRunner], polling_rate_s: float = 0.25
+):
     """Manage a collection of intcode runners and notify if they all have halted"""
     # TODO - add an `isBlocked` flag or condition variable to IntcodeRunner
     runners = list(to_manage)
 
-    old_cycles = [0]*len(runners)
+    old_cycles = [0] * len(runners)
 
     while True:
         await asyncio.sleep(polling_rate_s)
         cycles = list(map(lambda x: x.getCycles(), runners))
         # print(cycles)
 
-        d = sum(map(lambda x,y: x-y, cycles, old_cycles))
+        d = sum(map(lambda x, y: x - y, cycles, old_cycles))
 
-        if(d == 0):
+        if d == 0:
             # halt detected
             return
 
@@ -497,7 +528,7 @@ class IntcodeSolutionBase(SolutionBase):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.program = IntcodeProgram(map(int, self.input_str().split(',')))
+        self.program = IntcodeProgram(map(int, self.input_str().split(",")))
 
     def _runner_factory(self) -> IntcodeRunner:
         """Factory for producing Intcode runners"""

@@ -1,4 +1,3 @@
-
 from collections import defaultdict
 from dataclasses import dataclass, field
 import functools
@@ -13,19 +12,21 @@ from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 class File:
     name: str
     size: int
-    parent: 'Directory'
+    parent: "Directory"
 
 
 @dataclass
 class Directory:
     name: str
     files: list[File] = field(default_factory=list, hash=False, compare=False)
-    directories: list['Directory'] = field(default_factory=list, hash=False, compare=False)
-    parent: Optional['Directory'] = field(default=None, hash=False, compare=False)
+    directories: list["Directory"] = field(
+        default_factory=list, hash=False, compare=False
+    )
+    parent: Optional["Directory"] = field(default=None, hash=False, compare=False)
 
     _size: int = field(default=0, init=False)
 
-    def add_sub_dir(self, name: str) -> 'Directory':
+    def add_sub_dir(self, name: str) -> "Directory":
 
         for d in self.directories:
             if d.name == name:
@@ -35,7 +36,7 @@ class Directory:
         self.directories.append(new_dir)
         return new_dir
 
-    def add_file(self, name: str, size:int) -> File:
+    def add_file(self, name: str, size: int) -> File:
         for f in self.files:
             if f.name == name:
                 return f
@@ -47,7 +48,9 @@ class Directory:
     def size(self):
         if self._size:
             return self._size
-        self._size = sum(map(lambda x: x.size, itertools.chain(self.files, self.directories))) # type: ignore
+        self._size = sum(
+            map(lambda x: x.size, itertools.chain(self.files, self.directories))
+        )  # type: ignore
         return self._size
 
     def iter_dirs(self):
@@ -60,27 +63,26 @@ class Directory:
 class Solution_2022_07(SolutionBase):
     """https://adventofcode.com/2022/day/7"""
 
-
     def __post_init__(self):
         """Runs Once After `__init__`"""
-        
-        root = Directory('/')
+
+        root = Directory("/")
         active_dir: Directory = root
 
         for line in self.input_str_list(include_empty_lines=False):
-            if line.startswith('$ ls'):
+            if line.startswith("$ ls"):
                 continue
             elif line.startswith("$ cd"):
-                _, __, tail = line.rpartition(' ')
+                _, __, tail = line.rpartition(" ")
 
-                if tail == '..':
-                    assert(active_dir.parent is not None)
+                if tail == "..":
+                    assert active_dir.parent is not None
                     active_dir = active_dir.parent
-                elif tail == '/':
+                elif tail == "/":
                     pass
                 else:
                     active_dir = active_dir.add_sub_dir(tail)
-            elif line.startswith('dir'):
+            elif line.startswith("dir"):
                 _, name = line.split(" ")
                 active_dir.add_sub_dir(name)
             else:
@@ -92,7 +94,9 @@ class Solution_2022_07(SolutionBase):
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""
 
-        return sum(filter(lambda x: x <= 100000, map(lambda x: x.size, self.root.iter_dirs())))
+        return sum(
+            filter(lambda x: x <= 100000, map(lambda x: x.size, self.root.iter_dirs()))
+        )
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""

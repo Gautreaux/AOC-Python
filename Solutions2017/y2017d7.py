@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2017d7(inputPath = None):
-    if(inputPath == None):
+
+def y2017d7(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d7.txt"
     print("2017 day 7:")
 
@@ -13,7 +14,7 @@ def y2017d7(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     weightsDict = {}
     adjList = {}
 
@@ -24,8 +25,8 @@ def y2017d7(inputPath = None):
 
         adj = []
         for e in s[3:]:
-            adj.append(e.replace(",",""))
-        
+            adj.append(e.replace(",", ""))
+
         weightsDict[name] = weight
         adjList[name] = adj
 
@@ -38,12 +39,13 @@ def y2017d7(inputPath = None):
             ctr[e] -= 1
     l = list(filter(lambda x: ctr[x] == 1, ctr))
     # print(l)
-    assert(len(l) == 1)
+    assert len(l) == 1
     Part_1_Answer = l[0]
 
     weightCache = {}
+
     def getWeight(name):
-        assert(name in weightsDict)
+        assert name in weightsDict
         if name in weightCache:
             return weightCache[name]
 
@@ -57,7 +59,7 @@ def y2017d7(inputPath = None):
             return partialWeight
 
     def areSubTowersBalanced(name):
-        assert(name in weightsDict)
+        assert name in weightsDict
 
         target = None
         for a in adjList[name]:
@@ -81,12 +83,12 @@ def y2017d7(inputPath = None):
 
     class BreakContinue(Exception):
         pass
-    
+
     def findPrimaryUnbalance():
         """Return the node that is deepest in the hierarchy"""
         unbalanced = set(findAllUnbalanced())
         root = Part_1_Answer
-        assert(root in unbalanced)
+        assert root in unbalanced
         while True:
             try:
                 for a in adjList[root]:
@@ -95,7 +97,7 @@ def y2017d7(inputPath = None):
                         parent = root
                         root = a
                         raise BreakContinue()
-                assert(len(unbalanced) == 1)
+                assert len(unbalanced) == 1
                 return root
             except BreakContinue:
                 continue
@@ -108,16 +110,20 @@ def y2017d7(inputPath = None):
     targetWeight = list(map(getWeight, adjList[imbalance]))
 
     # we know there has to be at least 3 children to know which weight is correct
-    assert(len(targetWeight) >= 3)
+    assert len(targetWeight) >= 3
     targetWeight.sort()
     # the wrong one could be the min or the max, so grab the middle
-    incorrectWeight = (targetWeight[0] if targetWeight[0] != targetWeight[1] else targetWeight[-1])
+    incorrectWeight = (
+        targetWeight[0] if targetWeight[0] != targetWeight[1] else targetWeight[-1]
+    )
     targetWeight = targetWeight[1]
 
     difference = incorrectWeight - targetWeight
 
-    badNode = list(filter(lambda x: getWeight(x) == incorrectWeight, adjList[imbalance]))
-    assert(len(badNode) == 1)
+    badNode = list(
+        filter(lambda x: getWeight(x) == incorrectWeight, adjList[imbalance])
+    )
+    assert len(badNode) == 1
     badNode = badNode[0]
 
     Part_2_Answer = weightsDict[badNode] - difference
@@ -131,5 +137,5 @@ def y2017d7(inputPath = None):
     except RuntimeError:
         print("Find unbalanced passed balance check")
 
-    assert(Part_2_Answer != 8434)
+    assert Part_2_Answer != 8434
     return (Part_1_Answer, Part_2_Answer)

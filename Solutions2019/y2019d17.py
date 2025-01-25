@@ -1,7 +1,7 @@
 from AOC_Lib.SlidingWindow import sliding_window
 from .IntcodeLib import IntcodeProgram, IntcodeRunner
 
-from copy import  deepcopy
+from copy import deepcopy
 from enum import IntEnum, unique
 import itertools
 from typing import Any, Generator, Iterable, Optional, Union
@@ -11,12 +11,13 @@ PATH_T = list[tuple[str, int]]
 
 _MAX_CHAR_PER_LINE = 20
 
+
 @unique
 class ImageComponent(IntEnum):
-    NEWLINE = 10,
-    SCAFFOLD = 35,
-    SPACE = 46,
-    ROBOT_UP = 94,
+    NEWLINE = (10,)
+    SCAFFOLD = (35,)
+    SPACE = (46,)
+    ROBOT_UP = (94,)
 
     def render(self) -> int:
         return chr(self.value)
@@ -24,9 +25,9 @@ class ImageComponent(IntEnum):
 
 @unique
 class RobotDirection(IntEnum):
-    UP = 0,
-    RIGHT = 1,
-    DOWN = 2,
+    UP = (0,)
+    RIGHT = (1,)
+    DOWN = (2,)
     LEFT = 3
 
     def turnLeft(self) -> "RobotDirection":
@@ -35,9 +36,9 @@ class RobotDirection(IntEnum):
     def turnRight(self) -> "RobotDirection":
         return RobotDirection((self.value + 1) % 4)
 
-    def apply(self, position: tuple[int, int]) -> tuple[int,int]:
+    def apply(self, position: tuple[int, int]) -> tuple[int, int]:
         """Apply direction to position to get new position"""
-        x,y = position
+        x, y = position
         if self == RobotDirection.UP:
             return (x, y - 1)
         elif self == RobotDirection.RIGHT:
@@ -53,7 +54,7 @@ class RobotDirection(IntEnum):
 class Image:
     def __init__(self, iterable) -> None:
         self.rows = []
-        
+
         current = []
         for f in iterable:
             c = ImageComponent(f)
@@ -82,26 +83,17 @@ class Image:
     def generateAlignmentPositions(self) -> Generator[tuple[int, int], None, None]:
         """Generate all positions that are alignment points"""
 
-        transforms = [
-            (0,1),
-            (0,-1),
-            (0,0),
-            (1,0),
-            (-1,0)
-        ]
+        transforms = [(0, 1), (0, -1), (0, 0), (1, 0), (-1, 0)]
 
         for y in range(1, len(self.rows) - 1):
             for x in range(1, len(self.rows[y]) - 1):
                 if all(
                     map(
                         lambda p: self.isScaffold(p[0], p[1]),
-                        map(
-                            lambda t: (x + t[0], y + t[1]),
-                            transforms
-                        )
+                        map(lambda t: (x + t[0], y + t[1]), transforms),
                     )
                 ):
-                    yield (x,y)
+                    yield (x, y)
 
 
 class ResultSimulator:
@@ -114,37 +106,43 @@ class ResultSimulator:
         # set of all scaffolding positions
         self._scaffolding_pos = set()
 
-        for y,row in enumerate(img.rows):
-            for x,c in enumerate(row):
-                if img.isScaffold(x,y):
-                    self._scaffolding_pos.add((x,y))
+        for y, row in enumerate(img.rows):
+            for x, c in enumerate(row):
+                if img.isScaffold(x, y):
+                    self._scaffolding_pos.add((x, y))
 
                 # TODO - other directions
                 if c == ImageComponent.ROBOT_UP:
-                    self._start_robot_pos = (x,y)
+                    self._start_robot_pos = (x, y)
                     self._start_robot_dir = RobotDirection.UP
-    
+
     def isScaffold(self, x, y) -> bool:
-        return ((x,y) in self._scaffolding_pos)
+        return (x, y) in self._scaffolding_pos
 
     def getStartPos(self) -> tuple[int, int]:
         """Return the starting position"""
         return self._start_robot_pos
-    
+
     def getStartDirection(self) -> RobotDirection:
         """Return the starting direction"""
         return self._start_robot_dir
 
-    def isForwardScaffold(self, position: tuple[int, int], direction: RobotDirection) -> bool:
+    def isForwardScaffold(
+        self, position: tuple[int, int], direction: RobotDirection
+    ) -> bool:
         """return True iff, for the position, direction, forward is a scaffold block"""
-        x,y = direction.apply(position)
-        return self.isScaffold(x,y)
+        x, y = direction.apply(position)
+        return self.isScaffold(x, y)
 
-    def isLeftScaffold(self, position: tuple[int, int], direction: RobotDirection) -> bool:
+    def isLeftScaffold(
+        self, position: tuple[int, int], direction: RobotDirection
+    ) -> bool:
         """Return True iff the tile left of the robot is scaffold"""
         return self.isForwardScaffold(position, direction.turnLeft())
-    
-    def isRightScaffold(self, position: tuple[int, int], direction: RobotDirection) -> bool:
+
+    def isRightScaffold(
+        self, position: tuple[int, int], direction: RobotDirection
+    ) -> bool:
         """Return True iff the tile left of the robot is scaffold"""
         return self.isForwardScaffold(position, direction.turnRight())
 
@@ -180,23 +178,23 @@ def buildIdealPath(sim: ResultSimulator) -> PATH_T:
                 out.append(counter)
                 counter = 0
             break
-        assert(left_is_scaffold != right_is_scaffold)
-        
+        assert left_is_scaffold != right_is_scaffold
+
         if counter:
             out.append(counter)
         counter = 0
 
         if left_is_scaffold:
-            out.append('L')
+            out.append("L")
             r_dir = r_dir.turnLeft()
         else:
-            assert(right_is_scaffold)
-            out.append('R')
+            assert right_is_scaffold
+            out.append("R")
             r_dir = r_dir.turnRight()
 
     out_paired = []
     itr = iter(out)
-    assert(len(out) % 2 == 0)
+    assert len(out) % 2 == 0
     while True:
         try:
             lhs = next(itr)
@@ -215,57 +213,56 @@ class Compressor:
 
     def _reset(self):
         """reset to a ready state"""
-    
+
     def _is_full_mask(self, mask: list[Optional[str]]) -> bool:
         """Return `True` iff the mask completely covers the path"""
         return all(map(lambda x: x is not None, mask))
 
     def _compressor_worker(self, raw_path: PATH_T) -> list[str]:
         """Worker for the first layer"""
-        mask = [None]*len(raw_path)
+        mask = [None] * len(raw_path)
 
-        for i,v in enumerate(raw_path):
+        for i, v in enumerate(raw_path):
             if v == raw_path[0]:
-                mask[i] = 'A'
+                mask[i] = "A"
 
         if self._is_full_mask(mask):
             return mask
 
         mask_iter = iter(mask)
         next(mask_iter)
-        max_function_len = 1 + sum(1 for _ in itertools.takewhile(
-            lambda x: x is None, mask_iter
-        ))
+        max_function_len = 1 + sum(
+            1 for _ in itertools.takewhile(lambda x: x is None, mask_iter)
+        )
 
         # debug
         max_function_len = 3
 
-        print("The longest length possible for the first function is:", max_function_len)
+        print(
+            "The longest length possible for the first function is:", max_function_len
+        )
 
-        for first_function_len in range(1, max_function_len+1):
-            mask = [None]*len(raw_path)
+        for first_function_len in range(1, max_function_len + 1):
+            mask = [None] * len(raw_path)
             hunk = tuple(raw_path[:first_function_len])
 
             # print('START A:', to_match)
 
-            self._sliding_window_mask(raw_path, mask, hunk, 'A')
+            self._sliding_window_mask(raw_path, mask, hunk, "A")
 
             if self._is_full_mask(mask):
-                return {'A' : hunk, 0: mask }
+                return {"A": hunk, 0: mask}
 
-            print("".join(map(lambda x: x if x is not None else '.', mask)))
+            print("".join(map(lambda x: x if x is not None else ".", mask)))
 
-            r = self._compressor_worker_b(raw_path, mask, 'B')
+            r = self._compressor_worker_b(raw_path, mask, "B")
             if r is not None:
-                r['A'] = hunk
+                r["A"] = hunk
                 return r
             # print('END A:', to_match)
 
     def _compressor_worker_b(
-        self, 
-        raw_path: PATH_T, 
-        mask: list[Optional[str]], 
-        group: str
+        self, raw_path: PATH_T, mask: list[Optional[str]], group: str
     ) -> Optional[list[str]]:
         """Handles the sub partitioning for secondary layers"""
 
@@ -274,12 +271,11 @@ class Compressor:
             map(
                 lambda x: x[0],
                 itertools.takewhile(
-                    lambda x: x[1] is None, 
+                    lambda x: x[1] is None,
                     itertools.dropwhile(
-                        lambda x: x[1] is not None,
-                        zip(raw_path, mask)
-                    )
-                )
+                        lambda x: x[1] is not None, zip(raw_path, mask)
+                    ),
+                ),
             )
         )
 
@@ -289,45 +285,46 @@ class Compressor:
 
         old_mask = deepcopy(mask)
 
-        for function_len in range(1, len(hunk)+1):
+        for function_len in range(1, len(hunk) + 1):
             # ensure that we have no side effects
-            mask = deepcopy(old_mask) 
+            mask = deepcopy(old_mask)
 
             to_match = tuple(hunk[:function_len])
 
             # print("START", group, to_match)
             self._sliding_window_mask(raw_path, mask, to_match, group)
 
-            print("".join(map(lambda x: x if x is not None else '.', mask)))
+            print("".join(map(lambda x: x if x is not None else ".", mask)))
             if self._is_full_mask(mask):
                 return {group: hunk, 0: mask}
-            
-            if next_group <= 'C':
+
+            if next_group <= "C":
                 r = self._compressor_worker_b(raw_path, mask, next_group)
                 if r is not None:
                     r[group] = to_match
                     return r
             # print("END", group, to_match)
 
-    def _sliding_window_mask(self, raw_path: PATH_T, mask: list[Optional[str]], hunk, val: str):
+    def _sliding_window_mask(
+        self, raw_path: PATH_T, mask: list[Optional[str]], hunk, val: str
+    ):
         """Apply a sliding widow over `raw_path`
-            if the window matches `hunk` and the corresponding `mask` is entirely None,
-                update (in place) the `mask` to have `val`
+        if the window matches `hunk` and the corresponding `mask` is entirely None,
+            update (in place) the `mask` to have `val`
         """
-    
+
         fn_len = len(hunk)
-        for i,w in enumerate(sliding_window(raw_path, fn_len)):
+        for i, w in enumerate(sliding_window(raw_path, fn_len)):
             if w != hunk:
-                    continue
+                continue
 
             # make sure that this section of the mask is None
-            mask_hunk = mask[i:(i+fn_len)]
+            mask_hunk = mask[i : (i + fn_len)]
             if any(map(lambda x: x is not None, mask_hunk)):
                 continue
 
-            for j in range(i, i+fn_len):
+            for j in range(i, i + fn_len):
                 mask[j] = val
-
 
     def compress(self, raw_path: PATH_T) -> tuple[list[str], PATH_T, PATH_T, PATH_T]:
         """Actually do the compression"""
@@ -338,7 +335,7 @@ class Compressor:
 
         if m is None:
             print("Could not create a mask...")
-            assert(False)
+            assert False
 
         mask = m.pop(0)
 
@@ -356,20 +353,20 @@ class Compressor:
             reduced.append(x)
             # print(x, len(m[x]))
             for _ in range(len(m[x]) - 1):
-                # not protected 
+                # not protected
                 #   if a stop iteration is raised in here,
                 #   there is a real problem
                 next(mask_iter)
-        
-        A = list(itertools.chain.from_iterable(m['A']))
-        B = list(itertools.chain.from_iterable(m['B']))
-        C = list(itertools.chain.from_iterable(m['C']))
+
+        A = list(itertools.chain.from_iterable(m["A"]))
+        B = list(itertools.chain.from_iterable(m["B"]))
+        C = list(itertools.chain.from_iterable(m["C"]))
 
         return ("".join(reduced), A, B, C)
 
 
-def y2019d17(inputPath = None):
-    if(inputPath == None):
+def y2019d17(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2019/d17.txt"
     print("2019 day 17:")
 
@@ -381,7 +378,7 @@ def y2019d17(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     prog = IntcodeProgram(map(int, lineList[0].split(",")))
     runner = IntcodeRunner(prog)
 
@@ -389,14 +386,11 @@ def y2019d17(inputPath = None):
 
     image.draw()
 
-    Part_1_Answer = sum(map(
-        lambda x: x[0]*x[1],
-        image.generateAlignmentPositions()
-    ))
+    Part_1_Answer = sum(map(lambda x: x[0] * x[1], image.generateAlignmentPositions()))
 
-    ### part2
+    # part2
 
-    ### generate the ideal path
+    # generate the ideal path
 
     simulator = ResultSimulator(image)
     ideal = buildIdealPath(simulator)
@@ -416,17 +410,17 @@ def y2019d17(inputPath = None):
                 ascii_code.append(ord(token))
             else:
                 ascii_code.extend(map(ord, str(token)))
-            ascii_code.append(ord(','))
-        ascii_code[-1] = 10 # newline
+            ascii_code.append(ord(","))
+        ascii_code[-1] = 10  # newline
 
-    ascii_code.append(ord('n')) # no graphics
-    ascii_code.append(ord('\n')) # final newline
+    ascii_code.append(ord("n"))  # no graphics
+    ascii_code.append(ord("\n"))  # final newline
 
     print(ascii_code)
 
     runner = IntcodeRunner(prog)
     runner.setAddr(0, 2)
-    
+
     o = runner.run_sync(ascii_code)
 
     txt = "".join(map(chr, o[:-1]))

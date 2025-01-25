@@ -14,21 +14,23 @@ _CHUNK_OFFSET = 50000
 _BATCH_INTERVAL = 10
 
 
-def _fn(t : tuple[str, int]) -> list[tuple[int, str]]:
+def _fn(t: tuple[str, int]) -> list[tuple[int, str]]:
     key, start = t
     l = []
 
-    for i in itertools.islice(itertools.count(start=start*_CHUNK_OFFSET), _CHUNK_OFFSET):
-        v = md5(f'{key}{i}'.encode('ascii')).hexdigest()
+    for i in itertools.islice(
+        itertools.count(start=start * _CHUNK_OFFSET), _CHUNK_OFFSET
+    ):
+        v = md5(f"{key}{i}".encode("ascii")).hexdigest()
 
-        if v.startswith('00000'):
+        if v.startswith("00000"):
             # only capture the first result
             if len(l) == 0:
                 l.append((i, v))
-        elif v.startswith('000000'):
+        elif v.startswith("000000"):
             # can stop once we get the first six-digit result
             #   which could also be the first five-digit result
-            l.append((i,v))
+            l.append((i, v))
             break
     return l
 
@@ -51,18 +53,26 @@ class Solution_2015_04(SolutionBase):
 
         try:
             for z in itertools.count():
-                for l in pool.map(_fn, zip(itertools.repeat(my_key), itertools.islice(ctr, _BATCH_INTERVAL)), chunksize=_CHUNK_OFFSET):
-                    for i,r in l:
+                for l in pool.map(
+                    _fn,
+                    zip(
+                        itertools.repeat(my_key), itertools.islice(ctr, _BATCH_INTERVAL)
+                    ),
+                    chunksize=_CHUNK_OFFSET,
+                ):
+                    for i, r in l:
                         print(f"Possible answer: {i}")
-                        if self._part_1_answer is None and r.startswith('00000'):
+                        if self._part_1_answer is None and r.startswith("00000"):
                             self._part_1_answer = i
                             print(f"Part 1 answer: {i}")
                             if self._part_2_answer:
                                 raise _ExitException()
-                        if self.part_2_answer is None and r.startswith('000000'):
+                        if self.part_2_answer is None and r.startswith("000000"):
                             self._part_2_answer = i
                             if self._part_1_answer:
                                 raise _ExitException()
-                print(f"Finished batch {z:>4} ({((z+1)*_CHUNK_OFFSET*_BATCH_INTERVAL):>10})")
+                print(
+                    f"Finished batch {z:>4} ({((z+1)*_CHUNK_OFFSET*_BATCH_INTERVAL):>10})"
+                )
         except _ExitException:
             pass

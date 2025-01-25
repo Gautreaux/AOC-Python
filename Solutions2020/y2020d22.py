@@ -5,24 +5,35 @@ from typing import Optional, Tuple
 
 from AOC_Lib.queue import CircularQueue
 
-def calculateScore(winningDeck : CircularQueue) -> int:
+
+def calculateScore(winningDeck: CircularQueue) -> int:
     score = 0
 
     while len(winningDeck) > 0:
         i = len(winningDeck)
         score += i * winningDeck.pop()
-    
+
     return score
 
-def getCacheKeyValue(Player_1_Deck : CircularQueue, Player_2_Deck :CircularQueue) -> Tuple[Tuple[int,int], Tuple[Tuple[int,...], Tuple[int, ...]]]:
+
+def getCacheKeyValue(
+    Player_1_Deck: CircularQueue, Player_2_Deck: CircularQueue
+) -> Tuple[Tuple[int, int], Tuple[Tuple[int, ...], Tuple[int, ...]]]:
     key = (len(Player_1_Deck), len(Player_2_Deck))
-    value = (tuple(Player_1_Deck.generatorNonConsuming()), tuple(Player_2_Deck.generatorNonConsuming()))
+    value = (
+        tuple(Player_1_Deck.generatorNonConsuming()),
+        tuple(Player_2_Deck.generatorNonConsuming()),
+    )
     return (key, value)
+
 
 recursionCache = {}
 
-def playRecursiveCombatGame(Player_1_Deck : CircularQueue, Player_2_Deck :CircularQueue) -> Tuple[Optional[CircularQueue], Optional[CircularQueue]]:
-    _,start_v = getCacheKeyValue(Player_1_Deck, Player_2_Deck)
+
+def playRecursiveCombatGame(
+    Player_1_Deck: CircularQueue, Player_2_Deck: CircularQueue
+) -> Tuple[Optional[CircularQueue], Optional[CircularQueue]]:
+    _, start_v = getCacheKeyValue(Player_1_Deck, Player_2_Deck)
     if start_v in recursionCache:
         return recursionCache[start_v]
 
@@ -40,7 +51,7 @@ def playRecursiveCombatGame(Player_1_Deck : CircularQueue, Player_2_Deck :Circul
             return toReturn
 
         # checking to see if the state was already visited
-        _,v = getCacheKeyValue(Player_1_Deck, Player_2_Deck)
+        _, v = getCacheKeyValue(Player_1_Deck, Player_2_Deck)
         if v in statesCache:
             toReturn = (Player_1_Deck, None)
             recursionCache[start_v] = toReturn
@@ -57,19 +68,19 @@ def playRecursiveCombatGame(Player_1_Deck : CircularQueue, Player_2_Deck :Circul
             New_P1_Deck = Player_1_Deck.copyN(P1_card)
             New_P2_Deck = Player_2_Deck.copyN(P2_card)
 
-            assert(len(New_P1_Deck) == P1_card)
-            assert(len(New_P2_Deck) == P2_card)
+            assert len(New_P1_Deck) == P1_card
+            assert len(New_P2_Deck) == P2_card
 
             results = playRecursiveCombatGame(New_P1_Deck, New_P2_Deck)
-            assert(len(results) == 2)
+            assert len(results) == 2
 
             if results[0] != None:
-                assert(results[1] == None)
+                assert results[1] == None
                 # player 1 won
                 Player_1_Deck.push(P1_card)
                 Player_1_Deck.push(P2_card)
             elif results[1] != None:
-                assert(results[0] == None)
+                assert results[0] == None
                 # player 2 won
                 Player_2_Deck.push(P2_card)
                 Player_2_Deck.push(P1_card)
@@ -85,11 +96,10 @@ def playRecursiveCombatGame(Player_1_Deck : CircularQueue, Player_2_Deck :Circul
             else:
                 Player_2_Deck.push(P2_card)
                 Player_2_Deck.push(P1_card)
-            
 
 
-def y2020d22(inputPath = None):
-    if(inputPath == None):
+def y2020d22(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d22.txt"
     print("2020 day 22:")
 
@@ -101,11 +111,11 @@ def y2020d22(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     linesIterable = iter(lineList)
 
     k = next(linesIterable)
-    assert("Player" in k)
+    assert "Player" in k
     Player_1_Deck = []
     for row in linesIterable:
         if row == "":
@@ -113,7 +123,7 @@ def y2020d22(inputPath = None):
         Player_1_Deck.append(int(row))
 
     k = next(linesIterable)
-    assert("Player" in k)
+    assert "Player" in k
     Player_2_Deck = []
     for row in linesIterable:
         if row == "":
@@ -148,20 +158,19 @@ def y2020d22(inputPath = None):
     winningDeck = Player_1_Deck if len(Player_1_Deck) > 0 else Player_2_Deck
     losingDeck = Player_2_Deck if winningDeck == Player_1_Deck else Player_1_Deck
 
-    assert(len(winningDeck) == totalCards)
-    assert(len(losingDeck) == 0)
+    assert len(winningDeck) == totalCards
+    assert len(losingDeck) == 0
 
     Part_1_Answer = calculateScore(winningDeck)
 
     results = playRecursiveCombatGame(Player_1_Deck_copy, Player_2_Deck_copy)
 
-    assert(len(results) == 2)
-    assert(None in results)
-    assert((results[0] is not None) or (results[1] is not None))
+    assert len(results) == 2
+    assert None in results
+    assert (results[0] is not None) or (results[1] is not None)
     if results[0] != None:
         Part_2_Answer = calculateScore(results[0])
     else:
         Part_2_Answer = calculateScore(results[1])
-
 
     return (Part_1_Answer, Part_2_Answer)

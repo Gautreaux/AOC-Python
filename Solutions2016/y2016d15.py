@@ -2,10 +2,11 @@
 
 from math import lcm
 
+
 def doReduction(diskList):
     if len(diskList) <= 1:
         return diskList[0]
-        
+
     i = iter(diskList)
 
     combineDisk = next(i)
@@ -43,9 +44,8 @@ def doReduction(diskList):
         print(f"{(sz0, off0)} and {(sz1, off1)} --> {combineDisk}")
 
 
-
-def y2016d15(inputPath = None):
-    if(inputPath == None):
+def y2016d15(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d15.txt"
     print("2016 day 15:")
 
@@ -57,11 +57,11 @@ def y2016d15(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     diskList = []
     for line in lineList:
         l = line.split(" ")
-        
+
         diskId = int(l[1][1:])
 
         nPos = int(l[3])
@@ -76,6 +76,5 @@ def y2016d15(inputPath = None):
     print(" ")
     superDisk = doReduction([superDisk, (11, len(diskList) + 1)])
     Part_2_Answer = superDisk[0] - superDisk[1]
-
 
     return (Part_1_Answer, Part_2_Answer)

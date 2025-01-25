@@ -1,4 +1,3 @@
-
 from typing import Optional
 
 from .IntcodeLib import IntcodeSolutionBase
@@ -21,7 +20,7 @@ class Solution_2019_09(IntcodeSolutionBase):
             for o in outputs:
                 print(o)
             raise RuntimeError
-        
+
         return outputs[0]
 
     def _part_2_hook(self) -> Optional[Answer_T]:
@@ -32,5 +31,5 @@ class Solution_2019_09(IntcodeSolutionBase):
         if len(outputs) != 1:
             print(outputs)
             raise RuntimeError
-        
+
         return outputs[0]

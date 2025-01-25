@@ -1,0 +1,10 @@
+[MAIN]
+
+# From the pylint docs:
+# > In practice, it is often better to create a minimal configuration file
+# >   which only contains configuration overrides. 
+# > For all other options, Pylint will use its default values.
+
+# Disable similarity checker
+# C0103: Class name "Solution_XXXX_YY" doesn't conform to PascalCase naming style (invalid-name)
+disable=similarities, C0103

@@ -6,6 +6,7 @@ from typing import Generator
 
 Claim_T = namedtuple("Claim_T", "claim_id up_left width height")
 
+
 def generateClaimedSquares(claim: Claim_T) -> Generator[tuple[int, int], None, None]:
     """Generate all the points inside the claim"""
     for y_offset in range(claim.height):
@@ -16,8 +17,8 @@ def generateClaimedSquares(claim: Claim_T) -> Generator[tuple[int, int], None, N
             )
 
 
-def y2018d3(inputPath = None):
-    if(inputPath == None):
+def y2018d3(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d3.txt"
     print("2018 day 3:")
 
@@ -29,19 +30,21 @@ def y2018d3(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     claims = []
 
     for line in lineList:
         clam_id, _, ul, hw = line.split(" ")
-        
+
         clam_id = int(clam_id[1:])
         ul = tuple(map(int, ul[:-1].split(",")))
         hw = tuple(map(int, hw.split("x")))
 
         claims.append(Claim_T(clam_id, ul, hw[0], hw[1]))
 
-    all_claimed_squares_generator = itertools.chain.from_iterable(map(generateClaimedSquares, claims))
+    all_claimed_squares_generator = itertools.chain.from_iterable(
+        map(generateClaimedSquares, claims)
+    )
 
     claims_count = Counter(all_claimed_squares_generator)
 
@@ -53,13 +56,13 @@ def y2018d3(inputPath = None):
             if claims_count[p] >= 2:
                 has_overlapping = True
                 break
-        
+
         if has_overlapping:
             continue
         else:
             # check that there is exactly one answer
-            assert(Part_2_Answer == None)
+            assert Part_2_Answer == None
             Part_2_Answer = c.claim_id
-            # continue     
+            # continue
 
     return (Part_1_Answer, Part_2_Answer)

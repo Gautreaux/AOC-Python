@@ -12,9 +12,9 @@ Loadout_T = tuple[Item_T, Item_T, Item_T, Item_T]
 
 @unique
 class ItemType(IntEnum):
-    WEAPON = 1,
-    ARMOR = 2,
-    RING = 4,
+    WEAPON = (1,)
+    ARMOR = (2,)
+    RING = (4,)
 
 
 ITEM_SHOP = [
@@ -40,7 +40,9 @@ ITEM_SHOP = [
 ]
 
 
-def LoadoutGenerator(max_money: Optional[int] = None) -> Generator[Loadout_T, None, None]:
+def LoadoutGenerator(
+    max_money: Optional[int] = None,
+) -> Generator[Loadout_T, None, None]:
     """Generate all possible loadouts from the shop given the money we have"""
 
     a_list = [f for f in ITEM_SHOP if f.type == ItemType.ARMOR]
@@ -63,11 +65,11 @@ def LoadoutGenerator(max_money: Optional[int] = None) -> Generator[Loadout_T, No
 # The algorithms do battle
 #   thats a really funny joke for the few people who get it
 def doesPlayerWinBattle(loadout: Loadout_T, boss_stats: tuple[int, int, int]) -> 0:
-    
+
     player_health = 100
     player_damage = sum(map(lambda x: x.damage, loadout))
     player_armor = sum(map(lambda x: x.armor, loadout))
-    
+
     boss_health, boss_damage, boss_armor = boss_stats
 
     for i in itertools.count(start=1):
@@ -75,15 +77,15 @@ def doesPlayerWinBattle(loadout: Loadout_T, boss_stats: tuple[int, int, int]) ->
         boss_health -= max(player_damage - boss_armor, 1)
         if boss_health <= 0:
             return True
-        
-        #boss goes
+
+        # boss goes
         player_health -= max(boss_damage - player_armor, 1)
         if player_health <= 0:
             return False
 
 
-def y2015d21(inputPath = None):
-    if(inputPath == None):
+def y2015d21(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d21.txt"
     print("2015 day 21:")
 
@@ -95,14 +97,21 @@ def y2015d21(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     boss_stats = tuple(map(lambda x: int(x.split(" ")[-1]), lineList))
 
     all_loadouts = LoadoutGenerator()
 
-    battles = map(lambda x: (x, doesPlayerWinBattle(x, boss_stats), sum(map(lambda i: i.cost, x))), all_loadouts)
+    battles = map(
+        lambda x: (
+            x,
+            doesPlayerWinBattle(x, boss_stats),
+            sum(map(lambda i: i.cost, x)),
+        ),
+        all_loadouts,
+    )
 
-    a,b = itertools.tee(battles)
+    a, b = itertools.tee(battles)
 
     winning_battles = filter(lambda x: x[1], a)
     losing_battles = filter(lambda x: (not x[1]), b)

@@ -1,4 +1,3 @@
-
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, unique
@@ -15,15 +14,13 @@ from AOC_Lib.Geometry.Point import DiscretePoint2
 
 @dataclass
 class Monkey:
-    
+
     monkey_id: int
     items: list[int] = field(default_factory=list)
-    operation: Callable[[int], int] = lambda x:x
+    operation: Callable[[int], int] = lambda x: x
     divisor: int = 0
-    on_true: Optional['Monkey'] = None
-    on_false: Optional['Monkey'] = None
-
-
+    on_true: Optional["Monkey"] = None
+    on_false: Optional["Monkey"] = None
 
     _number_inspections: int = 0
 
@@ -69,7 +66,7 @@ class Solution_2022_11(SolutionBase):
             m = Monkey(mk_id)
             self._monkeys[mk_id] = m
             return m
-            
+
     def _iter_monkeys(self) -> Iterator[Monkey]:
         """Iterate the monkeys in increasing id order"""
         ids = list(self._monkeys.keys())
@@ -93,44 +90,43 @@ class Solution_2022_11(SolutionBase):
 
             monkey = self._ensure_monkey(mk_id)
 
-            monkey.items.extend(map(
-                int,
-                this_lines[1].replace(',', "").split(' ')[2:]
-            ))
+            monkey.items.extend(map(int, this_lines[1].replace(",", "").split(" ")[2:]))
 
             s = this_lines[2].split(" ")
-            assert s[1] == 'new'
-            assert s[2] == '='
-            assert s[3] == 'old'
+            assert s[1] == "new"
+            assert s[2] == "="
+            assert s[3] == "old"
             operator = s[-2]
             operand = s[-1]
 
-            if operator == '*':
+            if operator == "*":
                 op = mul
-            elif operator == '+':
+            elif operator == "+":
                 op = add
             else:
                 raise NotImplementedError(operator)
 
-            if operand == 'old':
-                monkey.operation = (lambda op_:(lambda x: op_(x, x)))(op)
+            if operand == "old":
+                monkey.operation = (lambda op_: (lambda x: op_(x, x)))(op)
             else:
                 operand_int = int(operand)
-                monkey.operation = (lambda op_, oi:(lambda x: op_(x, oi)))(op, operand_int)
+                monkey.operation = (lambda op_, oi: (lambda x: op_(x, oi)))(
+                    op, operand_int
+                )
 
             s = this_lines[3].split(" ")
-            assert s[1] == 'divisible'
-            assert s[2] == 'by'
+            assert s[1] == "divisible"
+            assert s[2] == "by"
             operand_int = int(s[3])
             monkey.divisor = operand_int
 
             s = this_lines[4].split(" ")
-            assert s[1] == 'true:'
+            assert s[1] == "true:"
             monkey.on_true = self._ensure_monkey(int(s[-1]))
             s = this_lines[5].split(" ")
-            assert s[1] == 'false:'
+            assert s[1] == "false:"
             monkey.on_false = self._ensure_monkey(int(s[-1]))
-        
+
         for m in self._monkeys.values():
             assert m.on_false is not None
             assert m.on_true is not None
@@ -144,32 +140,36 @@ class Solution_2022_11(SolutionBase):
         """Called once and return value is taken as `part_1_answer`"""
 
         self._parse_monkeys()
-        worry_modifier = lambda x: x//3
+
+        def worry_modifier(x):
+            return x // 3
 
         for _ in range(20):
             self._run_round(worry_modifier)
 
-        return max(map(
-            lambda t: t[0]._number_inspections * t[1]._number_inspections, 
-            itertools.combinations(self._iter_monkeys(), 2),
-        ))
+        return max(
+            map(
+                lambda t: t[0]._number_inspections * t[1]._number_inspections,
+                itertools.combinations(self._iter_monkeys(), 2),
+            )
+        )
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
         self._parse_monkeys()
         lcm_ = lcm(*map(lambda x: x.divisor, self._iter_monkeys()))
-        worry_modifier = lambda x: x % lcm_
+
+        def worry_modifier(x):
+            return x % lcm_
 
         for i in range(10000):
             if i % 500 == 0:
                 print("I =", i)
             self._run_round(worry_modifier)
 
-        return max(map(
-            lambda t: t[0]._number_inspections * t[1]._number_inspections, 
-            itertools.combinations(self._iter_monkeys(), 2),
-        ))
-
-
-
-
+        return max(
+            map(
+                lambda t: t[0]._number_inspections * t[1]._number_inspections,
+                itertools.combinations(self._iter_monkeys(), 2),
+            )
+        )

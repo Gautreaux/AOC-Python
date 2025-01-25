@@ -1,4 +1,3 @@
-
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Optional
@@ -12,10 +11,10 @@ class Planet:
     """A Planet"""
 
     name: str
-    
-    orbiting: Optional['Planet'] = None
 
-    moons: set['Planet'] = field(default_factory=set)
+    orbiting: Optional["Planet"] = None
+
+    moons: set["Planet"] = field(default_factory=set)
 
     _depth: int = field(default=-1, init=False, compare=False, hash=False)
 
@@ -25,7 +24,7 @@ class Planet:
         if self.orbiting is None:
             return 0
         if self._depth == -1:
-            self._depth = self.orbiting.depth + 1 
+            self._depth = self.orbiting.depth + 1
         return self._depth
 
     def __hash__(self) -> int:
@@ -45,11 +44,11 @@ class Solution_2019_06(SolutionBase):
 
     def __post_init__(self):
         """Runs Once After `__init__`"""
-        
+
         self.planets: dict[str, Planet] = {}
 
         for r in self.input_str_list():
-            base, _, moon = r.partition(')')  
+            base, _, moon = r.partition(")")
 
             base_planet = self._get_planet(base)
             moon_planet = self._get_planet(moon)
@@ -60,24 +59,25 @@ class Solution_2019_06(SolutionBase):
             else:
                 moon_planet.orbiting = base_planet
 
-        self.planets['COM']._depth = 0
-
+        self.planets["COM"]._depth = 0
 
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""
-        return sum(map(
-            lambda p: p.depth,
-            self.planets.values(),
-        ))
+        return sum(
+            map(
+                lambda p: p.depth,
+                self.planets.values(),
+            )
+        )
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
-        target = self.planets['SAN'].orbiting
+        target = self.planets["SAN"].orbiting
         assert target != None
 
         visited = set()
         frontier: deque[tuple[Planet, int]] = deque()
-        frontier.append((self.planets['YOU'], 0))
+        frontier.append((self.planets["YOU"], 0))
 
         while frontier:
             (new_p, new_d) = frontier.popleft()
@@ -89,7 +89,7 @@ class Solution_2019_06(SolutionBase):
 
             if new_p.orbiting is not None and new_p.orbiting.name not in visited:
                 frontier.append((new_p.orbiting, new_d + 1))
-            
+
             for m in new_p.moons:
                 if m.name not in visited:
                     frontier.append((m, new_d + 1))

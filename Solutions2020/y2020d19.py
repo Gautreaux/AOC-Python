@@ -2,14 +2,18 @@
 
 from typing import List, Optional, Union
 
+
 def matchRuleAllGenerator(message, startingInd, ruleNum, ruleSet):
     "Generates all possible next starting positions that are reachable from this rule"
     for r in ruleSet[ruleNum]:
         for s in applyRuleCaseGenerator(message, startingInd, r, ruleSet):
             yield s
 
+
 # rewriting as generators for part two
-def applyRuleCaseGenerator(message : str, startingInd : int, rule, ruleSet):
+
+
+def applyRuleCaseGenerator(message: str, startingInd: int, rule, ruleSet):
     "Generates all possible next starting positions that are reachable from this particular case"
     if type(rule[0]) == int:
         # input is a list of possible sub rules
@@ -31,8 +35,8 @@ def applyRuleCaseGenerator(message : str, startingInd : int, rule, ruleSet):
             raise NotImplementedError()
     else:
         # single char
-        assert(len(rule) == 1)
-        assert(type(rule[0]) == str)
+        assert len(rule) == 1
+        assert type(rule[0]) == str
         if startingInd >= len(message):
             return
         if message[startingInd] == rule[0]:
@@ -40,8 +44,9 @@ def applyRuleCaseGenerator(message : str, startingInd : int, rule, ruleSet):
         else:
             return
 
-def y2020d19(inputPath = None):
-    if(inputPath == None):
+
+def y2020d19(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d19.txt"
     print("2020 day 19:")
 
@@ -63,6 +68,7 @@ def y2020d19(inputPath = None):
     def lineGen():
         for l in lineList:
             yield l
+
     ll = lineGen()
 
     for l in ll:
@@ -73,19 +79,19 @@ def y2020d19(inputPath = None):
         messages.append(l)
 
     # parse rules
-    ruleDict= {}
+    ruleDict = {}
     for r in rules:
-        s = r.split(" ",1)
-        assert(s[0][-1] == ':')
+        s = r.split(" ", 1)
+        assert s[0][-1] == ":"
         num = int(s[0][:-1])
 
         # parse multiple rules
-        ss = s[1].replace("\"", "").split(" ")
+        ss = s[1].replace('"', "").split(" ")
         thisRules = []
         partialRule = []
         for e in ss:
-            if e == '|':
-                assert(partialRule != [])
+            if e == "|":
+                assert partialRule != []
                 thisRules.append(partialRule)
                 partialRule = []
             else:
@@ -95,7 +101,7 @@ def y2020d19(inputPath = None):
                     partialRule.append(i)
                 except ValueError:
                     # character literal
-                    assert(partialRule == [])
+                    assert partialRule == []
                     thisRules.append([e])
         if partialRule != []:
             thisRules.append(partialRule)
@@ -133,6 +139,7 @@ def y2020d19(inputPath = None):
     Part_2_Answer = total
 
     return (Part_1_Answer, Part_2_Answer)
+
 
 ######################
 # Legacy Part 1 Implementation Follows

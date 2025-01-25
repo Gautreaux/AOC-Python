@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2021d7(inputPath = None):
-    if(inputPath == None):
+
+def y2021d7(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d7.txt"
     print("2021 day 7:")
 
@@ -13,7 +14,7 @@ def y2021d7(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     positions = list(map(int, lineList[0].split(",")))
 
     mi = min(positions)
@@ -34,10 +35,10 @@ def y2021d7(inputPath = None):
         total = 0
         total_2 = 0
         for p in positions:
-            a = abs(i-p)
+            a = abs(i - p)
             total += a
             total_2 += steps_lookup[a]
-        
+
         if i == 0:
             best_cost = total
             best_cost_2 = total_2

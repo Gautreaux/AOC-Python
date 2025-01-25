@@ -2,8 +2,9 @@
 
 from collections import Counter, defaultdict
 
-def y2021d6(inputPath = None):
-    if(inputPath == None):
+
+def y2021d6(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d6.txt"
     print("2021 day 6:")
 
@@ -15,7 +16,7 @@ def y2021d6(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     lifetime = Counter(map(int, lineList[0].split(",")))
     # lifetime = Counter(map(int, "3,4,3,1,2".split(",")))
 
@@ -27,7 +28,7 @@ def y2021d6(inputPath = None):
                 next_state[8] += number
                 next_state[6] += number
             else:
-                next_state[lf-1] += number
+                next_state[lf - 1] += number
 
         lifetime = next_state
 

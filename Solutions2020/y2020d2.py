@@ -5,8 +5,10 @@ import re
 SEARCH_STR = "([0-9]*)-([0-9]*) ([a-z]): ([a-z]*)"
 
 # sample variant for reading data from an input file, line by line
-def y2020d2(inputPath = None):
-    if(inputPath == None):
+
+
+def y2020d2(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d2.txt"
     print("2020 day 2:")
 
@@ -18,7 +20,7 @@ def y2020d2(inputPath = None):
             line = line.strip()
             x = re.search(SEARCH_STR, line)
 
-            assert(x != None)
+            assert x != None
 
             minC = int(x.group(1))
             maxC = int(x.group(2))
@@ -34,6 +36,6 @@ def y2020d2(inputPath = None):
             if (word[minC - 1] == char) ^ (word[maxC - 1] == char):
                 Part_2_Answer += 1
 
-                #NOT - 149
-        
+                # NOT - 149
+
     return (Part_1_Answer, Part_2_Answer)

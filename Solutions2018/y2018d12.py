@@ -4,16 +4,17 @@ import itertools
 
 from AOC_Lib.SlidingWindow import sliding_window
 
+
 def advance(state: str, offset: int, plant_map: dict[str, str]) -> tuple[str, int]:
     """Advance one generation based on plant_map and return the new state and offset"""
-    assert(set(state) == set("#."))
+    assert set(state) == set("#.")
     o = []
     # only need to pad so that 4 empties on either side
     for i in sliding_window(itertools.chain("....", state, "...."), 5):
         i = "".join(i)
         if i not in plant_map:
             print(i)
-        assert(i in plant_map)
+        assert i in plant_map
         o.append(plant_map[i])
 
     # pop empties off of o
@@ -25,12 +26,12 @@ def advance(state: str, offset: int, plant_map: dict[str, str]) -> tuple[str, in
 
     # pop off the front
     # s = sum(1 for _ in itertools.takewhile(lambda x: x == '.', o))
-    k = "".join(itertools.dropwhile(lambda x: x == '.', o))
+    k = "".join(itertools.dropwhile(lambda x: x == ".", o))
     num_dropped = len(o) - len(k)
-    return (k, offset-2+num_dropped)
+    return (k, offset - 2 + num_dropped)
 
 
-def getScoreForState(state, offset:int = 0) -> int:
+def getScoreForState(state, offset: int = 0) -> int:
     """Return the score for a given state"""
     e = zip(itertools.count(offset), state)
     f = filter(lambda x: x[1] == "#", e)
@@ -40,14 +41,14 @@ def getScoreForState(state, offset:int = 0) -> int:
 def getScoreForDay_explicit(
     initial_state,
     plant_map,
-    target_day:int,
-    initial_offset:int=0,
+    target_day: int,
+    initial_offset: int = 0,
 ) -> int:
     """Simulate each day for some number days and then get the score"""
 
     state = initial_state
     offset = initial_offset
-    assert(target_day > 0)
+    assert target_day > 0
     for _ in range(target_day):
         state, offset = advance(state, offset, plant_map)
     return getScoreForState(state, offset)
@@ -72,7 +73,7 @@ def getScoreForDay_fast(
     first_loop_offset = None
 
     for i in range(1, 5000):
-        state,offset = advance(state, offset, plant_map)
+        state, offset = advance(state, offset, plant_map)
         if i == target_day:
             return getScoreForState(state, offset)
         elif state in h_cache:
@@ -81,7 +82,7 @@ def getScoreForDay_fast(
             first_loop_offset = offset
             break
         else:
-            h_cache[state] = (i,offset)
+            h_cache[state] = (i, offset)
 
     if first_loop_index is None:
         raise RuntimeError(f"Could not find a looping state in first 5000 states")
@@ -96,7 +97,9 @@ def getScoreForDay_fast(
     num_steps = target_day - base_loop_index
 
     if num_steps % loop_size != 0:
-        raise NotImplementedError(f"Loop size ({loop_size}) does not evenly divide days ({num_steps})")
+        raise NotImplementedError(
+            f"Loop size ({loop_size}) does not evenly divide days ({num_steps})"
+        )
 
     num_loops = num_steps // loop_size
 
@@ -105,8 +108,8 @@ def getScoreForDay_fast(
     return getScoreForState(state, new_offset)
 
 
-def y2018d12(inputPath = None):
-    if(inputPath == None):
+def y2018d12(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d12.txt"
     print("2018 day 12:")
 
@@ -131,9 +134,9 @@ def y2018d12(inputPath = None):
     for line in itr:
         if not line:
             continue
-        a,_,b = line.partition(" => ")
-        assert(b in ["#", "."])
-        assert(len(a) == 5)
+        a, _, b = line.partition(" => ")
+        assert b in ["#", "."]
+        assert len(a) == 5
         plant_map[a] = b
 
     Part_1_Answer = getScoreForDay_explicit(start_state, plant_map, 20)
@@ -146,7 +149,7 @@ def y2018d12(inputPath = None):
     #     if a != b:
     #         print(f"Expected: {a}, got {b}")
     #     assert(a == b)
-    
+
     target = 50000000000
     Part_2_Answer = getScoreForDay_fast(start_state, plant_map, target)
 

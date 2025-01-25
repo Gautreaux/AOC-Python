@@ -6,7 +6,7 @@ from .IntcodeLib import *
 from AOC_Lib.SolutionBase import Answer_T
 
 
-def buildLinkedRunners(prog: IntcodeProgram, qty:int) -> list[IntcodeRunner]:
+def buildLinkedRunners(prog: IntcodeProgram, qty: int) -> list[IntcodeRunner]:
     """Return a list of runners where the output of one runner is linked to the input of the next"""
     runners: list[IntcodeRunner] = []
 
@@ -25,14 +25,13 @@ def buildLinkedRunners(prog: IntcodeProgram, qty:int) -> list[IntcodeRunner]:
 class Solution_2019_07(IntcodeSolutionBase):
     """https://adventofcode.com/2019/day/7"""
 
-
     def _test_one_config(self, config: tuple[int, ...]) -> int:
         """Test one config and return amount of thrust"""
 
         runners = buildLinkedRunners(self.program, len(config))
-            
+
         # push starting values
-        for r,c in zip(runners, config):
+        for r, c in zip(runners, config):
             r._input_q.put_nowait(c)
 
         # push the second input for the first item
@@ -41,7 +40,7 @@ class Solution_2019_07(IntcodeSolutionBase):
         fut = asyncio.gather(*map(lambda x: x.run(), runners))
 
         asyncio.get_event_loop().run_until_complete(fut)
-            
+
         return runners[-1].getOutputQ().get_nowait()
 
     def _test_once_config_pt2(self, config: tuple[int, ...]) -> int:
@@ -50,7 +49,7 @@ class Solution_2019_07(IntcodeSolutionBase):
         runners = buildLinkedRunners(self.program, len(config))
 
         # push starting values
-        for r,c in zip(runners, config):
+        for r, c in zip(runners, config):
             r._input_q.put_nowait(c)
 
         # create the tee
@@ -76,7 +75,7 @@ class Solution_2019_07(IntcodeSolutionBase):
             v = q.get_nowait()
 
         if v is None:
-            raise RuntimeError('No Output was produced')
+            raise RuntimeError("No Output was produced")
 
         for t in tasks:
             t.cancel()
@@ -88,24 +87,30 @@ class Solution_2019_07(IntcodeSolutionBase):
 
         NUM_AMPS = 5
 
-        return max(map(
-            lambda x: self._test_one_config(x),
-            itertools.permutations(range(NUM_AMPS), NUM_AMPS),
-        ))
+        return max(
+            map(
+                lambda x: self._test_one_config(x),
+                itertools.permutations(range(NUM_AMPS), NUM_AMPS),
+            )
+        )
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
 
         NUM_AMPS = 5
 
-        print("{} Doing part 2. This will be slow".format(
-            self.__class__.__name__,
-        ))
-
-        return max(map(
-            lambda x: self._test_once_config_pt2(x),
-            itertools.permutations(
-                map(lambda x: x+5, range(NUM_AMPS)),
-                NUM_AMPS,
+        print(
+            "{} Doing part 2. This will be slow".format(
+                self.__class__.__name__,
             )
-        ))
+        )
+
+        return max(
+            map(
+                lambda x: self._test_once_config_pt2(x),
+                itertools.permutations(
+                    map(lambda x: x + 5, range(NUM_AMPS)),
+                    NUM_AMPS,
+                ),
+            )
+        )

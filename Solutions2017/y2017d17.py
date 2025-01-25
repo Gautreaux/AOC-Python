@@ -2,8 +2,9 @@
 
 from AOC_Lib.DLLNode import DLLNode
 
-def y2017d17(inputPath = None):
-    if(inputPath == None):
+
+def y2017d17(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d17.txt"
     print("2017 day 17:")
 
@@ -15,10 +16,10 @@ def y2017d17(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     stepCount = int(lineList[-1])
-    
-    myPos = DLLNode(None, None, None) # create the empty list
+
+    myPos = DLLNode(None, None, None)  # create the empty list
 
     i = 1
     while True:
@@ -34,13 +35,13 @@ def y2017d17(inputPath = None):
     # part2
     index = 0
     valueIn1 = None
-    for i in range(1, 50000000+1):
+    for i in range(1, 50000000 + 1):
         newIndex = (index + stepCount) % i
         # print(newIndex)
         if newIndex == 0:
             valueIn1 = i
             # print(valueIn1)
-        index = (newIndex + 1)
+        index = newIndex + 1
     Part_2_Answer = valueIn1
 
     return (Part_1_Answer, Part_2_Answer)

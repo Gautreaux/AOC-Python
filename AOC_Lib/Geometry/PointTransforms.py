@@ -1,4 +1,3 @@
-
 from enum import Enum, unique
 from typing import Literal, Union
 
@@ -6,12 +5,16 @@ from typing import Literal, Union
 from .Point import DiscretePoint2
 
 
-CarrotDirections_T = Union[Literal['>'], Literal['<'], Literal['v'], Literal['^']]
+CarrotDirections_T = Union[Literal[">"], Literal["<"], Literal["v"], Literal["^"]]
 LetterDirections_T = Union[
-    Literal['u'], Literal['U'],
-    Literal['d'], Literal['D'],
-    Literal['r'], Literal['R'],
-    Literal['l'], Literal['L'],
+    Literal["u"],
+    Literal["U"],
+    Literal["d"],
+    Literal["D"],
+    Literal["r"],
+    Literal["R"],
+    Literal["l"],
+    Literal["L"],
 ]
 DirectionsCharset_T = Union[CarrotDirections_T, LetterDirections_T]
 
@@ -38,15 +41,15 @@ class Direction2(Enum):
         raise NotImplementedError(self)
 
     @classmethod
-    def from_str(cls, direction: DirectionsCharset_T) -> 'Direction2':
+    def from_str(cls, direction: DirectionsCharset_T) -> "Direction2":
         """Get a direction from a string"""
-        if direction in 'rR>':
+        if direction in "rR>":
             return cls.RIGHT
-        elif direction in 'uU^':
+        elif direction in "uU^":
             return cls.UP
-        elif direction in 'lL<':
+        elif direction in "lL<":
             return cls.LEFT
-        elif direction in 'dDv':
+        elif direction in "dDv":
             return cls.DOWN
         raise ValueError(direction)
 

@@ -2,11 +2,12 @@
 
 from collections import deque
 
-class Stack():
+
+class Stack:
     def __init__(self, iterable) -> None:
         self.items = list(iterable)
         self.index = 0
-    
+
     def peek(self):
         return self.items[self.index]
 
@@ -17,11 +18,13 @@ class Stack():
         k = self.peek()
         self.index += 1
         return k
-    
+
     def __len__(self):
         return len(self.items) - self.index
 
+
 operators = ["*", "+"]
+
 
 def resolveToken(stack, exprResolver):
     e = stack.pop()
@@ -31,9 +34,9 @@ def resolveToken(stack, exprResolver):
         return int(e)
     except ValueError:
         pass
-    
+
     # need to resolve parens
-    assert(e == "(" ) # ) <- for formatter to behave
+    assert e == "("  # ) <- for formatter to behave
     pCount = 1
     partial = ""
     while pCount > 0:
@@ -43,25 +46,27 @@ def resolveToken(stack, exprResolver):
             if pCount > 0:
                 partial += k + " "
         else:
-            if k == "(": # ) <- for formatter
+            if k == "(":  # ) <- for formatter
                 pCount += 1
             partial += k + " "
     return exprResolver(partial.strip())
 
+
 def evaluateExpression(expr) -> int:
     stack = Stack(expr.split(" "))
-    
+
     partialSum = resolveToken(stack, evaluateExpression)
     while len(stack) > 0:
         operator = resolveToken(stack, evaluateExpression)
         rhs = resolveToken(stack, evaluateExpression)
 
-        assert(operator in operators)
-        if operator == '+':
+        assert operator in operators
+        if operator == "+":
             partialSum += rhs
-        elif operator == '*':
+        elif operator == "*":
             partialSum *= rhs
     return partialSum
+
 
 def initialFormatter(expr) -> str:
     return expr.replace("(", "( ").replace(")", " )")
@@ -74,11 +79,12 @@ def part2EvaluteExpression(expr):
     partialSum = resolveToken(stack, part2EvaluteExpression)
     while len(stack) > 0:
         operator = resolveToken(stack, part2EvaluteExpression)
-        if operator == '+':
+        if operator == "+":
             partialSum += resolveAddRHS(stack)
-        elif operator == '*':
+        elif operator == "*":
             partialSum *= resolveMultRHS(stack)
     return partialSum
+
 
 def resolveMultRHS(stack):
     e = resolveToken(stack, part2EvaluteExpression)
@@ -88,18 +94,18 @@ def resolveMultRHS(stack):
         op = stack.peek()
         if op == "*":
             return e
-        assert(op == '+')
-        stack.pop() 
+        assert op == "+"
+        stack.pop()
         e += resolveToken(stack, part2EvaluteExpression)
     return e
+
 
 def resolveAddRHS(stack):
     return resolveToken(stack, part2EvaluteExpression)
 
 
-    
-def y2020d18(inputPath = None):
-    if(inputPath == None):
+def y2020d18(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d18.txt"
     print("2020 day 18:")
 
@@ -113,8 +119,12 @@ def y2020d18(inputPath = None):
             lineList.append(line)
 
     # for multi line inputs
-    
-    Part_1_Answer = sum(map(lambda x: evaluateExpression(initialFormatter(x)), lineList))
-    Part_2_Answer = sum(map(lambda x: part2EvaluteExpression(initialFormatter(x)), lineList))
+
+    Part_1_Answer = sum(
+        map(lambda x: evaluateExpression(initialFormatter(x)), lineList)
+    )
+    Part_2_Answer = sum(
+        map(lambda x: part2EvaluteExpression(initialFormatter(x)), lineList)
+    )
 
     return (Part_1_Answer, Part_2_Answer)

@@ -4,6 +4,7 @@ from enum import Enum, unique
 
 from AOC_Lib.DLList import DLList
 
+
 @unique
 class OpType(Enum):
     SWAP_POS = 8
@@ -15,15 +16,21 @@ class OpType(Enum):
 
 
 class PasswordScrambler:
-    
+
     def __init__(self, start_password: str = "abcdefgh") -> None:
         self._list: DLList = DLList()
         for chr in start_password:
             self._list.addDLListNode(chr)
 
-        self._chr_to_node: dict[str, DLList.DLListNode] = {k.value:k for k in self._list.IterOnceCycle()}
-        self._fixed_pos_to_node: list[DLList.DLListNode] = list(self._list.IterOnceCycle())
-        self._node_to_fixed_pos: dict[DLList.DLListNode, int] = {k:v for v,k in enumerate(self._fixed_pos_to_node)}
+        self._chr_to_node: dict[str, DLList.DLListNode] = {
+            k.value: k for k in self._list.IterOnceCycle()
+        }
+        self._fixed_pos_to_node: list[DLList.DLListNode] = list(
+            self._list.IterOnceCycle()
+        )
+        self._node_to_fixed_pos: dict[DLList.DLListNode, int] = {
+            k: v for v, k in enumerate(self._fixed_pos_to_node)
+        }
 
     def __len__(self) -> int:
         return len(self._list)
@@ -71,11 +78,11 @@ class PasswordScrambler:
     def rotateRightSteps(self, steps: int) -> None:
         """Rotate right by some amount of steps"""
         self._list.Rotate(-steps)
-    
+
     def rotatePositions(self, chr_a: str) -> None:
         """Rotate based on position"""
         i = self._getPosForLetter(chr_a)
-        self.rotateRightSteps(i*2 + (1 if i < 4 else 2))
+        self.rotateRightSteps(i * 2 + (1 if i < 4 else 2))
 
     def reversePositions(self, pos_a: int, pos_b: int) -> None:
         """Reverse based on position"""
@@ -85,8 +92,9 @@ class PasswordScrambler:
         """Move based on position"""
         raise NotImplementedError()
 
-def y2016d21(inputPath = None):
-    if(inputPath == None):
+
+def y2016d21(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d21.txt"
     print("2016 day 21:")
 
@@ -98,7 +106,7 @@ def y2016d21(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     # for single line inputs
     for c in lineList[-1]:
         pass

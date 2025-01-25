@@ -3,8 +3,8 @@
 from types import BuiltinFunctionType
 
 
-def y2020d15(inputPath = None):
-    if(inputPath == None):
+def y2020d15(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d15.txt"
     print("2020 day 15:")
 
@@ -16,8 +16,8 @@ def y2020d15(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
-    inputList = list(map(int, lineList[-1].split(',')))
+
+    inputList = list(map(int, lineList[-1].split(",")))
 
     print(inputList)
 
@@ -25,8 +25,8 @@ def y2020d15(inputPath = None):
     lastNum = None
     isFirstTime = False
 
-    turnCtr = 1   
-    
+    turnCtr = 1
+
     # testing a theory about cyclic nature
     # zeroIndexes = []
 
@@ -44,7 +44,7 @@ def y2020d15(inputPath = None):
 
     def numDiff(number) -> int:
         i = spokenCache[number]
-        return (i[0] - i[1])
+        return i[0] - i[1]
 
     for startNum in inputList:
         isFirstTime, lastNum = speakNumber(startNum, turnCtr)
@@ -61,8 +61,6 @@ def y2020d15(inputPath = None):
 
     Part_1_Answer = lastNum
 
-
-
     while turnCtr <= 30000000:
         if isFirstTime:
             isFirstTime, lastNum = speakNumber(0, turnCtr)
@@ -77,6 +75,5 @@ def y2020d15(inputPath = None):
     Part_2_Answer = lastNum
 
     # print(zeroIndexes)
-
 
     return (Part_1_Answer, Part_2_Answer)

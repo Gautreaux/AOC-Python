@@ -1,12 +1,14 @@
-
-
 from collections import deque
 from typing import Any, Generator, Iterator, Iterable
 
 import logging
 
-def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
-    head_done_callback, tail_done_callback,
+
+def _PartitionIteratorHelper(
+    iterator: Iterator[Any],
+    seq: Iterable[Any],
+    head_done_callback,
+    tail_done_callback,
 ) -> Generator[Any, bool, None]:
     """All the logic for partition iterator"""
 
@@ -16,13 +18,13 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
     window = deque(maxlen=len(seq_as_tuple))
     pending_head = deque()
     to_yield = None
-    
+
     try:
         # fill the window
         while len(window) < len(seq_as_tuple):
             n = next(iterator)
             window.append(n)
-        
+
         if tuple(window) == seq_as_tuple:
             window = None
     except StopIteration:
@@ -34,12 +36,14 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
     logging.debug(f"Starting window is: {window}")
 
     while True:
-        logging.debug(f"About to yield {to_yield}, window is {window}, pending head is {pending_head}")
+        logging.debug(
+            f"About to yield {to_yield}, window is {window}, pending head is {pending_head}"
+        )
         is_head = yield to_yield
-        logging.debug(f'got is_head = {is_head}')
+        logging.debug(f"got is_head = {is_head}")
 
         # The end conditions need to be checked after each next() call
-        while True:            
+        while True:
             # see if we can short circuit on head
             if is_head and len(pending_head) > 0:
                 to_yield = pending_head.popleft()
@@ -67,7 +71,7 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
                         to_yield = None
                         break
                 # should be unreachable
-                assert(False)
+                assert False
 
             # try to get a new value
             try:
@@ -76,7 +80,7 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
                 if is_head:
                     # the window never matched
                     #   so convert it to be head
-                    assert(len(pending_head) == 0)
+                    assert len(pending_head) == 0
                     pending_head = window
                     window = None
                     continue
@@ -87,8 +91,8 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
                     to_yield = None
                     break
                 # should be unreachable
-                assert(False)
-            
+                assert False
+
             # there was a new valid value for n:
             #   update the window
             h = window.popleft()
@@ -97,7 +101,7 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
             logging.debug(f"Pulled `{h}` from the iterator [{is_head}]")
 
             # check if the window now matches
-            if (tuple(window) == seq_as_tuple):
+            if tuple(window) == seq_as_tuple:
                 logging.debug(f"Window now matches")
                 window = None
 
@@ -113,15 +117,17 @@ def _PartitionIteratorHelper(iterator: Iterator[Any], seq: Iterable[Any],
                 pending_head.append(h)
                 continue
             # unreachable
-            assert(False)
+            assert False
 
 
-def PartitionIterator(iterator: Iterator[Any], seq: Iterable[Any]) -> tuple[Iterator[Any], Iterator[Any]]:
+def PartitionIterator(
+    iterator: Iterator[Any], seq: Iterable[Any]
+) -> tuple[Iterator[Any], Iterator[Any]]:
     """Partition the `iterator` on the first occurrence of `seq`
-        returns a pair of iterators, one for the head and one for the tail
-        will have minimal memory overhead if using the head tuple first
+    returns a pair of iterators, one for the head and one for the tail
+    will have minimal memory overhead if using the head tuple first
 
-        Behavior roughly matchs that of str.partition(1)
+    Behavior roughly matchs that of str.partition(1)
     """
 
     try:
@@ -131,7 +137,7 @@ def PartitionIterator(iterator: Iterator[Any], seq: Iterable[Any]) -> tuple[Iter
 
     if seq_len == None:
         seq_len = sum(1 for _ in seq)
-    
+
     if seq_len == 0:
         raise ValueError("empty separator")
 
@@ -146,8 +152,10 @@ def PartitionIterator(iterator: Iterator[Any], seq: Iterable[Any]) -> tuple[Iter
         nonlocal is_tail_done
         is_tail_done = True
 
-    iterator_wrapper = _PartitionIteratorHelper(iterator, seq, head_done_callback, tail_done_callback)
-    next(iterator_wrapper) # advance to the first yeld statement
+    iterator_wrapper = _PartitionIteratorHelper(
+        iterator, seq, head_done_callback, tail_done_callback
+    )
+    next(iterator_wrapper)  # advance to the first yeld statement
 
     def _PartitionIterator(is_head: bool) -> Generator[Any, None, None]:
         nonlocal is_head_done
@@ -161,7 +169,6 @@ def PartitionIterator(iterator: Iterator[Any], seq: Iterable[Any]) -> tuple[Iter
                 yield k
         finally:
             logging.debug(f"_PartIt<{is_head}> stop iteration")
-            
 
     return (iter(_PartitionIterator(True)), iter(_PartitionIterator(False)))
 
@@ -172,10 +179,22 @@ if __name__ == "__main__":
     logging.debug("Testing PartitionIterator")
 
     in_str = "pineapple"
-    seqs = ["a", "p", "e", "ap", "pp", "pine", "apple", "pineapple", "z", "sierra", "pineapples"]
+    seqs = [
+        "a",
+        "p",
+        "e",
+        "ap",
+        "pp",
+        "pine",
+        "apple",
+        "pineapple",
+        "z",
+        "sierra",
+        "pineapples",
+    ]
     for seq in seqs:
         logging.debug(f"Testing {in_str} on {seq}")
-        lhs_expected,_,rhs_expected = in_str.partition(seq)
+        lhs_expected, _, rhs_expected = in_str.partition(seq)
         lhs_itr, rhs_itr = PartitionIterator(iter(in_str), seq)
         logging.debug("BUILD LHS")
         lhs_str = "".join(list(lhs_itr))
@@ -186,12 +205,12 @@ if __name__ == "__main__":
         logging.debug(f"For {in_str} {seq}")
         logging.debug(f"  LHS expected: {lhs_expected}, got {lhs_str}")
         logging.debug(f"  RHS expected: {rhs_expected}, got {rhs_str}")
-        assert(lhs_expected == lhs_str)
-        assert(rhs_expected == rhs_str)
+        assert lhs_expected == lhs_str
+        assert rhs_expected == rhs_str
 
     for seq in seqs:
         logging.debug(f"Testing {in_str} on {seq}")
-        lhs_expected,_,rhs_expected = in_str.partition(seq)
+        lhs_expected, _, rhs_expected = in_str.partition(seq)
         lhs_itr, rhs_itr = PartitionIterator(iter(in_str), seq)
         logging.debug("BUILD RHS")
         rhs_str = "".join(rhs_itr)
@@ -202,12 +221,12 @@ if __name__ == "__main__":
         logging.debug(f"For {in_str} {seq}")
         logging.debug(f"  LHS expected: {lhs_expected}, got {lhs_str}")
         logging.debug(f"  RHS expected: {rhs_expected}, got {rhs_str}")
-        assert(lhs_expected == lhs_str)
-        assert(rhs_expected == rhs_str)
+        assert lhs_expected == lhs_str
+        assert rhs_expected == rhs_str
 
     in_str = ""
     lhs_itr, rhs_itr = PartitionIterator(iter(in_str), "seqs")
-    assert("" == "".join(lhs_itr))
-    assert("" == "".join(rhs_itr))
-    
+    assert "" == "".join(lhs_itr)
+    assert "" == "".join(rhs_itr)
+
     logging.debug("Tests passing")

@@ -1,8 +1,9 @@
 # from AOC_Lib.name import *
 
+
 # sample variant for reading data from an input file, line by line
-def y2018d1(inputPath = None):
-    if(inputPath == None):
+def y2018d1(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d1.txt"
     print("2018 day 1:")
 
@@ -15,10 +16,10 @@ def y2018d1(inputPath = None):
     with open(inputPath) as f:
         for line in f:
             line = line.strip()
-            
+
             i = int(line[1:])
 
-            if(line[0] == '-'):
+            if line[0] == "-":
                 i *= -1
 
             Part_1_Answer += i
@@ -32,7 +33,7 @@ def y2018d1(inputPath = None):
                 break
             frequencySet.add(f)
 
-            f += freqList[k%len(freqList)]
+            f += freqList[k % len(freqList)]
             k += 1
-        
+
     return (Part_1_Answer, Part_2_Answer)

@@ -2,12 +2,14 @@
 from collections import defaultdict
 
 
-def is_valid_print_order(print_order: list[int], keys_before_values: defaultdict[int, set]) -> bool:
+def is_valid_print_order(
+    print_order: list[int], keys_before_values: defaultdict[int, set]
+) -> bool:
     """Return true iff this is a valid print order"""
 
     for i in range(len(print_order)):
         active = print_order[i]
-        for ii in range(i+1, len(print_order)):
+        for ii in range(i + 1, len(print_order)):
             target = print_order[ii]
 
             if target not in keys_before_values[active]:
@@ -15,7 +17,10 @@ def is_valid_print_order(print_order: list[int], keys_before_values: defaultdict
 
     return True
 
-def get_valid_print_order(print_order: list[int], keys_before_values: defaultdict[int, set]) -> list[int]:
+
+def get_valid_print_order(
+    print_order: list[int], keys_before_values: defaultdict[int, set]
+) -> list[int]:
     """Return a valid print odering"""
 
     pending = set(print_order)
@@ -23,7 +28,7 @@ def get_valid_print_order(print_order: list[int], keys_before_values: defaultdic
 
     # This is just a topological sort,
     #   but somewhat lazily implemented
-    indegrees = {p:0 for p in pending}
+    indegrees = {p: 0 for p in pending}
     for p in pending:
         for b in keys_before_values[p]:
             if b in pending:
@@ -31,7 +36,7 @@ def get_valid_print_order(print_order: list[int], keys_before_values: defaultdic
 
     while indegrees:
         updated: bool = True
-        for k,v in indegrees.items():
+        for k, v in indegrees.items():
             if v == 0:
                 ordering.append(k)
                 indegrees.pop(k)
@@ -40,17 +45,17 @@ def get_valid_print_order(print_order: list[int], keys_before_values: defaultdic
                 for b in keys_before_values[k]:
                     if b in indegrees:
                         indegrees[b] -= 1
-                
+
                 break
 
         if not updated:
-            raise RuntimeError('Cycle detected')
+            raise RuntimeError("Cycle detected")
 
     return ordering
 
 
-def y2024d5(inputPath = None):
-    if(inputPath == None):
+def y2024d5(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2024/d5.txt"
     print("2024 day 5:")
 
@@ -62,26 +67,26 @@ def y2024d5(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     keys_before_values = defaultdict(set)
     manuals: list[list[int]] = []
 
     for line in lineList:
-        if '|' in line:
-            lhs, _, rhs = line.partition('|')
+        if "|" in line:
+            lhs, _, rhs = line.partition("|")
             keys_before_values[int(lhs)].add(int(rhs))
-        elif ',' in line:
-            manuals.append([int(l) for l in line.split(',')])
+        elif "," in line:
+            manuals.append([int(l) for l in line.split(",")])
         elif not line:
             continue
         else:
-            raise RuntimeError(f'Unrecognized line: {line}')
-        
+            raise RuntimeError(f"Unrecognized line: {line}")
+
     Part_1_Answer = 0
     Part_2_Answer = 0
 
-    def get_middle_page(m: list[list[int]]) -> int:
-        assert m # is not empty
+    def get_middle_page(m: list[int]) -> int:
+        assert m  # is not empty
         assert len(m) % 2 == 1
         return m[len(m) // 2]
 

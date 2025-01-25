@@ -1,7 +1,7 @@
-
 from typing import Any, Callable
 
 STATE_T = Any
+
 
 def CycleAndRemainder(
     start_state: STATE_T,
@@ -24,7 +24,9 @@ def CycleAndRemainder(
         elif state in cache:
             # pass
 
-    # TODO - finish
-    # TODO - integrate y2018d12
+            # TODO - finish
+            # TODO - integrate y2018d12
+            raise NotImplementedError()
+
 
 raise RuntimeError("Need to finish Cycle and remainder")

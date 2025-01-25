@@ -1,4 +1,3 @@
-
 import requests
 from pathlib import Path
 from typing import Optional
@@ -10,6 +9,7 @@ from .Util import getLastDateCode
 
 
 url_base = "http://adventofcode.com/{}/day/{}/input"
+
 
 def check_fetch_input(date_code: DateCode, overwrite: bool = False):
     """Download the input for the date code if needed
@@ -26,10 +26,10 @@ def check_fetch_input(date_code: DateCode, overwrite: bool = False):
 
     url = url_base.format(date_code.year, date_code.day)
 
-    r = requests.get(url, cookies={'session': SESSION_KEY})
+    r = requests.get(url, cookies={"session": SESSION_KEY})
 
     if r.status_code == 200:
-        open(file_path, 'wb').write(r.content)
+        open(file_path, "wb").write(r.content)
     else:
         print(f"Bad Response: {r.status_code}")
 
@@ -39,6 +39,6 @@ def test_downloader(date_code=getLastDateCode()) -> bool:
 
     url = url_base.format(date_code.year, date_code.day)
 
-    r = requests.get(url, cookies={'session': SESSION_KEY})
+    r = requests.get(url, cookies={"session": SESSION_KEY})
 
     return r.status_code == 200

@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from enum import unique, Enum
 from typing import Optional
@@ -43,7 +42,7 @@ def parse_program(lines: list[str]) -> CrtCpuProgram:
 
     for line in lines:
         line = line.strip()
-        
+
         if not line:
             # Skip empty line:
             continue
@@ -51,21 +50,24 @@ def parse_program(lines: list[str]) -> CrtCpuProgram:
         tokens: list[str] = line.split(" ")
 
         while len(tokens) < LONGEST_INSTRUCTION:
-            tokens.append('-1')
+            tokens.append("-1")
 
-        program.append(CrtCpuInstruction(
-            Instructions[tokens[0].upper()],
-            *map(int, tokens[1:]),
-        ))
+        program.append(
+            CrtCpuInstruction(
+                Instructions[tokens[0].upper()],
+                *map(int, tokens[1:]),
+            )
+        )
 
     return program
+
 
 @dataclass
 class CrtCpu:
     """Cathode Ray Tube CPU"""
 
     program: CrtCpuProgram
-    
+
     x_register: int = 1
 
     # What instruction are we executing
@@ -92,14 +94,14 @@ class CrtCpu:
 
         self._pre_cycle_hook()
         self._cycles_counter += 1
-        
-        # Adjust the remaining cycles            
+
+        # Adjust the remaining cycles
         instr = self.active_instruction
         assert self._cycles_remain >= 1
         self._cycles_remain -= 1
 
         self._mid_cycle_hook()
-        
+
         try:
             # Execute the instruction
             if instr.instruction == Instructions.NOOP:
@@ -128,11 +130,13 @@ class CrtCpu:
                 elif self.program_counter < 0:
                     # Preemptive in expectation of a part 2
                     raise RuntimeError("Out of bounds, probably should terminate")
-                self._cycles_remain = self.active_instruction.instruction.cycles_to_complete
+                self._cycles_remain = (
+                    self.active_instruction.instruction.cycles_to_complete
+                )
 
     def _pre_cycle_hook(self):
         """Hook called once before each cycle begins,
-        * before the cycle counter has been incremented and the 
+        * before the cycle counter has been incremented and the
         * before the cycle remaining has been decremented
             for overriding in derived classes
         """
@@ -143,7 +147,7 @@ class CrtCpu:
         * after the cycle remaining has been decremented
             for overriding in derived classes
         """
-    
+
     def _post_cycle_hook(self):
         """Hook called once after each cycle completes
         * after the cycle counter has been incremented
@@ -157,21 +161,23 @@ class CrtCpu:
 @dataclass
 class CrtCpu_2022_10(CrtCpu):
 
-    signal_strengths: list[int] = field(default_factory=list, init=False, hash=False, compare=False)
+    signal_strengths: list[int] = field(
+        default_factory=list, init=False, hash=False, compare=False
+    )
 
     def _mid_cycle_hook(self):
 
         if self._cycles_counter in range(20, 221, 40):
             self.signal_strengths.append(self.x_register * self._cycles_counter)
-        
-        # Part 2 Drawing        
-        current_x_coord = (self._cycles_counter-1) % 40
+
+        # Part 2 Drawing
+        current_x_coord = (self._cycles_counter - 1) % 40
 
         if abs(current_x_coord - self.x_register) <= 1:
-            chr_to_print = '█'
+            chr_to_print = "█"
         else:
-            chr_to_print = ' '
-        print(chr_to_print, end=('\n' if current_x_coord == 39 else ''))
+            chr_to_print = " "
+        print(chr_to_print, end=("\n" if current_x_coord == 39 else ""))
 
 
 class Solution_2022_10(SolutionBase):
@@ -185,7 +191,6 @@ class Solution_2022_10(SolutionBase):
 
         assert len(cpu.signal_strengths) == 6
         return sum(cpu.signal_strengths)
-
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""

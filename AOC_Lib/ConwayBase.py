@@ -1,4 +1,3 @@
-
 from enum import Enum
 import itertools
 from typing import Any, Callable, Generator, Iterable, TypeVar
@@ -7,16 +6,22 @@ from AOC_Lib.NeighborGenerator import neighborGeneratorFactory
 
 # TODO - refactor all conway problems into using this class
 
-ConwayCell_T = TypeVar('ConwayCell_T', bound=Enum)
+ConwayCell_T = TypeVar("ConwayCell_T", bound=Enum)
 ConwayGrid_T = list[list[ConwayCell_T]]
 
 ConwayNeighbors_T = Generator[ConwayCell_T, None, None]
 ConwayNext_T = Callable[[ConwayCell_T, ConwayNeighbors_T], ConwayCell_T]
 
+
 class ConwayBase:
     """Base class for Conway's Game of Life type questions"""
 
-    def __init__(self, initial_grid: ConwayGrid_T, advance: ConwayNext_T, use_diagonals: bool = False) -> None:
+    def __init__(
+        self,
+        initial_grid: ConwayGrid_T,
+        advance: ConwayNext_T,
+        use_diagonals: bool = False,
+    ) -> None:
         self._grid = initial_grid
         self._advance = advance
         self._diagonals = use_diagonals
@@ -36,20 +41,18 @@ class ConwayBase:
         """Do one round"""
 
         neighbor_generator = neighborGeneratorFactory(
-            self._x_dim-1, 
-            self._y_dim-1, 
-            allow_diagonal=self._diagonals
+            self._x_dim - 1, self._y_dim - 1, allow_diagonal=self._diagonals
         )
         new_grid = []
-        for y,row in enumerate(self._grid):
+        for y, row in enumerate(self._grid):
             new_row = []
-            for x,cell in enumerate(row):
-                m = map(lambda w: self._grid[w[1]][w[0]], neighbor_generator(x,y))
+            for x, cell in enumerate(row):
+                m = map(lambda w: self._grid[w[1]][w[0]], neighbor_generator(x, y))
                 new_row.append(self._advance(cell, m))
             new_grid.append(new_row)
         self._grid = new_grid
 
-    def advance(self, n:int = 1) -> ConwayGrid_T:
+    def advance(self, n: int = 1) -> ConwayGrid_T:
         """Play `n` rounds and return the resulting grid"""
 
         for _ in range(n):
@@ -57,9 +60,9 @@ class ConwayBase:
 
         return self.grid
 
-    def cMap(self, func: Callable[[ConwayCell_T], Any] = lambda x:x) -> Iterable[Any]:
+    def cMap(self, func: Callable[[ConwayCell_T], Any] = lambda x: x) -> Iterable[Any]:
         """Apply function to the current grid and yield results
-            in row-major order every time (upper left, going across, then down)
+        in row-major order every time (upper left, going across, then down)
         """
         return map(func, itertools.chain.from_iterable(self.grid))
 

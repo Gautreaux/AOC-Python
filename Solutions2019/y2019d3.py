@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 import itertools
 from typing import Optional
@@ -8,13 +7,16 @@ from AOC_Lib.Geometry.LineSegment import Segment2_DiscreteAA, DegenerateMultipoi
 from AOC_Lib.Geometry.Point import DiscretePoint2
 from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 
+
 @dataclass(frozen=True)
 class Wire:
 
     segments: tuple[Segment2_DiscreteAA]
 
     @classmethod
-    def from_operations(cls, operations: list[str], start_pos: DiscretePoint2 = DiscretePoint2(0,0)) -> 'Wire':
+    def from_operations(
+        cls, operations: list[str], start_pos: DiscretePoint2 = DiscretePoint2(0, 0)
+    ) -> "Wire":
         """Build a Wire for a list of operations"""
 
         segments: list[Segment2_DiscreteAA] = []
@@ -26,17 +28,17 @@ class Wire:
             amount = int(op[1:])
 
             end_pos = {
-                'R': (lambda s,a: DiscretePoint2(s.x + a, s.y)),
-                'L': (lambda s,a: DiscretePoint2(s.x - a, s.y)),
-                'U': (lambda s,a: DiscretePoint2(s.x, s.y + a)),
-                'D': (lambda s,a: DiscretePoint2(s.x, s.y - a)),
+                "R": (lambda s, a: DiscretePoint2(s.x + a, s.y)),
+                "L": (lambda s, a: DiscretePoint2(s.x - a, s.y)),
+                "U": (lambda s, a: DiscretePoint2(s.x, s.y + a)),
+                "D": (lambda s, a: DiscretePoint2(s.x, s.y - a)),
             }[instr](last_pos, amount)
 
             segments.append(Segment2_DiscreteAA(last_pos, end_pos))
             last_pos = end_pos
         return cls(tuple(segments))
 
-    def get_intersection_points(self, other: 'Wire') -> list[DiscretePoint2]:
+    def get_intersection_points(self, other: "Wire") -> list[DiscretePoint2]:
         """Get all the point where the wires intersect"""
 
         to_return = []
@@ -71,7 +73,7 @@ class Solution_2019_03(SolutionBase):
         """Runs Once After `__init__`"""
 
         self.wires: list[Wire] = []
-        
+
         for line in self.input_str_list(include_empty_lines=False):
             self.wires.append(Wire.from_operations(line.split(",")))
 
@@ -82,25 +84,30 @@ class Solution_2019_03(SolutionBase):
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""
 
-        origin = DiscretePoint2(0,0)
+        origin = DiscretePoint2(0, 0)
 
-        return min(map(
-            lambda x: x.manhattan_distance(origin),
-            filter(
-                lambda p: not p.is_origin,
-                self.intersections,
-            ),
-        ))
+        return min(
+            map(
+                lambda x: x.manhattan_distance(origin),
+                filter(
+                    lambda p: not p.is_origin,
+                    self.intersections,
+                ),
+            )
+        )
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
 
         wire_a, wire_b = self.wires
 
-        return min(map(
-            lambda x: wire_a.get_point_depth_on_wire(x) + wire_b.get_point_depth_on_wire(x),
-            filter(
-                lambda p: not p.is_origin,
-                self.intersections,
-            ),
-        ))
+        return min(
+            map(
+                lambda x: wire_a.get_point_depth_on_wire(x)
+                + wire_b.get_point_depth_on_wire(x),
+                filter(
+                    lambda p: not p.is_origin,
+                    self.intersections,
+                ),
+            )
+        )

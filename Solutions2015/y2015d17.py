@@ -2,8 +2,9 @@
 
 from copy import deepcopy
 
-def y2015d17(inputPath = None):
-    if(inputPath == None):
+
+def y2015d17(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d17.txt"
     print("2015 day 17:")
 
@@ -15,7 +16,7 @@ def y2015d17(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     containerList = list(map(int, lineList))
 
     containerList.sort()
@@ -41,14 +42,13 @@ def y2015d17(inputPath = None):
 
     # Part_1_Answer = waysCache[150]
 
-
     permuDict = {}
     for c in containerList:
         # print(c)
         newPerm = deepcopy(permuDict)
         if c not in newPerm:
             newPerm[c] = []
-        newPerm[c].append([c]) 
+        newPerm[c].append([c])
 
         for total, permuList in permuDict.items():
             newTotal = total + c
@@ -61,7 +61,6 @@ def y2015d17(inputPath = None):
 
         permuDict = newPerm
 
-    
     # for e in range(6):
     #     if e not in permuDict:
     #         print(f"{e}:None")
@@ -73,7 +72,8 @@ def y2015d17(inputPath = None):
 
     minContainerCount = min(map(len, permuDict[150]))
     print(f"Min container count = {minContainerCount} (not necessarily pt2 answer)")
-    Part_2_Answer = sum(1 for _ in filter(lambda x : len(x) == minContainerCount, permuDict[150]))
-    
+    Part_2_Answer = sum(
+        1 for _ in filter(lambda x: len(x) == minContainerCount, permuDict[150])
+    )
 
     return (Part_1_Answer, Part_2_Answer)

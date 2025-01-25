@@ -3,13 +3,13 @@
 from typing import Generator
 
 
-def constructTile(fileGen : Generator[str, None, None]) -> tuple[int, list[str]]:
+def constructTile(fileGen: Generator[str, None, None]) -> tuple[int, list[str]]:
     thisTile = []
     thisNum = None
-    
+
     for s in fileGen:
         if s == "":
-            assert(thisNum != None)
+            assert thisNum != None
             yield (thisNum, thisTile)
             thisNum = None
             thisTile = []
@@ -18,10 +18,9 @@ def constructTile(fileGen : Generator[str, None, None]) -> tuple[int, list[str]]
         if i == -1:
             thisTile.append(s)
         else:
-            assert(thisNum == None)
-            assert(thisTile == [])
+            assert thisNum == None
+            assert thisTile == []
             thisNum = int(s.replace(":", "").split(" ")[1])
-
 
 
 Side_TYPE = int
@@ -32,11 +31,13 @@ DOWN = 2
 LEFT = 3
 SIDES = [UP, RIGHT, DOWN, LEFT]
 
-def getOppositeSide(side : Side_TYPE) -> Side_TYPE:
+
+def getOppositeSide(side: Side_TYPE) -> Side_TYPE:
     return (side + 2) % 4
 
-def getTileSideIterator(tile : TILE_TYPE, side : Side_TYPE) -> Generator[str,None, None]:
-    assert(side in SIDES)
+
+def getTileSideIterator(tile: TILE_TYPE, side: Side_TYPE) -> Generator[str, None, None]:
+    assert side in SIDES
 
     if side == UP:
         for i in tile[0]:
@@ -51,7 +52,8 @@ def getTileSideIterator(tile : TILE_TYPE, side : Side_TYPE) -> Generator[str,Non
         for i in tile:
             yield i[-1]
 
-def doesEdgeAlign(knownTile : TILE_TYPE, matchTile : TILE_TYPE, side :Side_TYPE) -> bool:
+
+def doesEdgeAlign(knownTile: TILE_TYPE, matchTile: TILE_TYPE, side: Side_TYPE) -> bool:
     """Check if match tile first on side of knownTile"""
 
     # side is the side on the known tile
@@ -72,7 +74,7 @@ def doesEdgeAlign(knownTile : TILE_TYPE, matchTile : TILE_TYPE, side :Side_TYPE)
             # the known generator stopped first
             # (generators different lengths)
             return False
-        
+
         try:
             n = next(matchGen)
         except StopIteration:
@@ -84,33 +86,40 @@ def doesEdgeAlign(knownTile : TILE_TYPE, matchTile : TILE_TYPE, side :Side_TYPE)
     return True
 
 
-def flipVerticalTile(tile : TILE_TYPE) -> TILE_TYPE:
+def flipVerticalTile(tile: TILE_TYPE) -> TILE_TYPE:
     # flip over the vertical axis
     newTile = []
     for row in tile:
         newTile.append("".join(reversed(row)))
     return newTile
 
-def flipHorizontalTile(tile : TILE_TYPE) -> TILE_TYPE:
+
+def flipHorizontalTile(tile: TILE_TYPE) -> TILE_TYPE:
     return list(reversed(tile))
 
-def rotateCWTile(tile : TILE_TYPE) -> TILE_TYPE:
+
+def rotateCWTile(tile: TILE_TYPE) -> TILE_TYPE:
     newTile = []
     for k in zip(*tile):
         newTile.append("".join(reversed(k)))
     return newTile
 
-def rotateCCWTile(tile : TILE_TYPE) -> TILE_TYPE:
+
+def rotateCCWTile(tile: TILE_TYPE) -> TILE_TYPE:
     """Try not to use"""
     return rotateCWTile(rotateCWTile(rotateCWTile(tile)))
 
-def printTile(tile : TILE_TYPE, tileNum : int = None) -> None:
+
+def printTile(tile: TILE_TYPE, tileNum: int = None) -> None:
     if tileNum != None:
         print(f"Tile {tileNum}:")
     for r in tile:
         print("".join(r))
 
-def getAllTileSinglePermutationsGenerator(inTile : TILE_TYPE) -> Generator[TILE_TYPE, None, None]:
+
+def getAllTileSinglePermutationsGenerator(
+    inTile: TILE_TYPE,
+) -> Generator[TILE_TYPE, None, None]:
     t = rotateCWTile(inTile)
     yield t
     t = rotateCWTile(inTile)
@@ -119,6 +128,7 @@ def getAllTileSinglePermutationsGenerator(inTile : TILE_TYPE) -> Generator[TILE_
     yield t
     yield flipHorizontalTile(inTile)
     yield flipVerticalTile(inTile)
+
 
 def getAllPermutationsOfTile(tile: TILE_TYPE) -> list[TILE_TYPE]:
     tileList = [tile]
@@ -141,63 +151,74 @@ def getAllPermutationsOfTile(tile: TILE_TYPE) -> list[TILE_TYPE]:
 
     # debug checking
     for tile in tileList:
-        assert(type(tile) == list)
+        assert type(tile) == list
         for row in tile:
-            assert(type(row) == str)
+            assert type(row) == str
     return tileList
 
-def getPosFromDir(position : tuple[int, int], side : Side_TYPE) -> tuple[int, int]:
+
+def getPosFromDir(position: tuple[int, int], side: Side_TYPE) -> tuple[int, int]:
     x = position[0]
     y = position[1]
     if side == LEFT:
-        return (x-1, y)
+        return (x - 1, y)
     elif side == UP:
-        return (x, y+1)
+        return (x, y + 1)
     elif side == DOWN:
-        return (x, y-1)
+        return (x, y - 1)
     elif side == RIGHT:
-        return (x+1, y)
+        return (x + 1, y)
     else:
         raise ValueError(side)
 
-SEA_MONSTER = [ "                  # ",
-                "#    ##    ##    ###",
-                " #  #  #  #  #  #   ",]
+
+SEA_MONSTER = [
+    "                  # ",
+    "#    ##    ##    ###",
+    " #  #  #  #  #  #   ",
+]
 SEA_MONSTER_CHAR = "#"
 
 POSITION_TYPE = tuple[int, int]
+
 
 def seaMonsterPositionsGenerator(s=SEA_MONSTER) -> Generator[POSITION_TYPE, None, None]:
     for y in range(len(s)):
         for x in range(len(s[y])):
             if s[y][x] == SEA_MONSTER_CHAR:
-                yield ((x,y))
+                yield ((x, y))
 
-def isSeaMonsterAtPosition(pos : POSITION_TYPE, tile : TILE_TYPE, positionsList : list[POSITION_TYPE]) -> bool:
-    for x,y in positionsList:
+
+def isSeaMonsterAtPosition(
+    pos: POSITION_TYPE, tile: TILE_TYPE, positionsList: list[POSITION_TYPE]
+) -> bool:
+    for x, y in positionsList:
         if tile[pos[1] + y][pos[0] + x] != SEA_MONSTER_CHAR:
             return False
     return True
 
-def getAllSeaMonsterPositionsGenerator(tile : TILE_TYPE):
+
+def getAllSeaMonsterPositionsGenerator(tile: TILE_TYPE):
     seaMonsterPositions = list(seaMonsterPositionsGenerator())
 
     for y in range(len(tile)):
         for x in range(len(tile[0])):
             try:
-                if isSeaMonsterAtPosition((x,y), tile, seaMonsterPositions):
-                    yield (x,y)
+                if isSeaMonsterAtPosition((x, y), tile, seaMonsterPositions):
+                    yield (x, y)
             except IndexError:
                 pass
 
-def getAllSeaMonsterSubPositionsGenerator(tile : TILE_TYPE):
+
+def getAllSeaMonsterSubPositionsGenerator(tile: TILE_TYPE):
     seaMonsterPositions = list(seaMonsterPositionsGenerator())
     for pos in getAllSeaMonsterPositionsGenerator(tile):
         for k in seaMonsterPositions:
             yield (pos[0] + k[0], pos[1] + k[1])
 
-def y2020d20(inputPath = None):
-    if(inputPath == None):
+
+def y2020d20(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d20.txt"
     print("2020 day 20:")
 
@@ -212,7 +233,7 @@ def y2020d20(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     tileDict = {}
 
     for tileNum, tile in constructTile(iter(lineList)):
@@ -231,26 +252,25 @@ def y2020d20(inputPath = None):
 
     # generate all the tile permutations
     for tileNum in tileDict:
-        assert(len(tileDict[tileNum]) == 1)
+        assert len(tileDict[tileNum]) == 1
         tileDict[tileNum] = getAllPermutationsOfTile(tileDict[tileNum][0])
 
     # debug check
     for tileNum in tileDict:
         for tile in tileDict[tileNum]:
             for row in tile:
-                assert(type(row) == str)
-
+                assert type(row) == str
 
     thisTile = next(iter(tilesToPlace))
     tilesToPlace.remove(thisTile)
-    placedTiles[(0,0)] = tileDict[thisTile][0]
-    placedTilesNumber[(0,0)] = thisTile
+    placedTiles[(0, 0)] = tileDict[thisTile][0]
+    placedTilesNumber[(0, 0)] = thisTile
 
     expansionEdges = set()
-    expansionEdges.add(((0,0), LEFT))
-    expansionEdges.add(((0,0), UP))
-    expansionEdges.add(((0,0), DOWN))
-    expansionEdges.add(((0,0), RIGHT))
+    expansionEdges.add(((0, 0), LEFT))
+    expansionEdges.add(((0, 0), UP))
+    expansionEdges.add(((0, 0), DOWN))
+    expansionEdges.add(((0, 0), RIGHT))
 
     class BreakContinue(Exception):
         pass
@@ -282,7 +302,7 @@ def y2020d20(inputPath = None):
                     # update the placed tiles
                     placedTiles[newPos] = matchTile
                     placedTilesNumber[newPos] = matchedNum
-                    
+
                     # update expansion edges
                     for s in SIDES:
                         nPos = getPosFromDir(newPos, s)
@@ -295,12 +315,12 @@ def y2020d20(inputPath = None):
                     raise BreakContinue
         except BreakContinue:
             continue
-        #TODO - why is one of the rotation thingies breaking into a list,
+        # TODO - why is one of the rotation thingies breaking into a list,
         #   and how to make it into a string
         print("Not sure what to do here")
         raise NotImplementedError()
 
-    assert(len(tilesToPlace) == 0)
+    assert len(tilesToPlace) == 0
     print("All tiles successfully placed")
 
     minX = min(map(lambda x: x[0], placedTiles))
@@ -309,10 +329,10 @@ def y2020d20(inputPath = None):
     maxY = max(map(lambda x: x[1], placedTiles))
 
     # assert that the built graph is densly packed
-    for testX in range(minX, maxX+1):
-        for testY in range(minY, maxY+1):
-            assert((testX, testY) in placedTiles)
-            assert((testX, testY) in placedTilesNumber)
+    for testX in range(minX, maxX + 1):
+        for testY in range(minY, maxY + 1):
+            assert (testX, testY) in placedTiles
+            assert (testX, testY) in placedTilesNumber
 
     def cornersGenerator():
         yield (minX, minY)
@@ -329,23 +349,23 @@ def y2020d20(inputPath = None):
 
     # TODO - this should auto calculate
     tileDims = 10
-    rowIndexes = list(range(1,tileDims-1))
+    rowIndexes = list(range(1, tileDims - 1))
 
     # time to collapse int one giant grid
     megaTile = []
-    for y in range(maxY, minY-1, -1):
+    for y in range(maxY, minY - 1, -1):
         rows = {}
-        
+
         # initalize with empty rows
         for yy in rowIndexes:
             rows[yy] = []
-        
-        for x in range(minX, maxX+1):
-            thisTile = placedTiles[(x,y)]
-            assert(len(thisTile)) == tileDims
+
+        for x in range(minX, maxX + 1):
+            thisTile = placedTiles[(x, y)]
+            assert (len(thisTile)) == tileDims
             for ri in rowIndexes:
                 rows[ri].append(thisTile[ri][1:-1])
-        
+
         for yy in rowIndexes:
             megaTile.append("".join(rows[yy]))
 
@@ -396,7 +416,7 @@ def y2020d20(inputPath = None):
         # print(seaMonsterPositions)
 
         # compute the mask
-        for x,y in getAllSeaMonsterSubPositionsGenerator(tilePermutation):
+        for x, y in getAllSeaMonsterSubPositionsGenerator(tilePermutation):
             m[y][x] = 1
 
         # now compute the score
@@ -404,17 +424,16 @@ def y2020d20(inputPath = None):
         for y in range(len(m)):
             for x in range(len(m[0])):
                 if m[y][x] == 1:
-                    assert(tilePermutation[y][x] == '#')
+                    assert tilePermutation[y][x] == "#"
                 else:
-                    assert(m[y][x] == 0)
-                    if tilePermutation[y][x] == '#':
+                    assert m[y][x] == 0
+                    if tilePermutation[y][x] == "#":
                         score += 1
         results.append(score)
 
     print(results)
     s = set(results)
-    assert(len(s) == 2)
+    assert len(s) == 2
     Part_2_Answer = min(s)
-
 
     return (Part_1_Answer, Part_2_Answer)

@@ -7,23 +7,25 @@ from AOC_Lib.charSets import ALPHABET_LOWER, ALPHABET_UPPER
 class ContinueException(Exception):
     pass
 
+
 def oppCaseEqual(c0, c1) -> bool:
-    if(ord(c0) + 32 == ord(c1)):
+    if ord(c0) + 32 == ord(c1):
         # print(f"{c0} {c1}")
         return True
-    if(ord(c0) - 32 == ord(c1)):
+    if ord(c0) - 32 == ord(c1):
         # print(f"{c0} {c1}")
         return True
     return False
 
-def reactPolymer(s : str) -> str:
+
+def reactPolymer(s: str) -> str:
     pieces = []
     index = 0
-    while(index < len(s)):
+    while index < len(s):
         try:
             if oppCaseEqual(s[index], s[index + 1]):
                 raise ContinueException()
-            
+
             pieces.append(s[index])
             index += 1
         except ContinueException:
@@ -35,19 +37,20 @@ def reactPolymer(s : str) -> str:
 
     return "".join(pieces)
 
-def reactPolymerFully(s : str) -> str:
+
+def reactPolymerFully(s: str) -> str:
     last = ""
     now = s
 
-    while(last != now):
+    while last != now:
         last = now
         now = reactPolymer(last)
         # print(len(now))
     return now
 
 
-def y2018d5(inputPath = None):
-    if(inputPath == None):
+def y2018d5(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d5.txt"
     print("2018 day 5:")
 
@@ -59,7 +62,7 @@ def y2018d5(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     startingPolymer = lineList[-1]
 
     Part_1_Answer = len(reactPolymerFully(startingPolymer))
@@ -70,7 +73,7 @@ def y2018d5(inputPath = None):
         c = i if (i in ALPHABET_UPPER) else i.upper()
         if c not in units:
             units.append(c)
-    
+
     Part_2_Answer = len(startingPolymer)
     for c in units:
         print(f"Removing {c}")

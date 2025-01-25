@@ -5,12 +5,15 @@ from collections import Counter
 from Solutions2020.y2020d4 import groupByEmptyLines
 
 # per group
-def getCount(ans:str)-> int:
+
+
+def getCount(ans: str) -> int:
     c = Counter(ans)
     return sum(map(lambda x: 1 if x[0] in ALPHABET_LOWER else 0, c))
 
-def y2020d6(inputPath = None):
-    if(inputPath == None):
+
+def y2020d6(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d6.txt"
     print("2020 day 6:")
 
@@ -23,7 +26,6 @@ def y2020d6(inputPath = None):
             line = line.strip()
             lineList.append(line)
 
-
     lineList.append("")
 
     lineGroups, linesQty = groupByEmptyLines(lineList)
@@ -33,7 +35,14 @@ def y2020d6(inputPath = None):
         Part_1_Answer += getCount(line)
 
         c = Counter(line)
-        s = sum(map(lambda x: 0 if x[0] not in ALPHABET_LOWER else (1 if x[1] == qty else 0), c.items()))
+        s = sum(
+            map(
+                lambda x: (
+                    0 if x[0] not in ALPHABET_LOWER else (1 if x[1] == qty else 0)
+                ),
+                c.items(),
+            )
+        )
         Part_2_Answer += s
 
     return (Part_1_Answer, Part_2_Answer)

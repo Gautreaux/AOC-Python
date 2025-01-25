@@ -1,4 +1,3 @@
-
 from inspect import getmembers
 import os
 import subprocess
@@ -9,8 +8,8 @@ from .SolutionLoader import (
     does_module_exist_for_date_code,
     date_code_to_input_file_path,
     date_code_to_solution_file_path,
-    load_solution_by_date_code, 
-    FunctionImportError
+    load_solution_by_date_code,
+    FunctionImportError,
 )
 from .TemplateConverter import create_from_template, append_template
 
@@ -22,13 +21,13 @@ def _try_open_file(file_path: str):
         return
 
     try:
-        subprocess.run(['code', '-r', file_path], shell=True)
+        subprocess.run(["code", "-r", file_path], shell=True)
     except:
         pass
 
 
 def run_date_code(
-    date_code: DateCode, 
+    date_code: DateCode,
     create_if_missing: bool = True,
     uplift_if_legacy: bool = False,
 ) -> AnswerPair_T:
@@ -42,7 +41,7 @@ def run_date_code(
         _try_open_file(date_code_to_solution_file_path(date_code))
 
         # DO input second so it appears on top and you have to look at it
-        
+
         _try_open_file(date_code_to_input_file_path(date_code))
 
     module = load_solution_by_date_code(date_code)
@@ -54,7 +53,7 @@ def run_date_code(
     print("Fallback to look for legacy function based implementation")
 
     # this solution uses the legacy variant of a function called `yXXXXdYY`
-    #   where XXXX is the year and YY the day 
+    #   where XXXX is the year and YY the day
     #   note: day does not have leading zeros: `1` `2` ... `15` ... `20` ... `25`
     l = getmembers(module)
     to_find = date_code.to_legacy_datecode()
@@ -62,12 +61,15 @@ def run_date_code(
         if e[0] == to_find:
 
             if uplift_if_legacy:
-                print(f"Appending template to date {date_code}. The next invocation of this solution _WILL FAIL_")
+                print(
+                    f"Appending template to date {date_code}. The next invocation of this solution _WILL FAIL_"
+                )
                 append_template(date_code)
                 _try_open_file(date_code_to_solution_file_path(date_code))
 
             return e[1]()
 
     # should be unreachable
-    raise FunctionImportError(f"For dateCode {date_code}: The module imported correctly, but function not found")
-
+    raise FunctionImportError(
+        f"For dateCode {date_code}: The module imported correctly, but function not found"
+    )

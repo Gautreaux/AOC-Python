@@ -5,10 +5,11 @@ import functools
 
 from AOC_Lib.ConwayBase import ConwayBase, ConwayCell_T, ConwayNeighbors_T
 
+
 class CellType(Enum):
-    OPEN = '.'
-    TREES = '|'
-    LUMBER_YARD = '#'
+    OPEN = "."
+    TREES = "|"
+    LUMBER_YARD = "#"
 
 
 def nextState(cell: ConwayCell_T, neighbors: ConwayNeighbors_T) -> ConwayCell_T:
@@ -26,15 +27,14 @@ def nextState(cell: ConwayCell_T, neighbors: ConwayNeighbors_T) -> ConwayCell_T:
             return CellType.TREES
     elif cell == CellType.LUMBER_YARD:
         m = map(
-            lambda c: ((True, False) if c == CellType.LUMBER_YARD else(
-                (False, True) if c == CellType.TREES else (False, False)
-            )),
-            neighbors
+            lambda c: (
+                (True, False)
+                if c == CellType.LUMBER_YARD
+                else ((False, True) if c == CellType.TREES else (False, False))
+            ),
+            neighbors,
         )
-        r = functools.reduce(
-            lambda x,y: (x[0] or y[0], x[1] or y[1]),
-            m
-        )
+        r = functools.reduce(lambda x, y: (x[0] or y[0], x[1] or y[1]), m)
         if all(r):
             return CellType.LUMBER_YARD
         else:
@@ -42,8 +42,9 @@ def nextState(cell: ConwayCell_T, neighbors: ConwayNeighbors_T) -> ConwayCell_T:
     else:
         raise RuntimeError(f"Bad Value: {cell}")
 
-def y2018d18(inputPath = None):
-    if(inputPath == None):
+
+def y2018d18(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d18.txt"
     print("2018 day 18:")
 
@@ -55,17 +56,17 @@ def y2018d18(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     grid = []
 
     for line in lineList:
         new_row = []
         for cell in line:
             new_row.append(CellType(cell))
-        assert(len(new_row) == 50)
+        assert len(new_row) == 50
         grid.append(new_row)
 
-    assert(len(grid) == 50)
+    assert len(grid) == 50
 
     conway = ConwayBase(grid, nextState, use_diagonals=True)
 
@@ -77,10 +78,10 @@ def y2018d18(inputPath = None):
     Part_1_Answer = num_trees * num_lumber
 
     # ========== part 2
-    
+
     conway = ConwayBase(grid, nextState, use_diagonals=True)
 
-    state_index: dict[tuple[CellType,...], int] = {}
+    state_index: dict[tuple[CellType, ...], int] = {}
 
     BIG_TARGET = 1000000000
 
@@ -105,10 +106,12 @@ def y2018d18(inputPath = None):
     # period = next_repeat - start_repeat
 
     if period is None:
-        raise RuntimeError("The lumberyard should be cyclical otherwise this problem is untenable")
-    
+        raise RuntimeError(
+            "The lumberyard should be cyclical otherwise this problem is untenable"
+        )
+
     # figure out where the ending condition is
-    m = (BIG_TARGET-1) % period
+    m = (BIG_TARGET - 1) % period
 
     print(f"Ends a modulo {m}")
     # print(f"  End should be 26 (corresponds to 446)")
@@ -117,14 +120,16 @@ def y2018d18(inputPath = None):
 
     for i in range(start_repeat, next_repeat):
         if i % period == m:
-            assert(candidate is None)
+            assert candidate is None
             candidate = i
 
-    assert(candidate is not None)
+    assert candidate is not None
     print(f"Candidate resolved to: {candidate}")
 
-    end_state = next(map(lambda x: x[0], filter(lambda x: x[1] == candidate, state_index.items())))
-    
+    end_state = next(
+        map(lambda x: x[0], filter(lambda x: x[1] == candidate, state_index.items()))
+    )
+
     num_trees = sum(map(lambda x: 1 if x == CellType.TREES else 0, end_state))
     num_lumber = sum(map(lambda x: 1 if x == CellType.LUMBER_YARD else 0, end_state))
 

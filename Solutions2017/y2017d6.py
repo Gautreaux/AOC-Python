@@ -14,15 +14,17 @@ def getNextState(state: BLOCK_STATE_T) -> BLOCK_STATE_T:
     m_index, m_value = max(enumerate(state), key=lambda x: x[1])
     state[m_index] = 0
 
-    i_gen = itertools.cycle(itertools.chain(range(m_index+1, len(state)), range(m_index)))
+    i_gen = itertools.cycle(
+        itertools.chain(range(m_index + 1, len(state)), range(m_index))
+    )
 
-    for index,_ in zip(i_gen, range(m_value)):
-        state[index]+=1
+    for index, _ in zip(i_gen, range(m_value)):
+        state[index] += 1
     return state
 
 
-def y2017d6(inputPath = None):
-    if(inputPath == None):
+def y2017d6(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d6.txt"
     print("2017 day 6:")
 
@@ -34,9 +36,9 @@ def y2017d6(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     block_sizes = list(map(int, lineList[0].split("\t")))
-    
+
     config_cache = {}
 
     config_cache[tuple(block_sizes)] = 0
@@ -49,7 +51,7 @@ def y2017d6(inputPath = None):
                 Part_1_Answer = i
             else:
                 j = config_cache[t]
-                Part_2_Answer = i - j 
+                Part_2_Answer = i - j
                 break
         else:
             config_cache[t] = i

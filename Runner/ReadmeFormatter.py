@@ -1,4 +1,3 @@
-
 import os
 from typing import List
 
@@ -8,22 +7,20 @@ from .SolutionTesting import TestResult, test_all_days_multiprocessed
 from .Util import listElapsedYears, genElapsedDateCodes
 
 
-
 def formatTable(
-    table : List[List[str]],
+    table: List[List[str]],
     headers: List[str],
 ) -> str:
-    '''Take the table (with table[0] as headers) and format to a markdown table'''
+    """Take the table (with table[0] as headers) and format to a markdown table"""
     toReturn = []
-    
-    toReturn.append('|'.join(map(str, headers)))
-    toReturn.append('|'.join(map(lambda _: '-', headers)))
-    
+
+    toReturn.append("|".join(map(str, headers)))
+    toReturn.append("|".join(map(lambda _: "-", headers)))
 
     for row in table:
         if len(row) != len(headers):
             print("Mis matched row. Formatting may be weird")
-        toReturn.append('|'.join(map(str, row)))
+        toReturn.append("|".join(map(str, row)))
 
     return "\n".join(toReturn)
 
@@ -50,7 +47,7 @@ def build_body() -> str:
 
     results = test_all_days_multiprocessed()
 
-    solutions_headers = [':christmas_tree:']
+    solutions_headers = [":christmas_tree:"]
     solutions_headers.extend(listElapsedYears())
 
     solutions_rows = []
@@ -66,7 +63,7 @@ def build_body() -> str:
             dc = DateCode(year=year, day=day)
 
             if dc not in valid_days:
-                this_row.append(' ')
+                this_row.append(" ")
                 continue
 
             try:
@@ -77,13 +74,15 @@ def build_body() -> str:
                 if r == TestResult.ONE_STAR:
                     star_count += 1
 
-                this_row.append(f"[{r.readme_str}](http://adventofcode.com/{year}/day/{day})")
-            except KeyError: 
+                this_row.append(
+                    f"[{r.readme_str}](http://adventofcode.com/{year}/day/{day})"
+                )
+            except KeyError:
                 print("SHOULD BE UNREACHABLE")
                 this_row.append(TestResult.SOLUTION_INCORRECT.readme_str)
         solutions_rows.append(this_row)
 
-    stars_possible = 2*len(valid_days)
+    stars_possible = 2 * len(valid_days)
 
     star_table = formatTable(table=solutions_rows, headers=solutions_headers)
 
@@ -93,7 +92,7 @@ def build_body() -> str:
         legend_rows.append([x.readme_str, x.readme_description])
 
     legend_table = formatTable(
-        headers=[':santa:', 'Legend'],
+        headers=[":santa:", "Legend"],
         table=legend_rows,
     )
 
@@ -127,9 +126,9 @@ def format_readme(readme_path: str = "README.md"):
 {footer}
 
 """.format(
-    header=header(),
-    body=build_body(),
-    footer=footer(),
-)
-    with open(readme_path, 'w') as out_file:
+        header=header(),
+        body=build_body(),
+        footer=footer(),
+    )
+    with open(readme_path, "w") as out_file:
         out_file.write(readme)

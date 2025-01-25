@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from functools import cache
 import itertools
@@ -10,20 +9,22 @@ from AOC_Lib.Geometry.Point import DiscretePoint2
 
 # Why solve efficiently, when you can solve enough and cache
 #   After all the rewrites, ended up pretty efficient anyway
-@cache 
+
+
+@cache
 def get_tail_pos_head_relative(tail: DiscretePoint2) -> DiscretePoint2:
     """Return the new position of the tail in the head centered coordinate system"""
 
     # They are on top of each other
-    if tail == DiscretePoint2(0,0):
-        return DiscretePoint2(0,0)
+    if tail == DiscretePoint2(0, 0):
+        return DiscretePoint2(0, 0)
 
     # They are next to eachother on axis (no change)
     if abs(tail.x) + abs(tail.y) == 1:
         return tail
 
     # They are next to eachother diagonally (no change)
-    if tail.x in [1,-1] and tail.y in [1,-1]:
+    if tail.x in [1, -1] and tail.y in [1, -1]:
         return tail
 
     # Special Part 2 case: double diagonal
@@ -48,18 +49,18 @@ def get_tail_pos_head_relative(tail: DiscretePoint2) -> DiscretePoint2:
 @dataclass
 class PlanckRope:
 
-    head: DiscretePoint2 = DiscretePoint2(0,0)
-    tail: DiscretePoint2 = DiscretePoint2(0,0)
+    head: DiscretePoint2 = DiscretePoint2(0, 0)
+    tail: DiscretePoint2 = DiscretePoint2(0, 0)
 
     def step_once(self, direction):
         """Apply one step"""
         adj = {
-            'R': DiscretePoint2(1,0),
-            'U': DiscretePoint2(0,1),
-            'D': DiscretePoint2(0,-1),
-            'L': DiscretePoint2(-1,0),
-        }[direction] 
-        
+            "R": DiscretePoint2(1, 0),
+            "U": DiscretePoint2(0, 1),
+            "D": DiscretePoint2(0, -1),
+            "L": DiscretePoint2(-1, 0),
+        }[direction]
+
         self.head: DiscretePoint2 = self.head + adj
         self.update_tail()
 
@@ -95,7 +96,7 @@ class MultiRope:
         """Apply one step to the head, and propagate changes through the chain"""
         self.segments[0].step_once(direction)
         for i in range(1, len(self.segments)):
-            self.segments[i].snap_head(self.segments[i-1].tail)
+            self.segments[i].snap_head(self.segments[i - 1].tail)
 
 
 class Solution_2022_09(SolutionBase):
@@ -120,9 +121,9 @@ class Solution_2022_09(SolutionBase):
 
                 # all_t_pos.add(self.t_pos)
                 all_t_pos.add(rope.tail)
-        
+
         return len(all_t_pos)
-        
+
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
 
@@ -144,4 +145,3 @@ class Solution_2022_09(SolutionBase):
                 all_t_pos.add(rope.tail)
         print(rope.segments)
         return len(all_t_pos)
-         

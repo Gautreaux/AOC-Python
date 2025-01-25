@@ -2,8 +2,9 @@
 
 from copy import deepcopy
 
-def y2017d5(inputPath = None):
-    if(inputPath == None):
+
+def y2017d5(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d5.txt"
     print("2017 day 5:")
 
@@ -15,7 +16,7 @@ def y2017d5(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(int(line))
-    
+
     # for multi line inputs
     steps = 0
     index = 0
@@ -35,7 +36,7 @@ def y2017d5(inputPath = None):
     try:
         while True:
             jmp = instrList[index]
-            instrList[index] += (1 if jmp < 3 else -1)
+            instrList[index] += 1 if jmp < 3 else -1
             index += jmp
             steps += 1
     except IndexError:

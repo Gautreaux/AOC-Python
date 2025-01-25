@@ -2,28 +2,31 @@
 
 from typing import Final, Generator
 
-PICKUP_COUNT : Final = 3
+PICKUP_COUNT: Final = 3
 # for now, this cannot be changed
-assert(PICKUP_COUNT == 3)
+assert PICKUP_COUNT == 3
 
 LABEL_GENERATOR_TYPE = Generator[int, None, None]
 
-def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) -> LABEL_GENERATOR_TYPE:
+
+def playCrabbyCups(
+    cupOrderingGenerator: LABEL_GENERATOR_TYPE, numTurns: int
+) -> LABEL_GENERATOR_TYPE:
     """Produces a generator that can yield elements in the starting order"""
 
-    indexLabelMapping = [] # map an index to a label
-    nextIndexForIndex = [] # the next index following an index
+    indexLabelMapping = []  # map an index to a label
+    nextIndexForIndex = []  # the next index following an index
     # use a dict in case there are gaps in the input
-    labelIndexMapping = {} # map a label to an index
+    labelIndexMapping = {}  # map a label to an index
 
     for i in cupOrderingGenerator:
         indexLabelMapping.append(i)
         nextIndexForIndex.append(len(indexLabelMapping))
-        labelIndexMapping[indexLabelMapping[-1]] = len(indexLabelMapping) -1
+        labelIndexMapping[indexLabelMapping[-1]] = len(indexLabelMapping) - 1
     nextIndexForIndex[-1] = 0
 
     # making sure all the labels are unique
-    assert(len(set(indexLabelMapping)) == len(indexLabelMapping))
+    assert len(set(indexLabelMapping)) == len(indexLabelMapping)
 
     # print("DONG")
 
@@ -39,11 +42,11 @@ def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) 
     # print(nextIndexForIndex)
     print("input PreProcessing Completed")
 
-    def safeDecrement(label : int) -> int:
-        return (maxLabel if label - 1 < minLabel else label -1)
+    def safeDecrement(label: int) -> int:
+        return maxLabel if label - 1 < minLabel else label - 1
 
     currentCupIndex = 0
-    pickupIndexes = [None]*PICKUP_COUNT
+    pickupIndexes = [None] * PICKUP_COUNT
 
     for turn in range(numTurns):
         # figure out what we are picking up
@@ -51,7 +54,7 @@ def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) 
         pickupIndexes[1] = nextIndexForIndex[pickupIndexes[0]]
         pickupIndexes[2] = nextIndexForIndex[pickupIndexes[1]]
 
-        pickupValues = list(map(lambda x : indexLabelMapping[x], pickupIndexes))
+        pickupValues = list(map(lambda x: indexLabelMapping[x], pickupIndexes))
 
         # remove these items from the list
         nextIndexForIndex[currentCupIndex] = nextIndexForIndex[pickupIndexes[2]]
@@ -70,7 +73,7 @@ def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) 
         # print(f" Turn {turn+1} pickup {pickupValues}, active: {activeLabel}, target: {targetLabel}")
 
         # re-do the chaining
-        nextIndexForIndex[pickupIndexes[2]] =  nextIndexForIndex[targetIndex]
+        nextIndexForIndex[pickupIndexes[2]] = nextIndexForIndex[targetIndex]
         nextIndexForIndex[targetIndex] = pickupIndexes[0]
 
         # pick the next active cup
@@ -97,10 +100,8 @@ def playCrabbyCups(cupOrderingGenerator : LABEL_GENERATOR_TYPE, numTurns : int) 
     return
 
 
-
-
-def y2020d23(inputPath = None):
-    if(inputPath == None):
+def y2020d23(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d23.txt"
     print("2020 day 23:")
 
@@ -112,14 +113,14 @@ def y2020d23(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     # print("DEBUG ON")
     # lineList[-1] = "389125467"
 
     def part1InputGenerator():
         for c in lineList[-1]:
             yield int(c)
-    
+
     part1AnswerGenerator = playCrabbyCups(part1InputGenerator(), 100)
     Part_1_Answer = int("".join(map(str, part1AnswerGenerator))[1:])
     print(f"Part 1 is {Part_1_Answer}, starting part 2")
@@ -127,11 +128,11 @@ def y2020d23(inputPath = None):
     def part2InputGenerator():
         yieldedCount = 0
         # ensuring no indexes are in the start
-        assert(len(set(lineList[-1])) == len(lineList[-1]))
+        assert len(set(lineList[-1])) == len(lineList[-1])
         for c in lineList[-1]:
             yield int(c)
             yieldedCount += 1
-        
+
         yieldedCount += 1
 
         while yieldedCount <= 1000000:
@@ -149,9 +150,8 @@ def y2020d23(inputPath = None):
     next(part2AnswerGenerator)
     a = next(part2AnswerGenerator)
     b = next(part2AnswerGenerator)
-    assert(a != 1 and b != 1)
+    assert a != 1 and b != 1
     print(f"P2 : {a} * {b}")
-    Part_2_Answer = a * b 
+    Part_2_Answer = a * b
 
     return (Part_1_Answer, Part_2_Answer)
-

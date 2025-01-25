@@ -5,8 +5,10 @@ from collections import Counter
 from AOC_Lib.npairs import allPairsGenerator
 
 # sample variant for reading data from an input file, line by line
-def y2018d2(inputPath = None):
-    if(inputPath == None):
+
+
+def y2018d2(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d2.txt"
     print("2018 day 2:")
 
@@ -25,7 +27,7 @@ def y2018d2(inputPath = None):
 
             c = Counter(line)
 
-            for i in [2,3]:
+            for i in [2, 3]:
                 if len(list(filter(lambda x: x[1] == i, c.items()))) != 0:
                     if i == 2:
                         twoCount += 1
@@ -34,8 +36,8 @@ def y2018d2(inputPath = None):
         Part_1_Answer = twoCount * threeCount
 
         # part 2
-        for x,y in allPairsGenerator(lineList):
-            assert(len(x) == len(y))
+        for x, y in allPairsGenerator(lineList):
+            assert len(x) == len(y)
             diffs = 0
             dIDX = 0
             for i in range(len(x)):
@@ -43,7 +45,6 @@ def y2018d2(inputPath = None):
                     diffs += 1
                     dIDX = i
             if diffs == 1:
-                Part_2_Answer = x[:dIDX] + x[dIDX+1:]
+                Part_2_Answer = x[:dIDX] + x[dIDX + 1 :]
 
-        
     return (Part_1_Answer, Part_2_Answer)
