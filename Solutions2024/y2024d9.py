@@ -22,7 +22,7 @@ class DiskFile:
             yield DiskBlock(self.start_location + i, self.file_id)
 
     @staticmethod
-    def files_from_dense_map(densemap: str) -> 'list[DiskFile]':
+    def files_from_dense_map(densemap: str) -> "list[DiskFile]":
         files: list[DiskFile] = []
         current_location: int = 0
         next_file_id: int = 0
@@ -117,9 +117,11 @@ def calculate_checksum(disk: list[DiskBlock] | list[DiskFile]) -> int:
     if not disk:
         raise IndexError("Disk is empty")
     if isinstance(disk[0], DiskFile):
-        disk_db = list(chain.from_iterable(f.generate_blocks() for f in disk)) # type: ignore
+        disk_db = list(
+            chain.from_iterable(f.generate_blocks() for f in disk)
+        )  # type: ignore
     else:
-        disk_db = disk # type: ignore
+        disk_db = disk  # type: ignore
 
     check_sum = 0
     for d in disk_db:

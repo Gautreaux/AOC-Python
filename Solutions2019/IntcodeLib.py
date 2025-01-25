@@ -171,9 +171,14 @@ class IntcodeRunner:
         elif op_code == OpCode.LE:
             # from operator import le
             #   returns true and false vs 1 and 0
-            operator = lambda x, y: 1 if x < y else 0
+            def operator(x, y):
+                return 1 if x < y else 0
+
         elif op_code == OpCode.EQ:
-            operator = lambda x, y: 1 if x == y else 0
+
+            def operator(x, y):
+                return 1 if x == y else 0
+
         else:
             raise RuntimeError("Bad op code for binary operation: {}".format(op_code))
 

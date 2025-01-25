@@ -106,7 +106,8 @@ def check_date_code(date_code: DateCode) -> TestResult:
     ]
 
 
-def _check_date_code_wrapper(date_code: DateCode) -> tuple[DateCode, TestResult]:
+def _check_date_code_wrapper(date_code: DateCode) -> tuple[DateCode, TestResult, float]:
+    """Wrapper function to check execution time of a single date code"""
     start_time = time.time()
     r = check_date_code(date_code)
     end_time = time.time()

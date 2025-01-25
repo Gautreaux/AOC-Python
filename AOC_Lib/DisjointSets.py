@@ -55,4 +55,3 @@ class DisjointSets:
     def areInSameGroups(self, a: Hashable, b: Hashable, force: bool = False) -> bool:
         """Return `True` iff a and b are in the same set"""
         return self.find(a, force=force) == self.find(b, force=force)
-

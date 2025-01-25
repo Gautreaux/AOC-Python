@@ -7,7 +7,7 @@ from typing import Generator
 from AOC_Lib.SolutionBase import DateCode
 
 
-def getLastDateCode() -> str:
+def getLastDateCode() -> DateCode:
     """Return the dayCode of the last day that was released"""
     tz_NY = pytz.timezone("America/New_York")
     datetime_NY = datetime.now(tz_NY)

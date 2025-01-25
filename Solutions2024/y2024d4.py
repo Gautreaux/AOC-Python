@@ -119,7 +119,7 @@ class WordSearch:
 
 def _assert_sample_passes():
     lines: list[str] = _SAMPLE.splitlines()  # type: ignore
-    
+
     assert isinstance(lines, list)
     assert isinstance(lines[0], str)
 

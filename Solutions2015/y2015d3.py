@@ -7,9 +7,14 @@ from AOC_Lib.Geometry.PointTransforms import Direction2, DirectionsCharset_T
 
 
 class Santa:
+    """Represents the Santa used in y2015d3"""
 
     def __init__(self, start_position: DiscretePoint2 = DiscretePoint2(0, 0)) -> None:
+
+        # Current Position
         self._pos: DiscretePoint2 = start_position
+
+        # Set of positions that are visited
         self._visited: set[DiscretePoint2] = set()
         self._visited.add(start_position)
 

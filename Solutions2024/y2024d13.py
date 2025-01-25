@@ -127,7 +127,7 @@ def _assert_sample_passes():
 Button B: X+22, Y+67
 Prize: X=8400, Y=5400
 """.splitlines()
-    
+
     t = tuple(s1)
     assert len(t) == 3
 

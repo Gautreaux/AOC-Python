@@ -17,7 +17,8 @@ def generateSurroundingPositions(
 ) -> Generator[TYPE_POSITION, None, None]:
     """Dimension unaware generate all neighbors of the position"""
     transforms = (-1, 0, 1)
-    packed = [transforms] * len(position)  # need to transform for each dimension
+    # need to transform for each dimension
+    packed = [transforms] * len(position)
     # number of zeros equal to dimension size
     allZeros = tuple(([0] * len(position)))
     for permutation in itertools.product(*packed):
