@@ -4,7 +4,7 @@ from AOC_Lib.SolutionBase import DateCode
 from .SolutionLoader import date_code_to_solution_file_path
 
 
-TEMPLATE_FILE_PATH = "Templates/template.pyt"
+TEMPLATE_FILE_PATH = "Runner/Templates/template.pyt"
 
 
 def _template_common(date_code) -> str:
