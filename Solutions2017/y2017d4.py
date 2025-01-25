@@ -7,8 +7,9 @@ from typing import Counter
 class BreakContinue(Exception):
     pass
 
-def y2017d4(inputPath = None):
-    if(inputPath == None):
+
+def y2017d4(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d4.txt"
     print("2017 day 4:")
 
@@ -20,7 +21,6 @@ def y2017d4(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
 
     # for multi line inputs
     Part_1_Answer = 0
@@ -46,6 +46,5 @@ def y2017d4(inputPath = None):
             Part_2_Answer += 1
         except BreakContinue:
             continue
-                
 
     return (Part_1_Answer, Part_2_Answer)

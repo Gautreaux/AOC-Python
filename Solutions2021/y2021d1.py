@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2021d1(inputPath = None):
-    if(inputPath == None):
+
+def y2021d1(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d1.txt"
     print("2021 day 1:")
 
@@ -15,12 +16,11 @@ def y2021d1(inputPath = None):
             lineList.append(line)
 
     i_list = list(map(int, lineList))
-    
+
     itr = iter(i_list)
     next(itr)
 
     Part_1_Answer = len(list(filter(lambda x: x[0] < x[1], zip(i_list, itr))))
-
 
     itr = iter(i_list)
     next(itr)

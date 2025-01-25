@@ -2,14 +2,14 @@ import itertools
 from AOC_Lib.DisjointSets import DisjointSets
 
 
-def manhattanDistance(a:tuple[int, ...], b:tuple[int, ...]) -> int:
+def manhattanDistance(a: tuple[int, ...], b: tuple[int, ...]) -> int:
     """Get the manhattan distance between points"""
-    assert(len(a) == len(b))
-    return sum(map(lambda x,y: abs(x-y), a, b))
+    assert len(a) == len(b)
+    return sum(map(lambda x, y: abs(x - y), a, b))
 
 
-def y2018d25(inputPath = None):
-    if(inputPath == None):
+def y2018d25(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d25.txt"
     print("2018 day 25:")
 
@@ -21,7 +21,7 @@ def y2018d25(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     all_points = []
 
     for line in lineList:
@@ -32,9 +32,9 @@ def y2018d25(inputPath = None):
 
     sets = DisjointSets(initial=all_points, allow_insert=False)
 
-    for a,b in itertools.combinations(all_points, r=2):
-        if manhattanDistance(a,b) <= 3:
-            sets.union(a,b)
+    for a, b in itertools.combinations(all_points, r=2):
+        if manhattanDistance(a, b) <= 3:
+            sets.union(a, b)
 
     Part_1_Answer = len(sets)
 

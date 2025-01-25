@@ -8,7 +8,7 @@ def runProgram(instructions, registers):
     while program_counter >= 0 and program_counter < len(instructions):
         inst, arg1, arg2 = instructions[program_counter]
         if inst == "hlf":
-            assert(registers[arg1] % 2 == 0)
+            assert registers[arg1] % 2 == 0
             registers[arg1] /= 2
             program_counter += 1
             continue
@@ -37,12 +37,12 @@ def runProgram(instructions, registers):
             continue
         else:
             raise ValueError(f"Unknown Instruction: {inst}")
-    
+
     return registers
 
 
-def y2015d23(inputPath = None):
-    if(inputPath == None):
+def y2015d23(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d23.txt"
     print("2015 day 23:")
 
@@ -54,7 +54,7 @@ def y2015d23(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     instructions = []
 
     for line in lineList:
@@ -67,7 +67,7 @@ def y2015d23(inputPath = None):
         if len(tokens) == 2:
             tokens.append(None)
         instructions.append(tuple(tokens))
-            
-    Part_1_Answer = runProgram(instructions, {"a": 0, "b":0})["b"]
-    Part_2_Answer = runProgram(instructions, {"a": 1, "b":0})["b"]
+
+    Part_1_Answer = runProgram(instructions, {"a": 0, "b": 0})["b"]
+    Part_2_Answer = runProgram(instructions, {"a": 1, "b": 0})["b"]
     return (Part_1_Answer, Part_2_Answer)

@@ -2,8 +2,9 @@
 import itertools
 from collections import defaultdict
 
-def y2021d5(inputPath = None):
-    if(inputPath == None):
+
+def y2021d5(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d5.txt"
     print("2021 day 5:")
 
@@ -15,15 +16,15 @@ def y2021d5(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     starts = []
     ends = []
 
     for l in lineList:
-        s,_,e = l.partition(" -> ")
-        a,b = s.split(",")
+        s, _, e = l.partition(" -> ")
+        a, b = s.split(",")
         starts.append((int(a), int(b)))
-        a,b = e.split(",")
+        a, b = e.split(",")
         ends.append((int(a), int(b)))
 
     # min_x = min(map(lambda x: x[0], itertools.chain(starts, ends)))
@@ -45,7 +46,7 @@ def y2021d5(inputPath = None):
         else:
             pass
 
-    Part_1_Answer = sum(map(lambda x: 1 if x >=2 else 0, counter.values()))
+    Part_1_Answer = sum(map(lambda x: 1 if x >= 2 else 0, counter.values()))
 
     for start, end in zip(starts, ends):
         if abs(start[0] - end[0]) == abs(start[1] - end[1]):
@@ -56,7 +57,7 @@ def y2021d5(inputPath = None):
             is_down = s[1] > e[1]
 
             if is_down:
-                itr = range(s[1], e[1] -1, -1)
+                itr = range(s[1], e[1] - 1, -1)
             else:
                 itr = range(s[1], e[1] + 1)
 
@@ -67,6 +68,6 @@ def y2021d5(inputPath = None):
         else:
             pass
 
-    Part_2_Answer = sum(map(lambda x: 1 if x >=2 else 0, counter.values()))
+    Part_2_Answer = sum(map(lambda x: 1 if x >= 2 else 0, counter.values()))
 
     return (Part_1_Answer, Part_2_Answer)

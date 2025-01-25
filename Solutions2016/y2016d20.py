@@ -3,20 +3,20 @@
 import itertools
 
 
-IP_RANGE_T = tuple[int,int]
+IP_RANGE_T = tuple[int, int]
 
 
-def is_in_range(a:int, r:IP_RANGE_T) -> bool:
+def is_in_range(a: int, r: IP_RANGE_T) -> bool:
     """Return True iff `a` is in the range `r`"""
-    return ((a >= r[0]) and (a <= r[1]))
+    return (a >= r[0]) and (a <= r[1])
 
 
 def do_ranges_intersect(a: IP_RANGE_T, b: IP_RANGE_T) -> bool:
     """Return True iff these ranges intersect"""
 
-    if is_in_range(a[0],b):
+    if is_in_range(a[0], b):
         return True
-    elif is_in_range(a[1],b):
+    elif is_in_range(a[1], b):
         return True
     elif is_in_range(b[0], a):
         return True
@@ -25,7 +25,7 @@ def do_ranges_intersect(a: IP_RANGE_T, b: IP_RANGE_T) -> bool:
     return False
 
 
-def update_ranges(new_range:IP_RANGE_T, all_range:set[IP_RANGE_T]) -> None:
+def update_ranges(new_range: IP_RANGE_T, all_range: set[IP_RANGE_T]) -> None:
     """Update all_range to reflect addition of new_range"""
 
     impacted_ranges = []
@@ -46,11 +46,11 @@ def update_ranges(new_range:IP_RANGE_T, all_range:set[IP_RANGE_T]) -> None:
     for r in impacted_ranges:
         all_range.remove(r)
 
-    all_range.add((m,x))
- 
+    all_range.add((m, x))
 
-def y2016d20(inputPath = None):
-    if(inputPath == None):
+
+def y2016d20(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d20.txt"
     print("2016 day 20:")
 
@@ -66,8 +66,8 @@ def y2016d20(inputPath = None):
     ranges = []
 
     for l in lineList:
-        s,e = l.split("-")
-        assert(int(s) <= int(e))
+        s, e = l.split("-")
+        assert int(s) <= int(e)
         ranges.append((int(s), int(e)))
 
     print(f"Raw input contains: {len(ranges)} ranges")
@@ -82,7 +82,6 @@ def y2016d20(inputPath = None):
     l = list(reduced_ranges)
     l.sort()
     print(f"Reduced input contains {len(reduced_ranges)} ranges: {l[:3]}...")
-
 
     # part 1
     for i in range(2**32):
@@ -103,8 +102,8 @@ def y2016d20(inputPath = None):
     t = 2**32
 
     for r in reduced_ranges:
-        n = r[1]-r[0]+1
-        t-=n
+        n = r[1] - r[0] + 1
+        t -= n
     Part_2_Answer = t
 
     return (Part_1_Answer, Part_2_Answer)

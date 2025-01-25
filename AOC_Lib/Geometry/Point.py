@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import itertools
@@ -6,8 +5,11 @@ from typing import Any, Iterator, Type, TypeVar
 from operator import add, sub
 
 
-DerivedPoint_T = TypeVar('DerivedPoint_T', bound='AbstractPoint')
-DerivedDiscretePoint_T = TypeVar('DerivedDiscretePoint_T', bound='DiscreteAbstractPoint')
+DerivedPoint_T = TypeVar("DerivedPoint_T", bound="AbstractPoint")
+DerivedDiscretePoint_T = TypeVar(
+    "DerivedDiscretePoint_T", bound="DiscreteAbstractPoint"
+)
+
 
 @abstractmethod
 class AbstractPoint(ABC):
@@ -20,7 +22,7 @@ class AbstractPoint(ABC):
 
     def origin_factory(self: DerivedPoint_T) -> DerivedPoint_T:
         """Factory to create an all-zeroed point"""
-        return self.__class__(*map(lambda x: 0, self._iter_dims())) # type: ignore
+        return self.__class__(*map(lambda x: 0, self._iter_dims()))  # type: ignore
 
     @property
     def is_origin(self) -> bool:
@@ -29,7 +31,7 @@ class AbstractPoint(ABC):
 
     def __len__(self):
         return sum(1 for _ in self._iter_dims())
-    
+
     def __str__(self) -> str:
         return "({})".format(",".join(map(str, self._iter_dims())))
 
@@ -38,11 +40,11 @@ class AbstractPoint(ABC):
 
     def __eq__(self, other) -> bool:
         assert isinstance(other, self.__class__)
-        return all(map(lambda a,b: a==b, self._iter_dims(), other._iter_dims()))
+        return all(map(lambda a, b: a == b, self._iter_dims(), other._iter_dims()))
 
     def __lt__(self, other) -> bool:
         assert isinstance(other, self.__class__)
-        for a,b in zip(self._iter_dims(), other._iter_dims()):
+        for a, b in zip(self._iter_dims(), other._iter_dims()):
             if a < b:
                 return True
             elif a > b:
@@ -60,43 +62,50 @@ class AbstractPoint(ABC):
     def dimension(self) -> int:
         """Return the dimension of this point"""
         return len(self)
-    
+
     def __add__(self: DerivedPoint_T, other: DerivedPoint_T) -> DerivedPoint_T:
-        return self.__class__(*map(add, self._iter_dims(), other._iter_dims())) # type: ignore
+        # type: ignore
+        return self.__class__(*map(add, self._iter_dims(), other._iter_dims()))
 
     def __sub__(self: DerivedPoint_T, other: DerivedPoint_T) -> DerivedPoint_T:
-        return self.__class__(*map(sub, self._iter_dims(), other._iter_dims())) # type: ignore
+        # type: ignore
+        return self.__class__(*map(sub, self._iter_dims(), other._iter_dims()))
 
     def scale(self: DerivedPoint_T, scalar: float) -> DerivedPoint_T:
-        return self.__class__(*map(lambda x: x*scalar, self._iter_dims)) # type: ignore
+        # type: ignore
+        return self.__class__(*map(lambda x: x * scalar, self._iter_dims))
 
     def norm(self: DerivedPoint_T, other: DerivedPoint_T, X: int) -> float:
         """Return the X-norm of this point and another point
-            Probably do not call this directly
+        Probably do not call this directly
         """
 
         # Slightly more efficient for 1-norm (manhattan distance)
         if X == 1:
-            return sum(map(
-                lambda a,b: abs(a-b),
-                self._iter_dims(),
-                other._iter_dims(),
-            ))
+            return sum(
+                map(
+                    lambda a, b: abs(a - b),
+                    self._iter_dims(),
+                    other._iter_dims(),
+                )
+            )
 
         return pow(
-            sum(map(
-                lambda a,b: pow(abs(a-b), X),
-                self._iter_dims(),
-                other._iter_dims(),
-            )),
-            1/X
+            sum(
+                map(
+                    lambda a, b: pow(abs(a - b), X),
+                    self._iter_dims(),
+                    other._iter_dims(),
+                )
+            ),
+            1 / X,
         )
-    
-    def distance(self, other: 'AbstractPoint') -> float:
+
+    def distance(self, other: "AbstractPoint") -> float:
         """Return the straight-line distance between this point and other point"""
         return self.norm(other, 2)
-    
-    def manhattan_distance(self, other: 'AbstractPoint') -> float:
+
+    def manhattan_distance(self, other: "AbstractPoint") -> float:
         """Return the manhattan distance between this point and other point"""
         return self.norm(other, 1)
 
@@ -109,6 +118,7 @@ class Point1(AbstractPoint):
 
     def _iter_dims(self) -> Iterator[Any]:
         yield self.x
+
 
 @dataclass(frozen=True)
 class Point2(AbstractPoint):
@@ -138,36 +148,44 @@ class Point3(AbstractPoint):
 
 class DiscreteAbstractPoint(AbstractPoint):
     """Abstract point, but discrete (integer) space"""
-    
-    # This is just type-annotating the return value as int in this case
-    def manhattan_distance(self: DerivedDiscretePoint_T, other: DerivedDiscretePoint_T) -> int:
-        return super().manhattan_distance(other) # type: ignore
 
     # This is just type-annotating the return value as int in this case
-    def scale_discrete(self: DerivedDiscretePoint_T, scalar: int) -> DerivedDiscretePoint_T:
-        return super().scale(self, scalar) # type: ignore
+    def manhattan_distance(
+        self: DerivedDiscretePoint_T, other: DerivedDiscretePoint_T
+    ) -> int:
+        return super().manhattan_distance(other)  # type: ignore
+
+    # This is just type-annotating the return value as int in this case
+    def scale_discrete(
+        self: DerivedDiscretePoint_T, scalar: int
+    ) -> DerivedDiscretePoint_T:
+        return super().scale(self, scalar)  # type: ignore
 
     # This is just type-annotating the return value as int in this case
     def __iter__(self) -> Iterator[int]:
-        return super().__iter__() # type: ignore
+        return super().__iter__()  # type: ignore
 
     def cartesian_neighbors(
-        self: DerivedDiscretePoint_T,
-        include_self: bool = False
+        self: DerivedDiscretePoint_T, include_self: bool = False
     ) -> Iterator[DerivedDiscretePoint_T]:
         """Return an iterator over the cartesian neighbors of this point"""
-        
+
         if include_self:
             yield self
 
         dim = len(self)
         for i in range(dim):
-            yield self.__class__(*map(lambda a,b: b+1 if a == i else b, range(dim), self._iter_dims())) # type: ignore
-            yield self.__class__(*map(lambda a,b: b-1 if a == i else b, range(dim), self._iter_dims())) # type: ignore
+            # type: ignore
+            yield self.__class__(
+                *map(lambda a, b: b + 1 if a == i else b, range(dim), self._iter_dims())
+            )
+            # type: ignore
+            yield self.__class__(
+                *map(lambda a, b: b - 1 if a == i else b, range(dim), self._iter_dims())
+            )
 
     def cartesian_neighbors_with_diagonals(
-        self: DerivedPoint_T,
-        include_self: bool = False
+        self: DerivedPoint_T, include_self: bool = False
     ) -> Iterator[DerivedPoint_T]:
         """Return an iterator over the cartesian neighbors of this point, with diagonals"""
 
@@ -176,8 +194,9 @@ class DiscreteAbstractPoint(AbstractPoint):
 
         for t in itertools.product(*iters):
             if all(map(lambda x: x == 0, t)) and not include_self:
-                 continue
-            yield self.__class__(*map(lambda a,b: a+b, t, self._iter_dims())) # type: ignore
+                continue
+            # type: ignore
+            yield self.__class__(*map(lambda a, b: a + b, t, self._iter_dims()))
 
 
 @dataclass(frozen=True)
@@ -191,7 +210,8 @@ class DiscretePoint1(DiscreteAbstractPoint):
         yield self.x
 
     def scale(self, scalar: float) -> Point1:
-        return Point1(self.x*scalar)
+        return Point1(self.x * scalar)
+
 
 @dataclass(frozen=True)
 class DiscretePoint2(DiscreteAbstractPoint):
@@ -206,7 +226,7 @@ class DiscretePoint2(DiscreteAbstractPoint):
         yield self.y
 
     def scale(self, scalar: float) -> Point2:
-        return Point2(self.x*scalar, self.y*scalar)
+        return Point2(self.x * scalar, self.y * scalar)
 
 
 @dataclass(frozen=True)
@@ -224,5 +244,4 @@ class DiscretePoint3(DiscreteAbstractPoint):
         yield self.z
 
     def scale(self, scalar: float) -> Point3:
-        return Point3(self.x*scalar, self.y*scalar, self.z*scalar)
-
+        return Point3(self.x * scalar, self.y * scalar, self.z * scalar)

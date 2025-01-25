@@ -7,17 +7,20 @@ from typing import Generator, Iterable
 
 from operator import mul, add
 
-Packet_T = namedtuple("Packet_T", "version_id type_id literal length_type_id sub_packets")
+Packet_T = namedtuple(
+    "Packet_T", "version_id type_id literal length_type_id sub_packets"
+)
 
 type_reductions = {
-    0 : add,
-    1 : mul,
-    2 : min,
-    3 : max,
-    5 : lambda x,y: 1 if x > y else 0,
-    6 : lambda x,y: 1 if x < y else 0,
-    7 : lambda x,y: 1 if x == y else 0
+    0: add,
+    1: mul,
+    2: min,
+    3: max,
+    5: lambda x, y: 1 if x > y else 0,
+    6: lambda x, y: 1 if x < y else 0,
+    7: lambda x, y: 1 if x == y else 0,
 }
+
 
 def asBitData(s: str) -> Iterable[int]:
     for c in s:
@@ -26,12 +29,12 @@ def asBitData(s: str) -> Iterable[int]:
             yield int(b)
 
 
-def parseNBitValue(i: Iterable[int], n:int) -> int:
+def parseNBitValue(i: Iterable[int], n: int) -> int:
     """Parse an n-bit value"""
     c = 0
     for _ in range(n):
         a = next(i)
-        c = (c<<1) + a
+        c = (c << 1) + a
     return c
 
 
@@ -40,8 +43,8 @@ def parseLiteral(i: Iterable[int]) -> int:
     c = 0
     while True:
         a = next(i)
-        v = parseNBitValue(i,4)
-        c = (c<<4) + v
+        v = parseNBitValue(i, 4)
+        c = (c << 4) + v
 
         if a == 0:
             break
@@ -71,7 +74,7 @@ def parsePacket(i: Iterable[int]) -> Packet_T:
 
             for _ in range(number_sub):
                 sub_packets.append(parsePacket(i))
-    
+
     return Packet_T(
         version_id=version_id,
         type_id=type_id,
@@ -81,7 +84,7 @@ def parsePacket(i: Iterable[int]) -> Packet_T:
     )
 
 
-def parseAllPackets(i : Iterable[int]) -> Generator[Packet_T, None, None]:
+def parseAllPackets(i: Iterable[int]) -> Generator[Packet_T, None, None]:
     """Parse Packets from the iterable until exhausted"""
     while True:
         try:
@@ -103,16 +106,16 @@ def PreorderTraversal(p: Packet_T) -> Generator[Packet_T, None, None]:
 
 def evaluatePacket(p: Packet_T) -> int:
     """Return the value of iterating the packet tree"""
-    
+
     if p.type_id == 4:
         return p.literal
-    
+
     sub_values = map(evaluatePacket, p.sub_packets)
     return functools.reduce(type_reductions[p.type_id], sub_values)
-    
 
-def y2021d16(inputPath = None):
-    if(inputPath == None):
+
+def y2021d16(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d16.txt"
     print("2021 day 16:")
 
@@ -124,11 +127,11 @@ def y2021d16(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
-    assert(len(lineList) == 1)
+
+    assert len(lineList) == 1
 
     # Some tests:
-    assert(parseLiteral(map(int, "101111111000101")) == 2021)
+    assert parseLiteral(map(int, "101111111000101")) == 2021
 
     _more_tests = {
         "C200B40A82": 3,
@@ -141,12 +144,12 @@ def y2021d16(inputPath = None):
         "9C0141080250320F1802104A08": 1,
     }
 
-    for k,v in _more_tests.items():
+    for k, v in _more_tests.items():
         p = parsePacket(asBitData(k))
         e = evaluatePacket(p)
         if e != v:
             print(f"In packet `{k}` expected `{v}` but got `{e}`")
-        assert(e == v)
+        assert e == v
 
     # And now our regularly scheduled programming
 

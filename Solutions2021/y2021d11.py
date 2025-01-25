@@ -4,6 +4,7 @@ from copy import deepcopy
 from collections import deque
 import itertools
 
+
 def generatePossibleNeighbors(row_id, col_id):
     for o1 in [-1, 0, 1]:
         for o2 in [-1, 0, 1]:
@@ -16,8 +17,9 @@ def generatePossibleNeighbors(row_id, col_id):
                 continue
             yield a
 
-def y2021d11(inputPath = None):
-    if(inputPath == None):
+
+def y2021d11(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d11.txt"
     print("2021 day 11:")
 
@@ -29,7 +31,7 @@ def y2021d11(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     octopus_map = []
     flash_map_false = []
     for line in lineList:
@@ -52,7 +54,7 @@ def y2021d11(inputPath = None):
                     flash_q.append((row_id, col_id))
 
         flash_set = []
-        
+
         while len(flash_q) > 0:
             this_r, this_c = flash_q.popleft()
 

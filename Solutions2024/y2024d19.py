@@ -2,10 +2,11 @@
 from typing import Iterator
 from itertools import chain
 
+
 class LinenLayout:
     def __init__(self, options: Iterator[str]):
         self.components: set[str] = set(options)
-        self.solutions: dict[str, tuple[str, ...]] = {k:(k,) for k in self.components}
+        self.solutions: dict[str, tuple[str, ...]] = {k: (k,) for k in self.components}
         self.pending: set[str] = set()
         # assert all(len(c) >= 2 for c in self.components)
         self._prefix_lut: dict[str, list[str]] = self._build_prefix_lut()
@@ -48,10 +49,10 @@ class LinenLayout:
 
         for opt in self._prefix_lut.get(pattern[:2], []):
             if opt == pattern:
-                return (opt, )
+                return (opt,)
             if not pattern.startswith(opt):
                 continue
-            rhs_remainder = pattern[len(opt):]
+            rhs_remainder = pattern[len(opt) :]
             if not rhs_remainder:
                 continue
             rhs_sol = self.get_solution(rhs_remainder)
@@ -60,10 +61,10 @@ class LinenLayout:
 
         for opt in self._postfix_lut.get(pattern[-2:], []):
             if opt == pattern:
-                return (opt, )
+                return (opt,)
             if not pattern.endswith(opt):
                 continue
-            lhs_remainder = pattern[:len(opt)]
+            lhs_remainder = pattern[: len(opt)]
             if not lhs_remainder:
                 continue
             lhs_sol = self.get_solution(lhs_remainder)
@@ -72,23 +73,25 @@ class LinenLayout:
 
         return None
 
+
 def _assert_sample_passes():
-    sample_compoenents = 'r, wr, b, g, bwu, rb, gb, br'.replace(',', '').split()
+    sample_compoenents = "r, wr, b, g, bwu, rb, gb, br".replace(",", "").split()
     linen = LinenLayout(sample_compoenents)
 
-    sol = linen.get_solution('brwrr')
+    sol = linen.get_solution("brwrr")
     assert sol is not None
-    assert ''.join(sol) == 'brwrr'
+    assert "".join(sol) == "brwrr"
 
-    assert linen.get_solution('bggr') # is not none
-    assert linen.get_solution('gbbr') # is not none
-    assert linen.get_solution('ubwu') is None
-    assert linen.get_solution('bwurrg') # is not none
-    assert linen.get_solution('brgr') # is not none
-    assert linen.get_solution('bbrgwb') is None
+    assert linen.get_solution("bggr")  # is not none
+    assert linen.get_solution("gbbr")  # is not none
+    assert linen.get_solution("ubwu") is None
+    assert linen.get_solution("bwurrg")  # is not none
+    assert linen.get_solution("brgr")  # is not none
+    assert linen.get_solution("bbrgwb") is None
 
-def y2024d19(inputPath = None):
-    if(inputPath == None):
+
+def y2024d19(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2024/d19.txt"
     print("2024 day 19:")
 
@@ -102,14 +105,14 @@ def y2024d19(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
-    options = lineList[0].replace(',', '').split()
-    
+
+    options = lineList[0].replace(",", "").split()
+
     layout = LinenLayout(options)
 
     Part_1_Answer = 0
-    for i,p in enumerate(lineList[2:]):
-        print('i =', i)
+    for i, p in enumerate(lineList[2:]):
+        print("i =", i)
         sol = layout.get_solution(p)
         if sol:
             Part_1_Answer += 1

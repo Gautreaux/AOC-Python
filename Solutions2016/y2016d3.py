@@ -1,16 +1,18 @@
 # from AOC_Lib.name import *
 
+
 def isTriangle(a, b, c) -> bool:
     if a + b <= c:
         return False
     if b + c <= a:
         return False
-    if a +c <= b:
+    if a + c <= b:
         return False
     return True
 
-def y2016d3(inputPath = None):
-    if(inputPath == None):
+
+def y2016d3(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d3.txt"
     print("2016 day 3:")
 
@@ -30,11 +32,12 @@ def y2016d3(inputPath = None):
 
     Part_2_Answer = 0
 
-    assert(len(linesList) % 3 == 0)
-    for i in range(len(linesList)//3):
+    assert len(linesList) % 3 == 0
+    for i in range(len(linesList) // 3):
         for j in range(3):
-            if isTriangle(linesList[i*3][j], linesList[i*3+1][j], linesList[i*3+2][j]):
+            if isTriangle(
+                linesList[i * 3][j], linesList[i * 3 + 1][j], linesList[i * 3 + 2][j]
+            ):
                 Part_2_Answer += 1
-        
-        
+
     return (Part_1_Answer, Part_2_Answer)

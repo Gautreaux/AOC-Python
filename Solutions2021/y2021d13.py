@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2021d13(inputPath = None):
-    if(inputPath == None):
+
+def y2021d13(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d13.txt"
     print("2021 day 13:")
 
@@ -22,18 +23,18 @@ def y2021d13(inputPath = None):
     for line in itr:
         if not line:
             break
-        a,_,b = line.partition(",")
+        a, _, b = line.partition(",")
         dots.add((int(a), int(b)))
-    
+
     folds = []
     for line in itr:
-        _,_,s = line.split(" ")
-        dim,_,val = s.partition("=")
+        _, _, s = line.split(" ")
+        dim, _, val = s.partition("=")
         folds.append((dim, int(val)))
 
-    for dim,val in folds:
+    for dim, val in folds:
         new_dots = set()
-        for x,y in dots:
+        for x, y in dots:
             if dim == "x":
                 new_x = val - abs(x - val)
                 new_dots.add((new_x, y))
@@ -53,9 +54,9 @@ def y2021d13(inputPath = None):
     min_y = min(map(lambda x: x[1], dots))
     max_y = max(map(lambda x: x[1], dots))
 
-    for y in range(min_y, max_y+1):
-        for x in range(min_x, max_x+1):
-            if (x,y) in dots:
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            if (x, y) in dots:
                 print("█", end="")
             else:
                 print(" ", end="")
@@ -63,6 +64,5 @@ def y2021d13(inputPath = None):
 
     # TODO - some form of text resolver
     Part_2_Answer = "PGHRKLKL"
-
 
     return (Part_1_Answer, Part_2_Answer)

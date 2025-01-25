@@ -14,8 +14,9 @@ def getLenTimesFromGenerator(gen):
             expansionInternals.append(c)
     expansionInternals = "".join(expansionInternals)
     s = expansionInternals.split("x")
-    assert(len(s) == 2)
+    assert len(s) == 2
     return tuple(map(int, s))
+
 
 def doExpansion(line):
     def characterGenerator():
@@ -31,10 +32,10 @@ def doExpansion(line):
         except StopIteration:
             # no more characters in the line
             return "".join(newLine)
-        if n != "(": # ) <- to make the formatter happy
+        if n != "(":  # ) <- to make the formatter happy
             newLine.append(n)
             continue
-        
+
         # time to process an expansion
         numChars, numTimes = getLenTimesFromGenerator(charGen)
         expansionStr = []
@@ -44,6 +45,7 @@ def doExpansion(line):
         for _ in range(numTimes):
             newLine.append(expansionStr)
 
+
 def limitedGenerator(length, baseGenerator):
     for _ in range(length):
         yield next(baseGenerator)
@@ -52,10 +54,10 @@ def limitedGenerator(length, baseGenerator):
 def getExpandedLen(charGen) -> int:
     partial = 0
     for c in charGen:
-        if c != '(':  # ) <= to make the formatter happy
+        if c != "(":  # ) <= to make the formatter happy
             partial += 1
             continue
-        
+
         # do the actual expansion
         numChars, numTimes = getLenTimesFromGenerator(charGen)
         newGen = limitedGenerator(numChars, charGen)
@@ -64,8 +66,8 @@ def getExpandedLen(charGen) -> int:
     return partial
 
 
-def y2016d9(inputPath = None):
-    if(inputPath == None):
+def y2016d9(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d9.txt"
     print("2016 day 9:")
 
@@ -77,11 +79,13 @@ def y2016d9(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     Part_1_Answer = len(doExpansion(lineList[-1]))
+
     def lineGen():
         for c in lineList[-1]:
             yield c
+
     Part_2_Answer = getExpandedLen(lineGen())
 
     return (Part_1_Answer, Part_2_Answer)

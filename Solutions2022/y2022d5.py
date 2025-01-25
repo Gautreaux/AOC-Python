@@ -1,4 +1,3 @@
-
 from copy import deepcopy
 from dataclasses import dataclass, field
 import itertools
@@ -15,16 +14,17 @@ class LiftOperation:
     source: int
     destination: int
 
+
 class Solution_2022_05(SolutionBase):
     """https://adventofcode.com/2022/day/5"""
 
     def __post_init__(self):
         """Runs Once After `__init__`"""
-        
+
         def parser(l: str):
             i = iter(l)
             try:
-                while True:    
+                while True:
                     next(i)
                     yield next(i)
                     next(i)
@@ -34,14 +34,16 @@ class Solution_2022_05(SolutionBase):
 
         columns: list[list[str]] = []
 
-        start_lines = list(itertools.takewhile(
-            lambda x: x.strip() != '',
-            self.input_str_list(include_empty_lines=True, strip=False)
-        ))[:-1]
+        start_lines = list(
+            itertools.takewhile(
+                lambda x: x.strip() != "",
+                self.input_str_list(include_empty_lines=True, strip=False),
+            )
+        )[:-1]
 
         for parsed_tokens in map(parser, start_lines):
             for colum_no, token in enumerate(parsed_tokens, start=1):
-                if token == ' ':
+                if token == " ":
                     continue
 
                 # Size is dynamic to last specified column
@@ -54,21 +56,24 @@ class Solution_2022_05(SolutionBase):
 
         self.start_columns: list[list[str]] = columns
 
-        end_lines = list(itertools.dropwhile(
-            lambda x: x.strip() != "",
-            self.input_str_list(include_empty_lines=True) 
-        ))[1:-1]
+        end_lines = list(
+            itertools.dropwhile(
+                lambda x: x.strip() != "", self.input_str_list(include_empty_lines=True)
+            )
+        )[1:-1]
 
         self.operations: list[LiftOperation] = []
 
         for instr in end_lines:
             _, qty, __, source, ___, dest = instr.split(" ")
 
-            self.operations.append(LiftOperation(
-                quantity=int(qty),
-                source=int(source),
-                destination=int(dest),
-            ))
+            self.operations.append(
+                LiftOperation(
+                    quantity=int(qty),
+                    source=int(source),
+                    destination=int(dest),
+                )
+            )
 
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""

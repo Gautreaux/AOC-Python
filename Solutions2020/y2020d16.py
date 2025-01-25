@@ -2,8 +2,9 @@
 import itertools
 from copy import deepcopy
 
-def y2020d16(inputPath = None):
-    if(inputPath == None):
+
+def y2020d16(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d16.txt"
     print("2020 day 16:")
 
@@ -16,12 +17,12 @@ def y2020d16(inputPath = None):
             line = line.strip()
             lineList.append(line)
 
-    type1Lines = [] # all lines that are defining names
-    myTicket = None # the line of my ticket
-    nearby = [] # the lines in the nearby category
-    
+    type1Lines = []  # all lines that are defining names
+    myTicket = None  # the line of my ticket
+    nearby = []  # the lines in the nearby category
+
     for l in lineList:
-        
+
         if l in ["", "your ticket:", "nearby tickets:"]:
             continue
         i = l.find("or")
@@ -40,7 +41,7 @@ def y2020d16(inputPath = None):
     fields = {}
 
     def splitInt(s):
-        '''Split the range into its int componenets'''
+        """Split the range into its int componenets"""
         s = s.strip()
         k = s.split("-")
         return (int(k[0]), int(k[1]))
@@ -59,8 +60,8 @@ def y2020d16(inputPath = None):
             # print(e)
             yield int(e)
 
-
     cache = {}
+
     def inSomeRange(i):
         """Return True if i is in any of the ranges. Cached."""
         if i in cache:
@@ -71,11 +72,11 @@ def y2020d16(inputPath = None):
                 if i <= r[1] and i >= r[0]:
                     cache[i] = True
                     return True
-        
+
         cache[i] = False
         return False
 
-    validNearby = [] # the tickets that are in nearby and valid
+    validNearby = []  # the tickets that are in nearby and valid
     errorRate = 0
 
     # part 1 - caluclating the error rate
@@ -91,7 +92,7 @@ def y2020d16(inputPath = None):
 
     Part_1_Answer = errorRate
 
-    assert(Part_1_Answer != 4712)
+    assert Part_1_Answer != 4712
 
     # part 2
 
@@ -101,8 +102,7 @@ def y2020d16(inputPath = None):
     keys.sort()
     mapping = range(len(keys))
 
-    assert(len(keys) == sum(map(lambda x: 1, numberGen(myTicket))))
-
+    assert len(keys) == sum(map(lambda x: 1, numberGen(myTicket)))
 
     # repack the nearby numbers into a 2d array
     allFields = []
@@ -113,17 +113,17 @@ def y2020d16(inputPath = None):
         allFields.append(thisone)
 
     def getAllValuesInColumn(colNo):
-        """"Generator for all values in a given column"""
+        """ "Generator for all values in a given column"""
         for ii in allFields:
             yield ii[colNo]
 
     def isNameOKForColumn(colName, colNo):
-        """"Return true iff the name is acceptable for the number"""
+        """ "Return true iff the name is acceptable for the number"""
         rSet = fields[colName]
         for v in getAllValuesInColumn(colNo):
             ok = False
             for r in rSet:
-                if ( v >= r[0] and v <= r[1]):
+                if v >= r[0] and v <= r[1]:
                     ok = True
             if ok is False:
                 return False
@@ -143,16 +143,17 @@ def y2020d16(inputPath = None):
 
     class breakContinue(Exception):
         pass
+
     # something - to break up the linter
-    
-    knownNameMappings = {} # mapping of know names to columns
+
+    knownNameMappings = {}  # mapping of know names to columns
 
     # the names needed before part two can be answered
     needednames = [f for f in fields if f.find("departure") == 0]
 
     while len(needednames) != 0:
         l = list(map(len, colNameMapping.values()))
-        #print(f"Number Name Possible: {l}")
+        # print(f"Number Name Possible: {l}")
         if 1 in l:
             # the obvious mapping can be completed
             i = l.index(1)
@@ -160,7 +161,7 @@ def y2020d16(inputPath = None):
 
             if n in needednames:
                 needednames.remove(n)
-            
+
             knownNameMappings[n] = i
 
             for k in colNameMapping:
@@ -172,7 +173,7 @@ def y2020d16(inputPath = None):
             print("IDK what to do now that no obvious choice exists")
             print("Probably do an all pairs generation?")
             raise RuntimeError()
-    
+
     needednames = [f for f in fields if f.find("departure") == 0]
     myNumbers = list(numberGen(myTicket))
 

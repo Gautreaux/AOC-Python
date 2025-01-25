@@ -1,7 +1,8 @@
 import threading
 
-class ThreadedProducerConsumer():
-# "A thread safe producer comsumer"   
+
+class ThreadedProducerConsumer:
+    # "A thread safe producer comsumer"
     def __init__(self):
         self.lock = threading.Lock()
         self.producerSemaphore = threading.Semaphore(0)
@@ -22,17 +23,17 @@ class ThreadedProducerConsumer():
             # self.insertHistory.append(value)
         finally:
             self.lock.release()
-    
+
     def remove(self):
         self.lock.acquire()
-        if(len(self.q) == 0):
-            self.waitingToRemove+=1
+        if len(self.q) == 0:
+            self.waitingToRemove += 1
             self.lock.release()
             self.producerSemaphore.acquire()
             self.lock.acquire()
-            self.waitingToRemove-=1
+            self.waitingToRemove -= 1
         else:
-            #just record keeping, we know it will pass
+            # just record keeping, we know it will pass
             self.producerSemaphore.acquire()
         try:
             t = self.q[0]
@@ -41,6 +42,7 @@ class ThreadedProducerConsumer():
             self.lock.release()
         return t
 
-#TODO - magic functions
+
+# TODO - magic functions
 #   str
 #   repr

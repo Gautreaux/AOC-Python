@@ -11,35 +11,44 @@ INACTIVE = 0
 TYPE_POSITION = Tuple[int, ...]
 TYPE_STATE = Dict[TYPE_POSITION, int]
 
-def generateSurroundingPositions(position : TYPE_POSITION) -> Generator[TYPE_POSITION, None, None]:
+
+def generateSurroundingPositions(
+    position: TYPE_POSITION,
+) -> Generator[TYPE_POSITION, None, None]:
     """Dimension unaware generate all neighbors of the position"""
-    transforms = (-1,0,1)
-    packed = [transforms]*len(position) # need to transform for each dimension
-    allZeros = tuple(([0]*len(position))) # number of zeros equal to dimension size
+    transforms = (-1, 0, 1)
+    packed = [transforms] * len(position)  # need to transform for each dimension
+    # number of zeros equal to dimension size
+    allZeros = tuple(([0] * len(position)))
     for permutation in itertools.product(*packed):
         if permutation == allZeros:
             continue
         else:
-            yield tuple(map(lambda x,y: x+y, position, permutation))
+            yield tuple(map(lambda x, y: x + y, position, permutation))
 
 
-def safeGetPosition(state : TYPE_STATE, position : TYPE_POSITION) -> int:
+def safeGetPosition(state: TYPE_STATE, position: TYPE_POSITION) -> int:
     """Get position, defaulting to INACTIVE if not present"""
     try:
         return state[position]
     except KeyError:
         return INACTIVE
 
-def getSurroundingSum(state : TYPE_STATE, position : TYPE_POSITION) -> int:
-    """Get the sum of all states surrounding the position"""
-    return sum(map(lambda t: safeGetPosition(state, t), generateSurroundingPositions(position)))
 
-def getDimMinMax(state, dim : int) -> Tuple[int, int]:
+def getSurroundingSum(state: TYPE_STATE, position: TYPE_POSITION) -> int:
+    """Get the sum of all states surrounding the position"""
+    return sum(
+        map(lambda t: safeGetPosition(state, t), generateSurroundingPositions(position))
+    )
+
+
+def getDimMinMax(state, dim: int) -> Tuple[int, int]:
     """Get the tuple(min, max) for the dimension"""
     l = list(map(lambda x: x[dim], state.keys()))
     return (min(l), max(l))
 
-def genAllStatePositions(state : TYPE_STATE) -> Generator[TYPE_POSITION, None, None]:
+
+def genAllStatePositions(state: TYPE_STATE) -> Generator[TYPE_POSITION, None, None]:
     """Generate all possible positions from the given state"""
 
     # reworking how all-states are generated
@@ -47,14 +56,17 @@ def genAllStatePositions(state : TYPE_STATE) -> Generator[TYPE_POSITION, None, N
     #   not convinced it is
 
     s = set()
-    for p in itertools.chain(state.keys(), *(map(lambda x: generateSurroundingPositions(x), state))):
+    for p in itertools.chain(
+        state.keys(), *(map(lambda x: generateSurroundingPositions(x), state))
+    ):
         if p in s:
             continue
         s.add(p)
         yield p
 
-def runBoot(inState : TYPE_STATE) -> int:
-    '''run the 6-cycle boot sequence for this state'''
+
+def runBoot(inState: TYPE_STATE) -> int:
+    """run the 6-cycle boot sequence for this state"""
     oldState = deepcopy(inState)
     for _ in range(6):
         newState = {}
@@ -62,7 +74,7 @@ def runBoot(inState : TYPE_STATE) -> int:
             s = getSurroundingSum(oldState, position)
             nowValue = safeGetPosition(oldState, position)
             if nowValue == ACTIVE:
-                if s in [2,3]:
+                if s in [2, 3]:
                     newState[position] = ACTIVE
             else:
                 if s == 3:
@@ -71,8 +83,8 @@ def runBoot(inState : TYPE_STATE) -> int:
     return sum(map(lambda x: 1 if x == ACTIVE else 0, oldState.values()))
 
 
-def y2020d17(inputPath = None):
-    if(inputPath == None):
+def y2020d17(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d17.txt"
     print("2020 day 17:")
 
@@ -84,7 +96,7 @@ def y2020d17(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     # debugging
     # lineList = [".#.",
     #             "..#",
@@ -96,19 +108,20 @@ def y2020d17(inputPath = None):
     # for multi line inputs
     for y in range(len(lineList)):
         for x in range(len(lineList[y])):
-            conwayCube[(x,y,0)] = (ACTIVE if lineList[y][x] == '#' else INACTIVE)
-            conwayHyperCube[(x,y,0,0)] = (ACTIVE if lineList[y][x] == '#' else INACTIVE)
+            conwayCube[(x, y, 0)] = ACTIVE if lineList[y][x] == "#" else INACTIVE
+            conwayHyperCube[(x, y, 0, 0)] = (
+                ACTIVE if lineList[y][x] == "#" else INACTIVE
+            )
 
     # for t in generateSurroundingStates(4,1,0):
     #     print(t)
 
     # print(getSurroundingSum(myState, 0,0,0))
-    # print(getSurroundingSum(myState, 1,4,0))    
-
+    # print(getSurroundingSum(myState, 1,4,0))
 
     Part_1_Answer = runBoot(conwayCube)
     Part_2_Answer = runBoot(conwayHyperCube)
 
-    assert(Part_1_Answer != 88)
+    assert Part_1_Answer != 88
 
     return (Part_1_Answer, Part_2_Answer)

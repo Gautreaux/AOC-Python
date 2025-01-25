@@ -13,9 +13,9 @@ def dealIntoNewStack(deck: Deck_T) -> Deck_T:
     return reversed(l)
 
 
-def _cutNegN(deck:Deck_T, n:int) -> Deck_T:
+def _cutNegN(deck: Deck_T, n: int) -> Deck_T:
     """Handler for when n < 0"""
-    assert(n < 0)
+    assert n < 0
     l = list(deck)
     return itertools.chain(l[n:], l[:n])
 
@@ -26,7 +26,7 @@ def cutN(deck: Deck_T, n: int) -> Deck_T:
         return deck
     if n < 0:
         return _cutNegN(deck, n)
-    
+
     l = list(itertools.islice(deck, n))
     return itertools.chain(deck, l)
 
@@ -35,8 +35,8 @@ def dealWithIncrementN(deck: Deck_T, n: int) -> Deck_T:
     """Deal with the increment n"""
     old = list(zip(deck, itertools.count(0, n)))
     l = len(old)
-    assert(l != 0)
-    old.sort(key=(lambda x: x[1]%l))
+    assert l != 0
+    old.sort(key=(lambda x: x[1] % l))
     return map(lambda x: x[0], old)
 
 
@@ -66,45 +66,57 @@ def shuffleFromFactoryOrder(num_cards: int, deals: list[str]) -> Deck_T:
 def y2019d22_tests() -> bool:
     """Run tests and return `True` iff all are passing"""
 
-    r = shuffleFromFactoryOrder(10, [
-        "deal with increment 7",
-        "deal into new stack",
-        "deal into new stack",
-    ])
-    assert(list(r) == [0,3,6,9,2,5,8,1,4,7])
+    r = shuffleFromFactoryOrder(
+        10,
+        [
+            "deal with increment 7",
+            "deal into new stack",
+            "deal into new stack",
+        ],
+    )
+    assert list(r) == [0, 3, 6, 9, 2, 5, 8, 1, 4, 7]
 
-    r = shuffleFromFactoryOrder(10, [
-        "cut 6",
-        "deal with increment 7",
-        "deal into new stack",
-    ])
-    assert(list(r) == [3,0,7,4,1,8,5,2,9,6])
+    r = shuffleFromFactoryOrder(
+        10,
+        [
+            "cut 6",
+            "deal with increment 7",
+            "deal into new stack",
+        ],
+    )
+    assert list(r) == [3, 0, 7, 4, 1, 8, 5, 2, 9, 6]
 
-    r = shuffleFromFactoryOrder(10, [
-        "deal with increment 7",
-        "deal with increment 9",
-        "cut -2",
-    ])
-    assert(list(r) == [6,3,0,7,4,1,8,5,2,9])
+    r = shuffleFromFactoryOrder(
+        10,
+        [
+            "deal with increment 7",
+            "deal with increment 9",
+            "cut -2",
+        ],
+    )
+    assert list(r) == [6, 3, 0, 7, 4, 1, 8, 5, 2, 9]
 
-    r = shuffleFromFactoryOrder(10, [
-        "deal into new stack",
-        "cut -2",
-        "deal with increment 7",
-        "cut 8",
-        "cut -4",
-        "deal with increment 7",
-        "cut 3",
-        "deal with increment 9",
-        "deal with increment 3",
-        "cut -1",
-    ])
-    assert(list(r) == [9,2,5,8,1,4,7,0,3,6])
+    r = shuffleFromFactoryOrder(
+        10,
+        [
+            "deal into new stack",
+            "cut -2",
+            "deal with increment 7",
+            "cut 8",
+            "cut -4",
+            "deal with increment 7",
+            "cut 3",
+            "deal with increment 9",
+            "deal with increment 3",
+            "cut -1",
+        ],
+    )
+    assert list(r) == [9, 2, 5, 8, 1, 4, 7, 0, 3, 6]
     return True
 
 
-def y2019d22(inputPath = None):
-    if(inputPath == None):
+def y2019d22(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2019/d22.txt"
     print("2019 day 22:")
 
@@ -117,7 +129,7 @@ def y2019d22(inputPath = None):
             line = line.strip()
             lineList.append(line)
 
-    assert(y2019d22_tests())
+    assert y2019d22_tests()
 
     deck = shuffleFromFactoryOrder(10007, lineList)
 
@@ -132,7 +144,7 @@ def y2019d22(inputPath = None):
     #       so the whole thing will be cyclic in some period
     #       so we can get it to just a remainder
     #   then rewrite the deals to take an index and size and say where
-    #       the next index is 
+    #       the next index is
     # TODO
 
     return (Part_1_Answer, Part_2_Answer)

@@ -1,4 +1,3 @@
-
 from .IntcodeLib import *
 
 import asyncio
@@ -10,23 +9,24 @@ from typing import Generator, Optional
 RobotPosition = namedtuple("RobotPosition", "x y")
 SearchState = namedtuple("SearchState", "position parent")
 
+
 @unique
 class MovementCommand(IntEnum):
-    NORTH = 1,
-    SOUTH = 2,
-    WEST = 3,
-    EAST = 4,
+    NORTH = (1,)
+    SOUTH = (2,)
+    WEST = (3,)
+    EAST = (4,)
 
     def apply(self, pos: RobotPosition) -> RobotPosition:
         """Apply this movement to position and return new position"""
         if self == MovementCommand.NORTH:
-            return RobotPosition(pos.x, pos.y+1)
+            return RobotPosition(pos.x, pos.y + 1)
         elif self == MovementCommand.SOUTH:
-            return RobotPosition(pos.x, pos.y-1)
+            return RobotPosition(pos.x, pos.y - 1)
         elif self == MovementCommand.WEST:
-            return RobotPosition(pos.x-1, pos.y)
+            return RobotPosition(pos.x - 1, pos.y)
         elif self == MovementCommand.EAST:
-            return RobotPosition(pos.x+1, pos.y)
+            return RobotPosition(pos.x + 1, pos.y)
         else:
             raise NotImplementedError(self)
 
@@ -44,12 +44,11 @@ class MovementCommand(IntEnum):
             raise NotImplementedError(self)
 
     @classmethod
-    def whatMoveAtoB(cls, 
-        start_pos: RobotPosition, 
-        end_pos: RobotPosition
+    def whatMoveAtoB(
+        cls, start_pos: RobotPosition, end_pos: RobotPosition
     ) -> Optional["MovementCommand"]:
         """Return the movement to go from start_pos to end_pos
-            or none if these are not adjacent
+        or none if these are not adjacent
         """
         for f in cls:
             if f.apply(end_pos) == start_pos:
@@ -59,33 +58,29 @@ class MovementCommand(IntEnum):
 
 @unique
 class ResponseCommand(IntEnum):
-    HIT_WALL = 0,
-    MOVED_ONE_STEP = 1,
-    MOVED_TO_O2 = 2,
+    HIT_WALL = (0,)
+    MOVED_ONE_STEP = (1,)
+    MOVED_TO_O2 = (2,)
 
 
 @unique
 class TileType(IntEnum):
-    UKN = 0,
-    CLEAR = 1,
-    O2_SYS = 2,
-    WALL = 3,
+    UKN = (0,)
+    CLEAR = (1,)
+    O2_SYS = (2,)
+    WALL = (3,)
 
     def render(self) -> str:
-        return ({
-            0 : "?",
-            1 : " ",
-            2 : "2",
-            3 : "█"
-        }[self.value])
+        return {0: "?", 1: " ", 2: "2", 3: "█"}[self.value]
 
 
 class NoPathException(Exception):
     """Raised when no path is possible"""
+
     pass
 
 
-class EnvSearchManager():
+class EnvSearchManager:
     """Stores/Manages Environment Representation"""
 
     def __init__(self, runner: IntcodeRunner) -> None:
@@ -93,26 +88,25 @@ class EnvSearchManager():
         self._loop = asyncio.get_event_loop()
         self._run_task = self._loop.create_task(self._runner.run())
 
-        self._robot_pos: RobotPosition = RobotPosition(0,0)
+        self._robot_pos: RobotPosition = RobotPosition(0, 0)
 
         self._tiles = defaultdict(lambda: TileType.UKN)
         self._tiles[self._robot_pos] = TileType.CLEAR
 
         self._goal_pos = None
 
-
-        # candidates for future exploration 
+        # candidates for future exploration
         #   effectively used like a stack to exploit locality
         self.candidates = []
 
         self._qty_clear_tiles = 0
         self._qty_wall_tiles = 0
-    
+
     @property
     def hasFoundGoal(self) -> bool:
         """Return true iff found the goal position"""
         return self._goal_pos is not None
-    
+
     @property
     def goalPosition(self) -> Optional[RobotPosition]:
         """Return the goal position"""
@@ -122,25 +116,27 @@ class EnvSearchManager():
     def currentPos(self) -> RobotPosition:
         """Return the current position"""
         return self._robot_pos
-    
+
     def getTileValue(self, position: RobotPosition) -> TileType:
         """Get the value we know is at the position"""
         return self._tiles[position]
 
     def _issueMovement(self, movement: MovementCommand) -> Optional[ResponseCommand]:
         """Issue the movement and return response code
-            Returns None if the program terminated
+        Returns None if the program terminated
         """
 
         self._runner.getInputQ().put_nowait(movement.value)
 
         wait_task = self._loop.create_task(self._runner.getIOEvent().wait())
 
-        done, pending = self._loop.run_until_complete(asyncio.wait(
-            [wait_task, self._run_task], return_when=asyncio.FIRST_COMPLETED
-        ))
+        done, pending = self._loop.run_until_complete(
+            asyncio.wait(
+                [wait_task, self._run_task], return_when=asyncio.FIRST_COMPLETED
+            )
+        )
 
-        if (wait_task in pending):
+        if wait_task in pending:
             wait_task.cancel()
 
         out_q = self._runner.getOutputQ()
@@ -157,22 +153,24 @@ class EnvSearchManager():
         respose = self._issueMovement(movement)
 
         if respose is None:
-            raise NotImplementedError("Program exited unexpectedly?: {}".format(self._runner.terminated()))
-        
+            raise NotImplementedError(
+                "Program exited unexpectedly?: {}".format(self._runner.terminated())
+            )
+
         np = movement.apply(self.currentPos)
 
         if respose == ResponseCommand.HIT_WALL:
-            assert(self._tiles[np] in [TileType.UKN, TileType.WALL])
+            assert self._tiles[np] in [TileType.UKN, TileType.WALL]
             self._tiles[np] = TileType.WALL
             self._qty_wall_tiles += 1
         elif respose == ResponseCommand.MOVED_ONE_STEP:
-            assert(self._tiles[np] in [TileType.UKN, TileType.CLEAR])
+            assert self._tiles[np] in [TileType.UKN, TileType.CLEAR]
             self._tiles[np] = TileType.CLEAR
             self._robot_pos = np
             self._qty_clear_tiles += 1
         elif respose == ResponseCommand.MOVED_TO_O2:
-            assert(self._tiles[np] in [TileType.UKN, TileType.O2_SYS])
-            assert(self.hasFoundGoal == False)
+            assert self._tiles[np] in [TileType.UKN, TileType.O2_SYS]
+            assert self.hasFoundGoal == False
             self._tiles[np] = TileType.O2_SYS
             self._goal_pos = np
             self._robot_pos = np
@@ -181,16 +179,17 @@ class EnvSearchManager():
 
         return respose
 
-    def getPath(self, 
-        start_position: RobotPosition, 
+    def getPath(
+        self,
+        start_position: RobotPosition,
         goal_positions: Iterable[RobotPosition],
     ) -> tuple[RobotPosition, Iterable[MovementCommand]]:
         """Find a set of movements to go from start position to any goal position
-            No guarantees about shortest path
-            returns tuple
-                final position
-                movements
-            optional flag to move to first ukn tile
+        No guarantees about shortest path
+        returns tuple
+            final position
+            movements
+        optional flag to move to first ukn tile
         """
         gpl = set(goal_positions)
 
@@ -203,7 +202,7 @@ class EnvSearchManager():
         parent_map: dict[RobotPosition, Optional[RobotPosition]] = {}
 
         # the found goal state
-        found_pos: Optional[SearchState] = None 
+        found_pos: Optional[SearchState] = None
 
         while (pending) and (not found_pos):
             this_state: SearchState = pending.popleft()
@@ -215,7 +214,7 @@ class EnvSearchManager():
             if this_pos in parent_map:
                 # already visited
                 continue
-            
+
             parent_map[this_pos] = this_state.parent
 
             # generate successors
@@ -227,10 +226,10 @@ class EnvSearchManager():
                 if tt not in [TileType.CLEAR, TileType.O2_SYS]:
                     continue
                 pending.append(SearchState(np, this_pos))
-        
+
         if not found_pos:
             raise NoPathException()
-        
+
         pending = []
 
         e_pos = found_pos.position
@@ -242,10 +241,9 @@ class EnvSearchManager():
             s_pos = parent_map[e_pos]
         return (found_pos.position, reversed(pending))
 
-    
     def exploreTileValue(self, target_position: RobotPosition) -> TileType:
         """Get the tile value, moving the robot to explore if necessary
-            Raises NoPathException if no neighbor of `target_position` is clear
+        Raises NoPathException if no neighbor of `target_position` is clear
         """
 
         if self.getTileValue(target_position) != TileType.UKN:
@@ -254,7 +252,9 @@ class EnvSearchManager():
         current_pos = self.currentPos
 
         out_pos_possible = map(lambda x: (x.apply(target_position)), MovementCommand)
-        out_pos_candidate = filter(lambda x: (self.getTileValue(x) == TileType.CLEAR), out_pos_possible)
+        out_pos_candidate = filter(
+            lambda x: (self.getTileValue(x) == TileType.CLEAR), out_pos_possible
+        )
 
         out_pos_candidate, b = itertools.tee(out_pos_candidate)
 
@@ -271,13 +271,13 @@ class EnvSearchManager():
         last_step = MovementCommand.whatMoveAtoB(end_pos, target_position)
 
         for op in path:
-            if(self.issueMovement(op) == ResponseCommand.HIT_WALL):   
+            if self.issueMovement(op) == ResponseCommand.HIT_WALL:
                 raise RuntimeError("Hit a wall unexpectedly")
 
-        self.issueMovement(last_step)    
+        self.issueMovement(last_step)
 
         e = self.getTileValue(target_position)
-        assert(e != TileType.UKN)
+        assert e != TileType.UKN
         return e
 
     def display(self) -> None:
@@ -288,13 +288,13 @@ class EnvSearchManager():
         max_y = max(map(lambda t: t.y, self._tiles.keys()))
 
         for y in range(max_y, min_y, -1):
-            for x in range(min_x, max_x+1):
+            for x in range(min_x, max_x + 1):
                 if x == 0 and y == 0:
                     print("S", end="")
                 elif x == self.currentPos.x and y == self.currentPos.y:
                     print("R", end="")
                 else:
-                    print(self.getTileValue(RobotPosition(x,y)).render(), end="")
+                    print(self.getTileValue(RobotPosition(x, y)).render(), end="")
             print("")
 
     def exploreNearby(self) -> None:
@@ -303,7 +303,7 @@ class EnvSearchManager():
         r_pos = self.currentPos
 
         for step_dir in MovementCommand:
-            new_pos = step_dir.apply(r_pos) 
+            new_pos = step_dir.apply(r_pos)
 
             if self.getTileValue(new_pos) == TileType.UKN:
                 self.candidates.append(new_pos)
@@ -319,16 +319,18 @@ class EnvSearchManager():
 
         while not self.hasFoundGoal:
             self.exploreNearby()
-        
+
         return self.goalPosition
-    
+
     def exploreAll(self) -> None:
         """Explore all tiles"""
 
         while self.candidates:
             self.exploreNearby()
 
-    def countDistanceFrom(self, position: RobotPosition) -> Generator[tuple[RobotPosition, int], None, None]:
+    def countDistanceFrom(
+        self, position: RobotPosition
+    ) -> Generator[tuple[RobotPosition, int], None, None]:
         """Generate the distances from position to all other tiles"""
         visited = set()
         frontier = deque()
@@ -345,11 +347,11 @@ class EnvSearchManager():
                 if p not in visited:
                     if self.getTileValue(p) in [TileType.CLEAR, TileType.O2_SYS]:
                         visited.add(p)
-                        frontier.append((p, this_depth+1))
+                        frontier.append((p, this_depth + 1))
 
 
-def y2019d15(inputPath = None):
-    if(inputPath == None):
+def y2019d15(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2019/d15.txt"
     print("2019 day 15:")
 
@@ -361,7 +363,7 @@ def y2019d15(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     prog = IntcodeProgram(map(int, lineList[0].split(",")))
     runner = IntcodeRunner(prog)
 
@@ -378,7 +380,7 @@ def y2019d15(inputPath = None):
     manager.exploreAll()
     manager.display()
 
-    _,path = manager.getPath(RobotPosition(0,0), (o2_pos, ))
+    _, path = manager.getPath(RobotPosition(0, 0), (o2_pos,))
 
     Part_1_Answer = sum(1 for _ in path)
 

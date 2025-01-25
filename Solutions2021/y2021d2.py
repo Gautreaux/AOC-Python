@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2021d2(inputPath = None):
-    if(inputPath == None):
+
+def y2021d2(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d2.txt"
     print("2021 day 2:")
 
@@ -13,11 +14,11 @@ def y2021d2(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     splits = []
 
     for line in lineList:
-        x,y = line.split()
+        x, y = line.split()
         splits.append((x, int(y)))
 
     hoz_pos = 0

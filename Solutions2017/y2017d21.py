@@ -10,27 +10,27 @@ from functools import cached_property
 
 def isPerfectSquare(i: int) -> bool:
     """Return `True` iff a number is a perfect square"""
-    return i == (isqrt(i)**2)
+    return i == (isqrt(i) ** 2)
 
 
 class EnhanceTransform:
 
-    def __init__(self, start: str, result:str) -> None:
+    def __init__(self, start: str, result: str) -> None:
         self._start: str = start
         self._result: str = result
 
         l = sum(1 for c in self._start if c != "/")
-        assert(l == 4 or l == 9)
-        self._sz = (2 if l == 4 else 3)
+        assert l == 4 or l == 9
+        self._sz = 2 if l == 4 else 3
         self._lines = self.start.split("/")
-        assert(len(self._lines) == self._sz)
-        assert(all(map(lambda x: self._sz == len(x), self._lines)))
-    
+        assert len(self._lines) == self._sz
+        assert all(map(lambda x: self._sz == len(x), self._lines))
+
     @property
     def size(self) -> int:
         """Return the dimensionality of this square"""
         return self._sz
-    
+
     @property
     def start(self) -> str:
         """Return the starting condition"""
@@ -45,14 +45,16 @@ class EnhanceTransform:
     def num_set_in_start(self) -> int:
         """Return the number of pixels that are set in start"""
         return sum(1 for c in self.start if c == "#")
-        
+
     @classmethod
-    def _do_rotate_90(cls, s:str, sz:int) -> str:
+    def _do_rotate_90(cls, s: str, sz: int) -> str:
         """Rotate the input `tile` by 90 degrees clockwise and return"""
         if sz == 2:
-            return "".join([s[3], s[0], '/', s[4], s[1]])
+            return "".join([s[3], s[0], "/", s[4], s[1]])
         elif sz == 3:
-            return "".join([s[8], s[4], s[0], '/', s[9], s[5], s[1], '/', s[10], s[6], s[2]])
+            return "".join(
+                [s[8], s[4], s[0], "/", s[9], s[5], s[1], "/", s[10], s[6], s[2]]
+            )
         else:
             raise NotImplementedError(f"Unsupported size: {sz}")
 
@@ -60,22 +62,22 @@ class EnhanceTransform:
     def start_horiz_flip(self) -> str:
         """Return the horizontal flip of the starting condition"""
         return "/".join(map(lambda x: "".join(reversed(x)), self._lines))
-    
+
     @cached_property
     def start_vert_flip(self) -> str:
         """Return the vertical flip of the starting condition"""
         return "/".join(iter(reversed(self._lines)))
-    
+
     @cached_property
     def start_rotate_90(self) -> str:
         """Return the 90 degree rotation of the starting condition"""
         return self._do_rotate_90(self.start, self._sz)
-    
+
     @cached_property
     def start_rotate_180(self) -> str:
         """Return the 180 degree rotation of the starting condition"""
         return self._do_rotate_90(self.start_rotate_90, self._sz)
-    
+
     @cached_property
     def start_rotate_270(self) -> str:
         """Return the 270 degree rotation of the starting condition"""
@@ -85,7 +87,7 @@ class EnhanceTransform:
     def start_flip_h_rot_90(self) -> str:
         """Return the horizontal flip rotated again"""
         return self._do_rotate_90(self.start_horiz_flip, self._sz)
-    
+
     @cached_property
     def start_flip_v_rot_90(self) -> str:
         """Return the vertical flip rotated again"""
@@ -103,20 +105,21 @@ class EnhanceTransform:
         yield self.start_flip_v_rot_90
 
 
-class EnhancedImage():
-    def __init__(self, 
-        transforms: Optional[list[EnhanceTransform]]=None, 
-        pattern: Optional[Iterable[str]]=None,
-        cache: Optional[dict[str, str]]=None,
+class EnhancedImage:
+    def __init__(
+        self,
+        transforms: Optional[list[EnhanceTransform]] = None,
+        pattern: Optional[Iterable[str]] = None,
+        cache: Optional[dict[str, str]] = None,
     ) -> None:
         if transforms is None:
             self.two_transforms = []
             self.thr_transforms = []
         else:
-            assert(all(map(lambda x: x.size in [2,3], transforms)))
+            assert all(map(lambda x: x.size in [2, 3], transforms))
             self.two_transforms = list(filter(lambda x: x.size == 2, transforms))
             self.thr_transforms = list(filter(lambda x: x.size == 3, transforms))
-        
+
         if cache is not None:
             self.cache = cache
         else:
@@ -124,13 +127,13 @@ class EnhancedImage():
 
         if pattern is not None:
             self.pattern = str(pattern)
-            self.size = sum(1 for _ in itertools.takewhile(lambda x: x != '/', pattern))
+            self.size = sum(1 for _ in itertools.takewhile(lambda x: x != "/", pattern))
         else:
             self.pattern = ".#./..#/###"
             self.size = 3
 
     @classmethod
-    def fromLines(cls, lines: list[str], pattern: str = None) -> 'EnhancedImage':
+    def fromLines(cls, lines: list[str], pattern: str = None) -> "EnhancedImage":
         """Construct an `EnhancedImage` from lines"""
         all_transforms = list(map(lambda x: EnhanceTransform(*x.split(" => ")), lines))
         e = cls(transforms=all_transforms, pattern=pattern)
@@ -138,7 +141,7 @@ class EnhancedImage():
 
     def iterPixels(self) -> Iterator[str]:
         """Return an iterator over all pixels"""
-        return filter(lambda x: x!= '/', iter(self.pattern))
+        return filter(lambda x: x != "/", iter(self.pattern))
 
     def mapOntoPixels(self, callable: Callable[[str], Any]) -> Iterator[Any]:
         """Apply callable to each pixel"""
@@ -152,7 +155,7 @@ class EnhancedImage():
             dim_sz = 3
         else:
             raise RuntimeError(f"The size {self.size} is not a multiple of 2 or 3")
-        
+
         # number of rows of tiles
         #   coincidentally, also number of rows of columns
         n_tile_rows = self.size // dim_sz
@@ -163,39 +166,42 @@ class EnhancedImage():
         for _ in range(n_tile_rows):
             # split into rows
             token_queues = []
-            
+
             for _ in range(dim_sz):
-                q = list(itertools.takewhile(lambda x: x != '/', i))
+                q = list(itertools.takewhile(lambda x: x != "/", i))
                 token_queues.append(iter(q))
-            
+
             for _ in range(n_tile_cols):
                 # now represent the tile
                 tile = "/".join(
-                    map(
-                        lambda q: "".join(itertools.islice(q, dim_sz)), 
-                        token_queues
-                    )
+                    map(lambda q: "".join(itertools.islice(q, dim_sz)), token_queues)
                 )
                 yield tile
 
     @classmethod
-    def fromTiles_Class(cls, tiles: Iterable[Iterator[str]]) -> 'EnhancedImage':
+    def fromTiles_Class(cls, tiles: Iterable[Iterator[str]]) -> "EnhancedImage":
         """Build an image from tiles
-            Approximately the inverse of `generateTiles()`
+        Approximately the inverse of `generateTiles()`
 
-            Invoked in the class context; does not populate transforms or cache on sub object
+        Invoked in the class context; does not populate transforms or cache on sub object
         """
         tiles = list(tiles)
-        
+
         if not isPerfectSquare(len(tiles)):
-            raise RuntimeError(f"Cannot build a new tile, there were `{len(tiles)}` and this is not a perfect square")
+            raise RuntimeError(
+                f"Cannot build a new tile, there were `{len(tiles)}` and this is not a perfect square"
+            )
 
         n_tile_rows = isqrt(len(tiles))
         n_tile_cols = n_tile_rows
 
-        print("Starting recombine with {} tiles in a {}x{} grid".format(
-            len(tiles), n_tile_rows, n_tile_cols,
-        ))
+        print(
+            "Starting recombine with {} tiles in a {}x{} grid".format(
+                len(tiles),
+                n_tile_rows,
+                n_tile_cols,
+            )
+        )
 
         pattern_lines = []
         i = iter(tiles)
@@ -209,7 +215,7 @@ class EnhancedImage():
                     while len(rows) <= sub_row_i:
                         rows.append([])
                     ol = len(rows[sub_row_i])
-                    rows[sub_row_i].extend(itertools.takewhile(lambda x: x != '/', j))
+                    rows[sub_row_i].extend(itertools.takewhile(lambda x: x != "/", j))
                     nl = len(rows[sub_row_i])
                     if ol == nl:
                         break
@@ -218,7 +224,7 @@ class EnhancedImage():
 
             for r in rows:
                 if len(pattern_lines):
-                    pattern_lines.append("/")                 
+                    pattern_lines.append("/")
                 pattern_lines.append(r)
 
         # print(pattern_lines)
@@ -226,19 +232,19 @@ class EnhancedImage():
         new_img = cls(pattern=pattern)
         return new_img
 
-    def fromTiles(self, tiles: Iterable[Iterator[str]]) -> 'EnhancedImage':
+    def fromTiles(self, tiles: Iterable[Iterator[str]]) -> "EnhancedImage":
         """Build an image from tiles
-            Approximately the inverse of `generateTiles()`
+        Approximately the inverse of `generateTiles()`
 
-            Will populate cache and transforms of new object with those in the calling object
+        Will populate cache and transforms of new object with those in the calling object
         """
         new_img = self.fromTiles_Class(tiles)
         new_img.cache = self.cache
         new_img.two_transforms = self.two_transforms
         new_img.thr_transforms = self.thr_transforms
         return new_img
-                
-    def enhance(self) -> 'EnhancedImage':
+
+    def enhance(self) -> "EnhancedImage":
         """Run the enhance process and return the new image"""
         tiles = self.generateTiles()
         enhanced_tiles = map(self.enhanceTile, tiles)
@@ -254,18 +260,20 @@ class EnhancedImage():
             candidate_transforms: list[EnhanceTransform] = self.thr_transforms
 
         num_set = sum(1 for c in tile if c == "#")
-        filtered_transforms = filter(lambda x: x.num_set_in_start == num_set, candidate_transforms)
+        filtered_transforms = filter(
+            lambda x: x.num_set_in_start == num_set, candidate_transforms
+        )
 
         for ct in filtered_transforms:
             for opt in ct.generateAllStartTransforms():
                 if opt == tile:
                     return ct.result
-        
+
         raise RuntimeError(f"Could not find a transform for: {tile}")
 
     def enhanceTile(self, tile: str):
         """Enhance a single tile and return the result"""
-        
+
         if tile in self.cache:
             return self.cache[tile]
         else:
@@ -279,28 +287,33 @@ def y2017d21_tests() -> None:
 
     s = ".#./..#/###"
     ei = EnhancedImage(pattern=s)
-    assert(ei.size == 3)
+    assert ei.size == 3
     tiles = list(ei.generateTiles())
-    assert(len(tiles) == 1)
-    assert(tiles[0] == s)
+    assert len(tiles) == 1
+    assert tiles[0] == s
     r = EnhancedImage.fromTiles_Class(tiles)
     print(r.pattern)
-    assert(r.pattern == s)
+    assert r.pattern == s
 
     s = "#..#/..../..../#..#"
     ei = EnhancedImage(pattern=s)
-    assert(ei.size == 4)
+    assert ei.size == 4
     tiles = list(ei.generateTiles())
-    assert(len(tiles) == 4)
-    assert(set(tiles) == set([
-        "#./..", ".#/..", "../#.", "../.#",
-    ]))
+    assert len(tiles) == 4
+    assert set(tiles) == set(
+        [
+            "#./..",
+            ".#/..",
+            "../#.",
+            "../.#",
+        ]
+    )
     r = EnhancedImage.fromTiles_Class(tiles)
-    assert(r.pattern == s)  
+    assert r.pattern == s
 
 
-def y2017d21(inputPath = None):
-    if(inputPath == None):
+def y2017d21(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d21.txt"
     print("2017 day 21:")
 
@@ -329,8 +342,8 @@ def y2017d21(inputPath = None):
             print(f"Enhancing, total rounds prior =", len(all_imgs))
             all_imgs.append(all_imgs[-1].enhance())
             continue
-    
-    Part_1_Answer = sum(all_imgs[5].mapOntoPixels(lambda x: 1 if x == '#' else 0))
-    Part_2_Answer = sum(all_imgs[18].mapOntoPixels(lambda x: 1 if x == '#' else 0))
+
+    Part_1_Answer = sum(all_imgs[5].mapOntoPixels(lambda x: 1 if x == "#" else 0))
+    Part_2_Answer = sum(all_imgs[18].mapOntoPixels(lambda x: 1 if x == "#" else 0))
 
     return (Part_1_Answer, Part_2_Answer)

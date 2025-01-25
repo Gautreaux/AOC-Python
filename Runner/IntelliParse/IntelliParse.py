@@ -3,6 +3,7 @@ from AOC_Lib.charSets import *
 from collections import Counter
 from typing import Tuple, List
 
+
 def asRegexChar(c):
     if c in ALPHABET_BOTH or c in CHARSET_DIGITS:
         return c
@@ -10,11 +11,12 @@ def asRegexChar(c):
     escapeList = ["]", "-"]
 
     if c in escapeList:
-        return '\\' + c
+        return "\\" + c
     return c
 
+
 def resolveLetterCharset(charset) -> str:
-    '''Resolve the charset given that all inputs are letters a-z or A-Z'''
+    """Resolve the charset given that all inputs are letters a-z or A-Z"""
     # TODO - perhaps some more distinct processing
     #   is it all letters or just a subset?
     hasUppercase = False
@@ -23,7 +25,7 @@ def resolveLetterCharset(charset) -> str:
     for c in charset:
         if c in ALPHABET_UPPER:
             hasUppercase = True
-        if c in ALPHABET_LOWER: # elif should be ok?
+        if c in ALPHABET_LOWER:  # elif should be ok?
             hasLowercase = True
 
     if hasUppercase is True and hasLowercase is False:
@@ -37,14 +39,17 @@ def resolveLetterCharset(charset) -> str:
     print(charset)
     raise RuntimeError("In find letters set, no letters found?")
 
+
 def resolveDigitCharset(charset) -> str:
-    '''Determine digit coverage, i.e. is octal, decimal, binary?'''
+    """Determine digit coverage, i.e. is octal, decimal, binary?"""
     raise NotImplementedError()
 
+
 def resolveAlphaNumericCharset(charset) -> str:
-    '''Determine the alphanumberic representation'''
+    """Determine the alphanumberic representation"""
     # either (a-z + 0-9) or hexadecimal?
     raise NotImplementedError()
+
 
 def resolveSpecialCharset(char) -> str:
     # this means the group is somethign like "!!%#$%%^%/"
@@ -56,8 +61,9 @@ def resolveSpecialCharset(char) -> str:
         partialString += asRegexChar(c)
     return partialString
 
+
 def getREGEXCharset(charSet) -> str:
-    '''Need to detect the charset associated with strings'''
+    """Need to detect the charset associated with strings"""
 
     hasLetter = False
     hasNumber = False
@@ -81,13 +87,15 @@ def getREGEXCharset(charSet) -> str:
     # what to do in each of the eight cases
     #   use keyError to allow falling through
     behaviors = {
-        (False, False, False) : (lambda _: RuntimeErrorWrapper()), # nothing?
-        (False, False, True) : (lambda _: resolveSpecialCharset(charSet)), # only non-letters-numbers
-        (False, True, False) : (lambda _: resolveDigitCharset(charSet)), # only numbers
-        #(False, True, True) : (lambda _: NotImplementedWrapper()),
-        (True, False, False) : (lambda _: resolveLetterCharset(charSet)),  # only letters
+        (False, False, False): (lambda _: RuntimeErrorWrapper()),  # nothing?
+        # only non-letters-numbers
+        (False, False, True): (lambda _: resolveSpecialCharset(charSet)),
+        (False, True, False): (lambda _: resolveDigitCharset(charSet)),  # only numbers
+        # (False, True, True) : (lambda _: NotImplementedWrapper()),
+        (True, False, False): (lambda _: resolveLetterCharset(charSet)),  # only letters
         # (True, False, True) : (lambda _: NotImplementedWrapper()),
-        (True, True, False) : (lambda _: resolveAlphaNumericCharset(charSet)), # only letters and numbers
+        # only letters and numbers
+        (True, True, False): (lambda _: resolveAlphaNumericCharset(charSet)),
         # (True, True, True) : (lambda _: NotImplementedWrapper()),
     }
 
@@ -97,22 +105,23 @@ def getREGEXCharset(charSet) -> str:
         return behaviors[stateTuple]()
     except KeyError:
         pass
-    
+
     # not sure how to proceed on mixed charsets
     raise NotImplementedError()
 
     # check returned set against charset before returning?
+
 
 def IntelliParseSubstringList(strList: List[str]) -> str:
     strCount = len(strList)
 
     # generator for iterating over all characters in the input
     def charsetGenerator():
-            for l in strList:
-                for c in l:
-                    yield c
+        for l in strList:
+            for c in l:
+                yield c
 
-    totalChars = sum(map(lambda _:1, charsetGenerator()))
+    totalChars = sum(map(lambda _: 1, charsetGenerator()))
 
     if totalChars == 0:
         # all empty strings input, recursion exit
@@ -125,7 +134,7 @@ def IntelliParseSubstringList(strList: List[str]) -> str:
         if len(s) != strLenCommon:
             strLenCommon = None
             break
-    
+
     # Get the set of all characters in the input
     CharSet = Counter(charsetGenerator())
 
@@ -135,7 +144,9 @@ def IntelliParseSubstringList(strList: List[str]) -> str:
     for c in CharSet:
         if CharSet[c] % strCount == 0:
             probableDelimiters[c] = CharSet[c] // strCount
-            print(f"Found new probable delimiter {c} with {probableDelimiters[c]} per line")
+            print(
+                f"Found new probable delimiter {c} with {probableDelimiters[c]} per line"
+            )
 
     # thourough delimeters check
     for s in strList:
@@ -149,20 +160,18 @@ def IntelliParseSubstringList(strList: List[str]) -> str:
     if len(probableDelimiters) == 0:
         # no probable delimiters, do search for advanced delimiter
 
-        #check if a delimiter appears in all lines at some position
+        # check if a delimiter appears in all lines at some position
 
-        #see if there is a charset split somewhere
+        # see if there is a charset split somewhere
         # ex: "aaaa111111"
 
-
-        #if found, add to probable delimiters
+        # if found, add to probable delimiters
         raise NotImplementedError()
 
     if len(probableDelimiters) == 0:
         # no more delimiters, treat this string as a capture group
         # return most specific capture group for the input
         return getREGEXCharset(CharSet)
-
 
     # split on a delimiter and recurse on each portion
 
@@ -171,18 +180,18 @@ def IntelliParseSubstringList(strList: List[str]) -> str:
     raise NotImplementedError()
 
 
-def IntelliParse(filePath : str) -> Tuple[str, str]:
+def IntelliParse(filePath: str) -> Tuple[str, str]:
     """Run intelliparse on the filepath and return matching regex and description"""
     # may return (None, str) if the input is believed to be regex impossible
 
-    lineList = [] # list containing all the lines
-    lineCount = 0 # count of total lines
+    lineList = []  # list containing all the lines
+    lineCount = 0  # count of total lines
 
     try:
         with open(filePath) as f:
             for line in f:
                 lineList.append(line.strip())
-                lineCount +=1 
+                lineCount += 1
     except FileNotFoundError as e:
         print(f"IntelliParse failed to find file {filePath}")
         raise e
@@ -196,5 +205,4 @@ def IntelliParse(filePath : str) -> Tuple[str, str]:
 
     # check against the input to verify
 
-    
     raise NotImplementedError

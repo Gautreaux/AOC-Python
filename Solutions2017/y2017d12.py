@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2017d12(inputPath = None):
-    if(inputPath == None):
+
+def y2017d12(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d12.txt"
     print("2017 day 12:")
 
@@ -41,7 +42,7 @@ def y2017d12(inputPath = None):
 
             if this in visitSet:
                 continue
-            
+
             visitSet.add(this)
 
             for k in adjList[this]:
@@ -50,7 +51,7 @@ def y2017d12(inputPath = None):
 
     visitAll(0)
     Part_1_Answer = len(visitSet)
-    
+
     totalGroups = 1
 
     for i in adjList:

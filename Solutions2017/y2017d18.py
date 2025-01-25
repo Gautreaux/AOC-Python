@@ -4,8 +4,9 @@ import asyncio
 from collections import defaultdict
 from typing import Optional
 
+
 class Duet:
-    def __init__(self, program, in_q = None, out_q = None) -> None:
+    def __init__(self, program, in_q=None, out_q=None) -> None:
         self._program = program
         self._instr_ptr = 0
         self._last_send = None
@@ -23,13 +24,13 @@ class Duet:
     @property
     def is_io_blocked(self) -> int:
         return self._is_io_blocked
-    
+
     @property
     def number_sends(self) -> int:
         return self._number_sends
 
     def setRegister(self, register: str, value: int):
-        assert(len(register) == 1)
+        assert len(register) == 1
         self._memory[register] = value
 
     async def _run_cycle(self):
@@ -55,20 +56,20 @@ class Duet:
                 self._number_sends += 1
                 self._is_io_blocked = False
         elif instr == "set":
-            assert(type(arg1) != int)
+            assert type(arg1) != int
             # print(f"SET {arg1} {arg2_value}")
             self._memory[arg1] = arg2_value
         elif instr == "add":
             # print(f"ADD {arg1} {arg2_value}")
-            assert(type(arg1) != int)
+            assert type(arg1) != int
             self._memory[arg1] += arg2_value
         elif instr == "mul":
             # print(f"MUL {arg1} {arg2_value}")
-            assert(type(arg1) != int)
+            assert type(arg1) != int
             self._memory[arg1] *= arg2_value
         elif instr == "mod":
             # print(f"MOD {arg1} {arg2_value}")
-            assert(type(arg1) != int)
+            assert type(arg1) != int
             self._memory[arg1] %= arg2_value
         elif instr == "rcv":
             if self._in_q is None:
@@ -96,8 +97,8 @@ class Duet:
         asyncio.get_event_loop().run_until_complete(self.run())
 
 
-def y2017d18(inputPath = None):
-    if(inputPath == None):
+def y2017d18(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d18.txt"
     print("2017 day 18:")
 
@@ -115,7 +116,7 @@ def y2017d18(inputPath = None):
     for l in lineList:
         s = l.split(" ")
 
-        for i,v in enumerate(s):
+        for i, v in enumerate(s):
             try:
                 s[i] = int(v)
             except ValueError:
@@ -133,15 +134,15 @@ def y2017d18(inputPath = None):
     d.run_sync()
     Part_1_Answer = d._last_send
 
-    #=================
+    # =================
 
     q_0_to_1 = asyncio.Queue()
     q_1_to_0 = asyncio.Queue()
 
     d_0 = Duet(prog, in_q=q_1_to_0, out_q=q_0_to_1)
-    d_0.setRegister('p', 0)
+    d_0.setRegister("p", 0)
     d_1 = Duet(prog, in_q=q_0_to_1, out_q=q_1_to_0)
-    d_1.setRegister('p', 1)
+    d_1.setRegister("p", 1)
 
     async def watchdog():
         while True:
@@ -163,18 +164,18 @@ def y2017d18(inputPath = None):
     futures.append(loop.create_task(d_1.run()))
     futures.append(loop.create_task(watchdog()))
 
-    done, pending = loop.run_until_complete(asyncio.wait(
-        futures, return_when=asyncio.FIRST_COMPLETED
-    ))
+    done, pending = loop.run_until_complete(
+        asyncio.wait(futures, return_when=asyncio.FIRST_COMPLETED)
+    )
 
     if futures[-1] in pending:
         print("[WARNING] does not look like a clean exit")
-    
+
     for p in pending:
         p.cancel()
 
     print(done)
-    
+
     Part_2_Answer = d_1.number_sends
 
     return (Part_1_Answer, Part_2_Answer)

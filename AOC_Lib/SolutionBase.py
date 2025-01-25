@@ -7,10 +7,10 @@ import re
 
 
 # Regex for splitting a inheriting class into a date code
-_solution_name_re = re.compile(r'^Solution_(\d{4})_(\d{2})$')
+_solution_name_re = re.compile(r"^Solution_(\d{4})_(\d{2})$")
 
 # Type var for covariance in annotations
-_MappedType_T = TypeVar('_MappedType_T')
+_MappedType_T = TypeVar("_MappedType_T")
 
 # Placeholder for an answer
 Answer_T = Any
@@ -22,16 +22,17 @@ AnswerPair_T = tuple[Answer_T, Answer_T]
 @dataclass(frozen=True)
 class DateCode:
     """Represents a Date Code"""
+
     year: int
     day: int
 
     @classmethod
-    def get_latest(cls) -> 'DateCode':
+    def get_latest(cls) -> "DateCode":
         """Return the latest DateCode"""
         raise NotImplementedError()
 
     @classmethod
-    def from_legacy_datecode(cls, date_code) -> 'DateCode':
+    def from_legacy_datecode(cls, date_code) -> "DateCode":
         """Convert a y####d# code to a date code"""
         return cls(
             year=int(date_code[1:5]),
@@ -55,13 +56,13 @@ class InputSpecification:
     """A method of specifying input"""
 
     input_type: InputType
-    bytes_content: bytes = b''
-    file_path: str = ''
+    bytes_content: bytes = b""
+    file_path: str = ""
 
     @classmethod
-    def AUTO_Factory(cls) -> 'InputSpecification':
+    def AUTO_Factory(cls) -> "InputSpecification":
         return cls(input_type=InputType.AUTO)
-    
+
 
 class SolutionBase:
     """Base Implementation of a solution"""
@@ -70,12 +71,12 @@ class SolutionBase:
     #   we capture a reference in this object
     # This allows for the quick running of specific days
     #   as derivatives of this class
-    _known_implementations: dict[DateCode, type['SolutionBase']] = {}
+    _known_implementations: dict[DateCode, type["SolutionBase"]] = {}
 
     def __init__(
         self,
         input_spec: InputSpecification = InputSpecification.AUTO_Factory(),
-        date_code:Optional[DateCode] = None
+        date_code: Optional[DateCode] = None,
     ) -> None:
 
         self.date_code: DateCode = date_code
@@ -92,11 +93,11 @@ class SolutionBase:
         if input_spec.input_type == InputType.BYTES:
             pass
         elif input_spec.input_type == InputType.FILE_PATH:
-            with open(input_spec.file_path, 'rb') as in_file:
+            with open(input_spec.file_path, "rb") as in_file:
                 self._input = in_file.read()
         elif input_spec.input_type == InputType.AUTO:
             f_name = f"Input{self.date_code.year}/d{self.date_code.day}.txt"
-            with open(f_name, 'rb') as in_file:
+            with open(f_name, "rb") as in_file:
                 self._input = in_file.read()
         else:
             raise TypeError(f"Unsupported Type: {input_spec.input_type.name}")
@@ -106,7 +107,7 @@ class SolutionBase:
     def __post_init__(self) -> None:
         """
         Called once at the end of `__init__`
-        
+
         Subclasses should probably not override `__init__` and instead
           prefer to override this method instead
         """
@@ -115,20 +116,22 @@ class SolutionBase:
     def __init_subclass__(cls) -> None:
         """Called whenever a subclass inherits this class (i.e. at load time)"""
 
-        # Store a reference to `cls` by date code 
+        # Store a reference to `cls` by date code
         try:
             date_code = cls._infer_date_code()
         except RuntimeError:
             return
         if date_code in SolutionBase._known_implementations:
-            raise RuntimeError(f"Multiple implementations of {date_code}: {cls.__name__}")
+            raise RuntimeError(
+                f"Multiple implementations of {date_code}: {cls.__name__}"
+            )
         SolutionBase._known_implementations[date_code] = cls
 
     @classmethod
     def _infer_date_code(cls) -> DateCode:
         """
         Infer the date code based on the class name
-        
+
         raise if the format is not recognized
         """
 
@@ -139,9 +142,9 @@ class SolutionBase:
                 year=int(m[1]),
                 day=int(m[2]),
             )
-        
+
         raise RuntimeError(f"Cannot infer DateCode from: {n}")
-    
+
     @classmethod
     def has_known_solution(cls, date_code: DateCode) -> bool:
         """Return `True` iff there is a known solution for `date_code`"""
@@ -176,12 +179,12 @@ class SolutionBase:
     def is_part_1_done(self) -> bool:
         """Return `True` iff we have added an answer for part 1"""
         return self._part_1_answer is not None
-    
+
     def is_part_2_done(self) -> bool:
         """Return `True` iff we have added an answer for part 2"""
         return self._part_2_answer is not None
 
-    def input_str(self, encoding='ascii', strip: bool = True) -> str:
+    def input_str(self, encoding="ascii", strip: bool = True) -> str:
         """Return the input decoded into a string"""
         s = self.raw_input.decode(encoding)
         if strip:
@@ -189,10 +192,10 @@ class SolutionBase:
         return s
 
     def input_str_list(
-        self, 
-        encoding='ascii',
-        delim='\n',
-        strip:bool = True,
+        self,
+        encoding="ascii",
+        delim="\n",
+        strip: bool = True,
         include_empty_lines: bool = False,
     ) -> list[str]:
         """Returns an iterator of the str, decoded, split, and possibly stripped"""
@@ -205,12 +208,13 @@ class SolutionBase:
         return list(m)
 
     def map_lines(
-        self, 
-        callable: Callable[[str], _MappedType_T], 
-        *args, **kwargs,
+        self,
+        callable: Callable[[str], _MappedType_T],
+        *args,
+        **kwargs,
     ) -> Iterator[_MappedType_T]:
         """Map `callable` across the pieces of input determined by `input_str_iter`
-        
+
         `args` and `kwargs` are passed down to `input_str_iter`
 
         By default, this is the lines of the input, with leading/trailing whitespace stripped
@@ -219,7 +223,7 @@ class SolutionBase:
 
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Hook for implementing part 1"""
-    
+
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Hook for implementing part 2"""
 

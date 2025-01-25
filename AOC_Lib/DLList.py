@@ -1,9 +1,9 @@
-
 import itertools
 from typing import Any, Generator, Iterator, Optional
 
 # Designed for y2018d9
 #   used elsewhere too
+
 
 class DLList:
     """Manages the (circular) DLList"""
@@ -11,7 +11,7 @@ class DLList:
     class DLListNode:
         """A Mable (DLList Node)"""
 
-        def __init__(self, value: Any, dllist: Optional['DLList'] = None) -> None:
+        def __init__(self, value: Any, dllist: Optional["DLList"] = None) -> None:
             self.clockwise: DLList.DLListNode = self
             self.counterclockwise: DLList.DLListNode = self
             self.value = value
@@ -26,14 +26,14 @@ class DLList:
             m.counterclockwise = self
             self._list._len += 1
             return m
-        
+
         def _insertCounterClockwise(self, value: Any) -> "DLList.DLListNode":
             """Construct and insert a new DLListNode counter-clockwise of this DLListNode"""
             return self.counterclockwise.insertClockwise(value)
 
         def _remove(self) -> Optional["DLList.DLListNode"]:
             """Remove self from the DLList
-                Returns a reference to the next item clockwise, if one exists
+            Returns a reference to the next item clockwise, if one exists
             """
             if self._list:
                 self._list._PreRemove(self)
@@ -52,22 +52,22 @@ class DLList:
             else:
                 return _r
 
-        def swapValues(self, other: 'DLList.DLListNone') -> None:
+        def swapValues(self, other: "DLList.DLListNone") -> None:
             """Swap values with the other node"""
-            assert(id(self._list) == id(self._list))
+            assert id(self._list) == id(self._list)
             t = self.value
             self.value = other.value
             other.value = t
-    
+
     def __init__(self) -> None:
         # The representation of the circle, with the current DLListNode first
         self._len = 0
         self._current_DLListNode: Optional[DLList.DLListNode] = None
-    
+
     def __len__(self) -> int:
         return self._len
 
-    def _PreRemove(self, n: 'DLList.DLListNode'):
+    def _PreRemove(self, n: "DLList.DLListNode"):
         """A pre-remove hook indicating the node `n` is about to be removed"""
         if n == self._current_DLListNode:
             if len(self) == 1:
@@ -76,29 +76,29 @@ class DLList:
                 self._current_DLListNode = self._current_DLListNode.clockwise
 
     @property
-    def current(self) -> 'DLList.DLListNode':
+    def current(self) -> "DLList.DLListNode":
         """Return the current node"""
         return self._current_DLListNode
-    
-    def addDLListNode(self, v: Any, n:int = 1) -> None:
-        """Add a DLListNode to the circle between the DLListNodes n and n+1 steps clockwise
-            and make this the new DLListNode the current DLListNode
 
-            If there is no node, `n` is ignored
+    def addDLListNode(self, v: Any, n: int = 1) -> None:
+        """Add a DLListNode to the circle between the DLListNodes n and n+1 steps clockwise
+        and make this the new DLListNode the current DLListNode
+
+        If there is no node, `n` is ignored
         """
         if len(self) == 0:
-            assert(self._current_DLListNode is None)
+            assert self._current_DLListNode is None
             self._current_DLListNode = DLList.DLListNode(0, self)
             self._len = 1
             return
 
-        assert(n >= 0)
+        assert n >= 0
         self.Rotate(n)
         self._current_DLListNode = self._current_DLListNode._insertClockwise(v)
 
     def removeDLListNodeCCW(self, n: Any = 1) -> DLListNode:
         """Remove and return the DLListNode n places Counter Clockwise of the current DLListNode"""
-        assert(n >= 0)
+        assert n >= 0
         self.Rotate(-n)
         _r = self._current_DLListNode
         self._current_DLListNode = _r._remove()
@@ -107,7 +107,7 @@ class DLList:
     def __iter__(self) -> Generator[DLListNode, None, None]:
         t = self._current_DLListNode
         while True:
-            yield(t)
+            yield (t)
             t = t.clockwise
 
     def __str__(self) -> str:
@@ -121,7 +121,7 @@ class DLList:
 
     def Rotate(self, n: int) -> DLListNode:
         """Advance the current node by `n` steps in the Clockwise direction
-            supports n < 0 for counterclockwise rotation
+        supports n < 0 for counterclockwise rotation
         """
         if n > 0:
             for _ in range(n % len(self)):

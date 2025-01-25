@@ -1,4 +1,3 @@
-
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, unique
@@ -18,29 +17,30 @@ class Solution_2022_12(SolutionBase):
 
     def __post_init__(self):
         """Runs Once After `__init__`"""
-        
+
         self.area_map: dict[DiscretePoint2, int] = {}
-        self.start_pos = DiscretePoint2(-1,-1)
-        self.end_pos = DiscretePoint2(-1,-1)
+        self.start_pos = DiscretePoint2(-1, -1)
+        self.end_pos = DiscretePoint2(-1, -1)
 
         for y, line in enumerate(self.input_str_list()):
-            for x , cell in enumerate(line):
-                if cell == 'S':
-                    self.start_pos = DiscretePoint2(x,y)
-                    cell = 'a'
-                elif cell == 'E':
-                    self.end_pos = DiscretePoint2(x,y)
-                    cell = 'z'
-                self.area_map[DiscretePoint2(x,y)] = ord(cell) - ord('a')
+            for x, cell in enumerate(line):
+                if cell == "S":
+                    self.start_pos = DiscretePoint2(x, y)
+                    cell = "a"
+                elif cell == "E":
+                    self.end_pos = DiscretePoint2(x, y)
+                    cell = "z"
+                self.area_map[DiscretePoint2(x, y)] = ord(cell) - ord("a")
 
         assert all(map(lambda x: x >= 0 and x < 26, self.area_map.values()))
         assert self.start_pos.x >= 0
         assert self.end_pos.x >= 0
 
-    
-    def find_steps_to_end_pos(self, start_pos: DiscretePoint2, cull_at: Optional[int] = None) -> Optional[int]:
+    def find_steps_to_end_pos(
+        self, start_pos: DiscretePoint2, cull_at: Optional[int] = None
+    ) -> Optional[int]:
         """Find the number of steps from the supplied `start_pos` to the `end_pos`
-            Terminate the search if no path is found in less than `cull_at` steps
+        Terminate the search if no path is found in less than `cull_at` steps
         """
 
         frontier: deque[tuple[DiscretePoint2, int]] = deque()
@@ -61,7 +61,7 @@ class Solution_2022_12(SolutionBase):
                 continue
             visited.add(this_pos)
 
-            this_elevation = self.area_map[this_pos] 
+            this_elevation = self.area_map[this_pos]
             for neighbor_pos in this_pos.cartesian_neighbors():
                 if neighbor_pos in visited:
                     continue
@@ -92,9 +92,11 @@ class Solution_2022_12(SolutionBase):
             ),
         )
 
-        none_min = lambda a,b: a if b is None else ( b if a is None else min(a,b))
+        def none_min(a, b):
+            return a if b is None else (b if a is None else min(a, b))
 
-        reducer = lambda i,p: none_min(i, self.find_steps_to_end_pos(p, cull_at=i))
+        def reducer(i, p):
+            return none_min(i, self.find_steps_to_end_pos(p, cull_at=i))
 
         return reduce(
             reducer,

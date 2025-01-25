@@ -1,37 +1,38 @@
 # from AOC_Lib.name import *
 
 MATCH_TABLE = {
-    ")" : "(",
-    "]" : "[",
-    "}" : "{",
-    ">" : "<",
-    "(" : ")",
-    "[" : "]",
-    "{" : "}",
-    "<" : ">",
+    ")": "(",
+    "]": "[",
+    "}": "{",
+    ">": "<",
+    "(": ")",
+    "[": "]",
+    "{": "}",
+    "<": ">",
 }
 
 SCORE_TABLE = {
-    ")" : 3,
-    "]" : 57,
-    "}" : 1197,
-    ">" : 25137,
+    ")": 3,
+    "]": 57,
+    "}": 1197,
+    ">": 25137,
 }
 
 CLOSURE_SCORE_TABLE = {
-    ")" : 1,
-    "]" : 2,
-    "}" : 3,
-    ">" : 4,
+    ")": 1,
+    "]": 2,
+    "}": 3,
+    ">": 4,
 }
 
-#])}> for highlighter
+# ])}> for highlighter
 
 OPENERS = "{(<["
 CLOSURES = "]>)}"
 
-def y2021d10(inputPath = None):
-    if(inputPath == None):
+
+def y2021d10(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d10.txt"
     print("2021 day 10:")
 
@@ -43,7 +44,7 @@ def y2021d10(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     score = 0
     closure_scores = []
 
@@ -63,7 +64,7 @@ def y2021d10(inputPath = None):
                     break
             else:
                 raise RuntimeError(f"Illegal char {c}")
-            
+
         if corrupt:
             continue
 
@@ -85,6 +86,5 @@ def y2021d10(inputPath = None):
 
     # assert(Part_2_Answer != 1237256840442)
     # assert(Part_2_Answer != 2937146265702)
-
 
     return (Part_1_Answer, Part_2_Answer)

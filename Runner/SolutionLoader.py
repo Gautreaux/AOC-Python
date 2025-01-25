@@ -39,5 +39,3 @@ def load_solution_by_date_code(date_code: DateCode):
     module = import_module(date_code_to_solution_module_name(date_code))
 
     return module
-
-

@@ -16,38 +16,41 @@ State_T = namedtuple("State_T", "name zero_actions one_actions")
 @unique
 class ActionEnum(Enum):
     """Type of actions"""
-    WRITE = 'W'
-    MOVE = 'M'
-    CONTINUE = 'C'
+
+    WRITE = "W"
+    MOVE = "M"
+    CONTINUE = "C"
 
 
-def parseActions(itr: Iterator[str], expect_pred: Optional[int] = None) -> list[Action_T]:
+def parseActions(
+    itr: Iterator[str], expect_pred: Optional[int] = None
+) -> list[Action_T]:
     """Parse all Actions and return"""
-   
+
     to_return: list[Action_T] = []
 
     n = next(itr)
-    a,_,b = n.rpartition(" ")
-    assert(a == "If the current value is")
+    a, _, b = n.rpartition(" ")
+    assert a == "If the current value is"
 
     if expect_pred is not None:
-        assert(int(b[:-1]) == expect_pred)
+        assert int(b[:-1]) == expect_pred
 
     n = next(itr)
-    a,_,b = n.rpartition(" ")
-    assert(a.startswith("- Write the value"))
+    a, _, b = n.rpartition(" ")
+    assert a.startswith("- Write the value")
     b = int(b[:-1])
     to_return.append(Action_T(t=ActionEnum.WRITE, arg=b))
 
     n = next(itr)
-    a,_,b = n.rpartition(" ")
-    assert(a.startswith("- Move one slot to"))
+    a, _, b = n.rpartition(" ")
+    assert a.startswith("- Move one slot to")
     b = 1 if b == "right." else -1
     to_return.append(Action_T(t=ActionEnum.MOVE, arg=b))
 
     n = next(itr)
-    a,_,b = n.rpartition(" ")
-    assert(a.startswith("- Continue with state"))
+    a, _, b = n.rpartition(" ")
+    assert a.startswith("- Continue with state")
     b = b[:-1]
     to_return.append(Action_T(t=ActionEnum.CONTINUE, arg=b))
 
@@ -58,35 +61,34 @@ def parseState(itr: Iterator[str]) -> State_T:
     """Parse a State and return"""
 
     n = next(itr)
-    while (n.strip() == ""):
+    while n.strip() == "":
         n = next(itr)
-    
-    a,b,s = n.split()
-    assert(a == "In")
-    assert(b == "state")
+
+    a, b, s = n.split()
+    assert a == "In"
+    assert b == "state"
     state_name = s[:-1]
 
     zero_actions = parseActions(itr, expect_pred=0)
     one_actions = parseActions(itr, expect_pred=1)
 
-    return State_T(
-        name=state_name,
-        zero_actions=zero_actions,
-        one_actions=one_actions
-    )
+    return State_T(name=state_name, zero_actions=zero_actions, one_actions=one_actions)
 
 
 def calculateChecksum(mem: Memory_T) -> int:
     """Calculate and return the checksum for the memory"""
     # Would hope that there are no `0` in memory, but be sure
-    return sum(1 for _ in filter(
-        lambda x: x != 0,
-        mem.values(),
-    ))
+    return sum(
+        1
+        for _ in filter(
+            lambda x: x != 0,
+            mem.values(),
+        )
+    )
 
 
-def y2017d25(inputPath = None):
-    if(inputPath == None):
+def y2017d25(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d25.txt"
     print("2017 day 25:")
 
@@ -98,12 +100,12 @@ def y2017d25(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     i = iter(lineList)
 
     start_state = next(i).split()[-1][:-1]
     checksum_time = int(next(i).split()[-2])
-    assert(next(i).strip() == "")
+    assert next(i).strip() == ""
 
     states_index: dict[str, State_T] = {}
 
@@ -111,11 +113,11 @@ def y2017d25(inputPath = None):
         try:
             s = parseState(i)
             n = s.name
-            assert(n not in states_index)
+            assert n not in states_index
             states_index[n] = s
         except StopIteration:
             break
-    
+
     print(f"Starting in {start_state}, running {checksum_time} rounds")
 
     memory: Memory_T = defaultdict(int)

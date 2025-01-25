@@ -1,5 +1,5 @@
-
 from AOC_Lib.SolutionBase import SolutionBase
+
 
 class Solution_2019_01(SolutionBase):
     """https://adventofcode.com/2019/day/01"""
@@ -9,7 +9,7 @@ class Solution_2019_01(SolutionBase):
 
         newFuelCounter = 0
         newTotalFuelCounter = 0
-        
+
         for line in self.input_str_list(include_empty_lines=False):
             newFuelCounter += int(line) // 3 - 2
 

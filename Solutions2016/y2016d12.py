@@ -1,5 +1,6 @@
 # from AOC_Lib.name import *
 
+
 # run program and return the memory map
 def runProgram(instructionSet, memory={}):
     for register in ["a", "b", "c", "d"]:
@@ -7,7 +8,7 @@ def runProgram(instructionSet, memory={}):
             memory[register] = 0
 
     print(f"Starting memory: {memory}")
-        
+
     programCounter = 0
 
     def inc(address):
@@ -15,7 +16,7 @@ def runProgram(instructionSet, memory={}):
         if isinstance(address, str):
             memory[address] += 1
         programCounter += 1
-    
+
     def dec(address):
         nonlocal programCounter
         if isinstance(address, str):
@@ -33,7 +34,7 @@ def runProgram(instructionSet, memory={}):
         else:
             memory[target] = memory[value]
         programCounter += 1
-    
+
     def jnz(check, offset):
         nonlocal programCounter
         if isinstance(check, str):
@@ -50,7 +51,7 @@ def runProgram(instructionSet, memory={}):
     def tgl(offset):
         if isinstance(offset, str):
             offset = memory[offset]
-        
+
         nonlocal programCounter
         nonlocal instructionSet
 
@@ -93,8 +94,8 @@ def runProgram(instructionSet, memory={}):
         "dec": dec,
         "cpy": cpy,
         "jnz": jnz,
-        "tgl" : tgl,
-        "out" : out,
+        "tgl": tgl,
+        "out": out,
     }
 
     try:
@@ -107,8 +108,9 @@ def runProgram(instructionSet, memory={}):
     except IndexError:
         return memory
 
-def y2016d12(inputPath = None):
-    if(inputPath == None):
+
+def y2016d12(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d12.txt"
     print("2016 day 12:")
 
@@ -120,20 +122,20 @@ def y2016d12(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     instructionSet = []
 
     for line in lineList:
         l = line.split(" ")
 
-        for i in [1,2]:
+        for i in [1, 2]:
             try:
                 l[i] = int(l[i])
             except:
                 pass
         instructionSet.append(l)
 
-    Part_1_Answer = runProgram(instructionSet)['a']
-    Part_2_Answer = runProgram(instructionSet, memory={'c':1})['a']
+    Part_1_Answer = runProgram(instructionSet)["a"]
+    Part_2_Answer = runProgram(instructionSet, memory={"c": 1})["a"]
 
     return (Part_1_Answer, Part_2_Answer)

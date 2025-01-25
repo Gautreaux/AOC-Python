@@ -15,67 +15,79 @@ LIGHT_PIXEL = 1
 def charToPixel(c: str) -> Pixel_T:
     """Convert a char to the corresponding pixel"""
     return {
-        "." : DARK_PIXEL,
-        "#" : LIGHT_PIXEL,
+        ".": DARK_PIXEL,
+        "#": LIGHT_PIXEL,
     }[c]
 
 
 # TODO - refactor into generic SparseGrid type in AOC lib
 #   and adapt many existing solutions to use it
 class ScannerImage:
-    
-    def __init__(self, enhancement: tuple[Pixel_T], default: Pixel_T = DARK_PIXEL) -> None:
+
+    def __init__(
+        self, enhancement: tuple[Pixel_T], default: Pixel_T = DARK_PIXEL
+    ) -> None:
         self._img = SparseGrid(default)
-        assert(len(enhancement) == 512)
+        assert len(enhancement) == 512
         self.enhancement = enhancement
 
     @classmethod
     def fromLines(
-        cls, 
-        lines: list[str], 
-        default: Pixel_T = DARK_PIXEL, 
-        enhancement: Optional[tuple[Pixel_T]] = None
+        cls,
+        lines: list[str],
+        default: Pixel_T = DARK_PIXEL,
+        enhancement: Optional[tuple[Pixel_T]] = None,
     ) -> "ScannerImage":
         """Parse and return an image from lines
-            May provide the enhancement directly or
-            Provide `enhancement=None` to indicate the first line 
-                of `lines` is the enhancement and followed by a blank line
+        May provide the enhancement directly or
+        Provide `enhancement=None` to indicate the first line
+            of `lines` is the enhancement and followed by a blank line
         """
 
         itr = iter(lines)
 
         if enhancement is None:
             enhancement = tuple(map(charToPixel, next(itr)))
-            assert(len(enhancement) == 512)
-            assert(next(itr) == "")
+            assert len(enhancement) == 512
+            assert next(itr) == ""
 
         new_img = cls(enhancement, default)
 
-        for y,line in enumerate(itr):
+        for y, line in enumerate(itr):
             for x, px_str in enumerate(line):
                 px = charToPixel(px_str)
                 if px != default:
-                    new_img[x,y] = px
-        
+                    new_img[x, y] = px
+
         return new_img
 
-    def getPixelEnhance(self, x:int, y:int) -> Pixel_T:
+    def getPixelEnhance(self, x: int, y: int) -> Pixel_T:
         """Get the enhancement value for a particular pixel"""
-        transforms = [(-1, -1), (0,-1), (1, -1), (-1, 0), (0, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+        transforms = [
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-1, 0),
+            (0, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+        ]
 
-        p = map(lambda t: self._img[(x+t[0], y+t[1])], transforms)
+        p = map(lambda t: self._img[(x + t[0], y + t[1])], transforms)
         p = list(p)
-        assert(len(p) == 9)
-        s = map(lambda px,sf: px << sf, p, range(8, -1, -1))
+        assert len(p) == 9
+        s = map(lambda px, sf: px << sf, p, range(8, -1, -1))
         s = list(s)
-        assert(len(s) == 9)
+        assert len(s) == 9
         i = functools.reduce(or_, s)
         return self.enhancement[i]
 
     def __getitem__(self, xy: tuple[int, int]) -> Pixel_T:
         return self._img[xy]
-    
-    def __setitem__(self,  xy: tuple[int, int], p: Pixel_T):
+
+    def __setitem__(self, xy: tuple[int, int], p: Pixel_T):
         self._img[xy] = p
 
     @property
@@ -91,53 +103,54 @@ class ScannerImage:
             return False
         return True
 
-
     def generatePixelPositions(self, overscan: int = 0) -> Iterator[tuple[int, int]]:
         """Generate all pixel positions: (x,y) tuples
-            optional parameter `overscan` specifies distance outside grid to scan
+        optional parameter `overscan` specifies distance outside grid to scan
 
-            Positions are generated in y-major (increasing) order
+        Positions are generated in y-major (increasing) order
         """
         return self._img.generateAllPositions(overscan=overscan)
-    
+
     def generatePixels(self, overscan: int = 0) -> Iterator[Pixel_T]:
         """Generate all pixels
-            optional parameter `overscan` specifies distance outside grid to scan
+        optional parameter `overscan` specifies distance outside grid to scan
 
-            see `generatePixelPositions` for more info
+        see `generatePixelPositions` for more info
         """
         return self._img.generateAllCells(overscan=overscan)
 
     def mapOnPixelPositions(
-        self, 
+        self,
         callable: Callable[[tuple[int, int]], Any],
         overscan: int = 0,
     ) -> Iterator[Any]:
         """Apply `callable` to each pixel provided coordinates
-            and optional `overscan` to scan pixels outside the grid
+        and optional `overscan` to scan pixels outside the grid
         """
         return self._img.mapOnPositions(callable, overscan=overscan)
 
     def mapOnPixels(
-        self, 
-        callable: Callable[[Pixel_T], Any], 
+        self,
+        callable: Callable[[Pixel_T], Any],
         overscan: int = 0,
     ) -> Iterator[Any]:
         """Apply `callable` to each pixel in the image
-            and optional `overscan` to scan pixels outside the grid
+        and optional `overscan` to scan pixels outside the grid
         """
         return self._img.mapOnCells(callable, overscan=overscan)
 
-    def enhance(self) -> 'ScannerImage':
+    def enhance(self) -> "ScannerImage":
         """Enhance the image"""
-        
+
         if self.doesDefaultFlipOnEnhancement():
-            new_default = (DARK_PIXEL if self.default == LIGHT_PIXEL else LIGHT_PIXEL)
+            new_default = DARK_PIXEL if self.default == LIGHT_PIXEL else LIGHT_PIXEL
             new_img = ScannerImage(self.enhancement, new_default)
         else:
             new_img = ScannerImage(self.enhancement, self.default)
 
-        for _ in self.mapOnPixelPositions(lambda x: new_img.__setitem__(x, self.getPixelEnhance(*x)), overscan=1):
+        for _ in self.mapOnPixelPositions(
+            lambda x: new_img.__setitem__(x, self.getPixelEnhance(*x)), overscan=1
+        ):
             pass
 
         return new_img
@@ -169,11 +182,9 @@ def y2021d20_test():
     # print("After two rounds")
     # enhanced_enhanced.printImg(formatter=f)
 
-    assert(enhanced_enhanced.default == DARK_PIXEL)
-    s = sum(enhanced_enhanced.mapOnPixels(
-        lambda x: 1 if x == LIGHT_PIXEL else 0
-    ))
-    assert(s == 35)
+    assert enhanced_enhanced.default == DARK_PIXEL
+    s = sum(enhanced_enhanced.mapOnPixels(lambda x: 1 if x == LIGHT_PIXEL else 0))
+    assert s == 35
 
     enhancements = [img]
 
@@ -183,17 +194,14 @@ def y2021d20_test():
             break
         except IndexError:
             enhancements.append(enhancements[-1].enhance())
-    assert(final_img.default == DARK_PIXEL)
-    s = sum(final_img.mapOnPixels(
-        lambda x: 1 if x == LIGHT_PIXEL else 0
-    ))
-    assert(s == 3351)
+    assert final_img.default == DARK_PIXEL
+    s = sum(final_img.mapOnPixels(lambda x: 1 if x == LIGHT_PIXEL else 0))
+    assert s == 3351
     print("Tests passing")
 
 
-
-def y2021d20(inputPath = None):
-    if(inputPath == None):
+def y2021d20(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d20.txt"
     print("2021 day 20:")
 
@@ -207,7 +215,7 @@ def y2021d20(inputPath = None):
             lineList.append(line)
 
     y2021d20_test()
-    
+
     original_image = ScannerImage.fromLines(lineList)
 
     enhanced_image = original_image.enhance()
@@ -215,10 +223,10 @@ def y2021d20(inputPath = None):
 
     if enhanced_enhanced_image.default == LIGHT_PIXEL:
         raise RuntimeError(f"The answer will be infinite")
-    
-    Part_1_Answer = sum(enhanced_enhanced_image.mapOnPixels(
-        lambda x: 1 if x == LIGHT_PIXEL else 0
-    ))
+
+    Part_1_Answer = sum(
+        enhanced_enhanced_image.mapOnPixels(lambda x: 1 if x == LIGHT_PIXEL else 0)
+    )
 
     # Part 2
 
@@ -234,9 +242,6 @@ def y2021d20(inputPath = None):
     if final_img.default == LIGHT_PIXEL:
         raise RuntimeError(f"The answer will be infinite")
 
-    Part_2_Answer = sum(final_img.mapOnPixels(
-        lambda x: 1 if x == LIGHT_PIXEL else 0
-    ))
-
+    Part_2_Answer = sum(final_img.mapOnPixels(lambda x: 1 if x == LIGHT_PIXEL else 0))
 
     return (Part_1_Answer, Part_2_Answer)

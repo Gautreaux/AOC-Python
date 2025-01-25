@@ -1,8 +1,8 @@
-
 from typing import Optional
 
 from AOC_Lib.SolutionBase import Answer_T
 from .IntcodeLib import *
+
 
 class Solution_2019_02(IntcodeSolutionBase):
     """https://adventofcode.com/2019/day/2"""

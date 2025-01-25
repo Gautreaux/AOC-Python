@@ -1,4 +1,3 @@
-
 from collections import defaultdict
 import itertools
 import math
@@ -16,8 +15,8 @@ def get_ray(a: DiscretePoint2, b: DiscretePoint2) -> Ray2_T:
     """Get the ray from a to b"""
     assert isinstance(a, DiscretePoint2)
     assert isinstance(b, DiscretePoint2)
-    r = b-a
-    ray = r.scale(1 / r.distance(DiscretePoint2(0,0)))
+    r = b - a
+    ray = r.scale(1 / r.distance(DiscretePoint2(0, 0)))
     return Point2(round(ray.x, 10), round(ray.y, 10))
 
 
@@ -26,17 +25,17 @@ class Solution_2019_10(SolutionBase):
 
     def __post_init__(self):
         """Runs Once After `__init__`"""
-        
+
         self.asteroid_positions: list[DiscretePoint2] = []
 
         for y, line in enumerate(self.input_str_list(include_empty_lines=False)):
             for x, char in enumerate(line):
-                if char == '#':
-                    self.asteroid_positions.append(DiscretePoint2(x,y))
+                if char == "#":
+                    self.asteroid_positions.append(DiscretePoint2(x, y))
 
     def get_visible_directions(self, origin: DiscretePoint2) -> set[Ray2_T]:
         """Get all asteroids visible from the origin"""
-        
+
         rays: set[Ray2_T] = set()
 
         for other_asteroid in self.asteroid_positions:
@@ -49,13 +48,17 @@ class Solution_2019_10(SolutionBase):
     def get_asteroid_most_visible(self) -> DiscretePoint2:
         """Return the position of the asteroid that can see the most"""
 
-        asteroids_and_qty_seen = map(lambda x: (x, len(self.get_visible_directions(x))), self.asteroid_positions)
+        asteroids_and_qty_seen = map(
+            lambda x: (x, len(self.get_visible_directions(x))), self.asteroid_positions
+        )
         best_asteroid_and_qty = max(asteroids_and_qty_seen, key=lambda x: x[1])
         return best_asteroid_and_qty[0]
 
     def _part_1_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_1_answer`"""
-        return max(map(lambda x: len(self.get_visible_directions(x)), self.asteroid_positions))
+        return max(
+            map(lambda x: len(self.get_visible_directions(x)), self.asteroid_positions)
+        )
 
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
@@ -63,7 +66,6 @@ class Solution_2019_10(SolutionBase):
         base_asteroid = self.get_asteroid_most_visible()
 
         print("Base Asteroid is on: {}".format(base_asteroid))
-
 
         # Build a mapping of rays to the asteroids
         to_vaporize_dict: defaultdict[Ray2_T, list[DiscretePoint2]] = defaultdict(list)
@@ -73,19 +75,23 @@ class Solution_2019_10(SolutionBase):
             to_vaporize_dict[get_ray(base_asteroid, a)].append(a)
 
         # Convert the ray to its corresponding angle with the X-Axis in radians
-        to_vaporize_angle: list[tuple[float, list[DiscretePoint2]]] = list(map(
-            lambda rt: (math.atan2(rt[0].y, rt[0].x), rt[1]),
-            to_vaporize_dict.items(),
-        ))
+        to_vaporize_angle: list[tuple[float, list[DiscretePoint2]]] = list(
+            map(
+                lambda rt: (math.atan2(rt[0].y, rt[0].x), rt[1]),
+                to_vaporize_dict.items(),
+            )
+        )
 
         # organize in reverse 'destruction order'
         #   i.e. how close they are to the base
         # Note: we want to use the list like a stack
         #   so we place the furthest away items first (reverse sort)
-        for _,aligned_asteroids in to_vaporize_angle:
+        for _, aligned_asteroids in to_vaporize_angle:
             if len(aligned_asteroids) == 0:
                 continue
-            aligned_asteroids.sort(key=lambda x: base_asteroid.distance(x), reverse=True)
+            aligned_asteroids.sort(
+                key=lambda x: base_asteroid.distance(x), reverse=True
+            )
 
         # Sort the rays
         #   based on their angle (in radians) with the positive x axis
@@ -123,6 +129,6 @@ class Solution_2019_10(SolutionBase):
                 if not any(map(lambda x: x[1], to_vaporize_angle)):
                     break
         if destroyed_200th is None:
-            raise RuntimeError('???')
+            raise RuntimeError("???")
 
         return destroyed_200th.x * 100 + destroyed_200th.y

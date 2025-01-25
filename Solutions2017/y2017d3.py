@@ -4,13 +4,15 @@ from AOC_Lib.point import Point2, Y_UP_2_TRANSFORMS, Y_2_TRANSLATIONS
 from AOC_Lib.boundedInt import BoundedInt
 
 # TODO - there must be a better way
+
+
 def getNextPosGenerator():
     minX = 0
     minY = 0
     maxX = 0
     maxY = 0
 
-    position = Point2(0,0)
+    position = Point2(0, 0)
     direction = BoundedInt(4, value=1)
 
     yield position
@@ -31,17 +33,18 @@ def getNextPosGenerator():
             direction -= 1
         yield position
 
-def getSurroundingPositionGenerator(pos : Point2, memory):
+
+def getSurroundingPositionGenerator(pos: Point2, memory):
     # yield all the points in memory around pos
     transforms = [
-        Point2(-1,-1),
+        Point2(-1, -1),
         Point2(0, -1),
-        Point2(1,-1),
-        Point2(-1,0),
-        Point2(1,0),
+        Point2(1, -1),
+        Point2(-1, 0),
+        Point2(1, 0),
         Point2(-1, 1),
         Point2(0, 1),
-        Point2(1,1)
+        Point2(1, 1),
     ]
 
     for t in transforms:
@@ -49,13 +52,15 @@ def getSurroundingPositionGenerator(pos : Point2, memory):
         if (np[0], np[1]) in memory:
             yield (np[0], np[1])
 
-def getSurroundingGenerator(pos : Point2, memory) -> int:
+
+def getSurroundingGenerator(pos: Point2, memory) -> int:
     # yield all the values in memory around the pos
     for p in getSurroundingPositionGenerator(pos, memory):
         yield memory[(p[0], p[1])]
 
-def y2017d3(inputPath = None):
-    if(inputPath == None):
+
+def y2017d3(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d3.txt"
     print("2017 day 3:")
 
@@ -67,11 +72,11 @@ def y2017d3(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     # for single line inputs
     myInput = int(lineList[0])
 
-    part1gen : Point2 = getNextPosGenerator()
+    part1gen: Point2 = getNextPosGenerator()
 
     for _ in range(1, myInput):
         next(part1gen)
@@ -83,8 +88,8 @@ def y2017d3(inputPath = None):
     memory = {}
 
     part2gen = getNextPosGenerator()
-    next(part2gen) # skip the first 0,0
-    memory[(0,0)] = 1
+    next(part2gen)  # skip the first 0,0
+    memory[(0, 0)] = 1
 
     for pos in part2gen:
         thisValue = 0
@@ -94,6 +99,5 @@ def y2017d3(inputPath = None):
         if thisValue > myInput:
             Part_2_Answer = thisValue
             break
-
 
     return (Part_1_Answer, Part_2_Answer)

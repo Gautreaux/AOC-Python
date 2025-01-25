@@ -3,8 +3,9 @@
 from copy import deepcopy
 from typing import Counter
 
-def y2020d21(inputPath = None):
-    if(inputPath == None):
+
+def y2020d21(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d21.txt"
     print("2020 day 21:")
 
@@ -16,17 +17,17 @@ def y2020d21(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     # print("DEBUG MODE ON")
     # lineList = ["mxmxvkd kfcds sqjhc nhms (contains dairy, fish)",
     #             "trh fvjkl sbzzf mxmxvkd (contains dairy)",
     #             "sqjhc fvjkl (contains soy)",
     #             "sqjhc mxmxvkd sbzzf (contains fish)"]
-    
+
     recipesList = []
 
     for l in lineList:
-        assert(l[-1] == ')')
+        assert l[-1] == ")"
         s = l.replace(")", "").replace(", ", " ").split(" ")
         i = iter(s)
 
@@ -36,30 +37,30 @@ def y2020d21(inputPath = None):
         while True:
             t = next(i)
 
-            if t.find("(") != -1: # ) # for auto formatter
+            if t.find("(") != -1:  # ) # for auto formatter
                 break
             else:
                 ingredients.append(t)
-        
+
         while True:
             try:
                 t = next(i)
                 allergens.append(t)
             except StopIteration:
                 break
-        
+
         recipesList.append((ingredients, allergens))
 
     def allergensGenerator():
         for r in recipesList:
             for a in r[1]:
                 yield a
-    
+
     def ingredientsGenerator():
         for r in recipesList:
             for i in r[0]:
                 yield i
-    
+
     allAllergens = set(allergensGenerator())
     allIngredients = set(ingredientsGenerator())
 
@@ -95,10 +96,9 @@ def y2020d21(inputPath = None):
         for allergen in recipe[1]:
             allergensDict[allergen].append(set(recipe[0]))
 
-
     allergensToMatch = deepcopy(allAllergens)
     allergensMatched = {}
-    lastToMatch = len(allergensToMatch)+1
+    lastToMatch = len(allergensToMatch) + 1
 
     while True:
         if len(allergensToMatch) == 0:
@@ -114,7 +114,7 @@ def y2020d21(inputPath = None):
             if len(knownRecpies) > 1:
                 i = knownRecpies[0].intersection(*(knownRecpies[1:]))
             else:
-                assert(len(knownRecpies) == 1)
+                assert len(knownRecpies) == 1
                 i = knownRecpies[0]
             for am in allergensMatched.values():
                 if am in i:

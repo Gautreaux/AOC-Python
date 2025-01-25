@@ -1,7 +1,8 @@
 # from AOC_Lib.name import *
 
-def y2021d3(inputPath = None):
-    if(inputPath == None):
+
+def y2021d3(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2021/d3.txt"
     print("2021 day 3:")
 
@@ -13,14 +14,14 @@ def y2021d3(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     pos_counter = []
-    while(len(pos_counter) < len(lineList[0])):
-        pos_counter.append([0,0])
+    while len(pos_counter) < len(lineList[0]):
+        pos_counter.append([0, 0])
 
     for line in lineList:
         for i, c in enumerate(line):
-            pos_counter[i][0 if c == '0' else 1] += 1
+            pos_counter[i][0 if c == "0" else 1] += 1
 
     print(pos_counter)
 
@@ -61,6 +62,5 @@ def y2021d3(inputPath = None):
     co2_rating = int(co2_s, base=2)
 
     Part_2_Answer = o2_rating * co2_rating
-
 
     return (Part_1_Answer, Part_2_Answer)

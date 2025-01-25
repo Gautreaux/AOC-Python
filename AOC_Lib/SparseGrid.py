@@ -1,5 +1,3 @@
-
-
 from collections import Counter
 from typing import Any, Callable, Iterator, Optional, TypeVar
 
@@ -13,7 +11,6 @@ class EmptyGridException(Exception):
 
 # TODO - this model can be applied to may solutions
 class SparseGrid:
-    
 
     def __init__(self, default: SparseGridCell_T) -> None:
         # the default value
@@ -35,14 +32,14 @@ class SparseGrid:
     @property
     def x_keys(self) -> Iterator[int]:
         """Return an iterator of unique x values
-            representing each column with a non-default value
+        representing each column with a non-default value
         """
         return iter(self._x_value_refs.keys())
-    
+
     @property
     def y_keys(self) -> Iterator[int]:
         """Return an iterator of unique y values
-            representing each row with a non-default value
+        representing each row with a non-default value
         """
         return iter(self._y_value_refs.keys())
 
@@ -55,38 +52,38 @@ class SparseGrid:
     def is_all_default(self) -> bool:
         """Return `True` iff all cells are default"""
         return self.number_non_default == 0
-    
-    @property 
+
+    @property
     def min_x(self) -> Optional[int]:
         """Return the smallest x value for a Non-default cell
-            otherwise, None
+        otherwise, None
         """
         if self.is_all_default:
             return None
         return min(self.x_keys)
-    
-    @property 
+
+    @property
     def max_x(self) -> Optional[int]:
         """Return the largest x value for a Non-default cell
-            otherwise, None
+        otherwise, None
         """
         if self.is_all_default:
             return None
         return max(self.x_keys)
-    
-    @property 
+
+    @property
     def min_y(self) -> Optional[int]:
         """Return the smallest y value for a Non-default cell
-            otherwise, None
+        otherwise, None
         """
         if self.is_all_default:
             return None
         return min(self.y_keys)
-    
-    @property 
+
+    @property
     def max_y(self) -> Optional[int]:
         """Return the largest y value for a Non-default cell
-            otherwise, None
+        otherwise, None
         """
         if self.is_all_default:
             return None
@@ -98,7 +95,7 @@ class SparseGrid:
             return self._non_defaults[pos]
         else:
             return self.default
-        
+
     def __setitem__(self, pos: SparseGridPos_T, val: SparseGridCell_T) -> None:
         """Set the item at pos `pos` to `val`"""
         if val == self.default:
@@ -122,12 +119,12 @@ class SparseGrid:
 
     def generateAllPositions(self, overscan: int = 0) -> Iterator[SparseGridPos_T]:
         """Generate all positions in the grid which are
-            inside (boundary-inclusive) the points (min_x, min_y) (max_x, max_y)
+        inside (boundary-inclusive) the points (min_x, min_y) (max_x, max_y)
 
-            parameter `overscan` specifies an augmentation to these bounds
-                with positive values increasing the distance
-            
-            Iterator produces positions ordered in increasing y with ties broken by increasing x
+        parameter `overscan` specifies an augmentation to these bounds
+            with positive values increasing the distance
+
+        Iterator produces positions ordered in increasing y with ties broken by increasing x
         """
         if self.is_all_default:
             raise EmptyGridException
@@ -139,30 +136,35 @@ class SparseGrid:
         def _g():
             for y in y_range:
                 for x in x_range:
-                    yield (x,y)
-        return (iter(_g()))
+                    yield (x, y)
+
+        return iter(_g())
 
     def generateAllCells(self, overscan: int = 0) -> Iterator[SparseGridPos_T]:
         """Like `generateAllPositions` but for values"""
         return map(lambda p: self[p], self.generateAllPositions(overscan=overscan))
 
-    def mapOnPositions(self, callable: Callable[[SparseGridPos_T], Any], overscan: int = 0) -> Any:
+    def mapOnPositions(
+        self, callable: Callable[[SparseGridPos_T], Any], overscan: int = 0
+    ) -> Any:
         """Like `generateAllPositions` but as a mapping"""
         return map(callable, self.generateAllPositions(overscan=overscan))
-    
-    def mapOnCells(self, callable: Callable[[SparseGridCell_T], Any], overscan: int = 0) -> Any:
+
+    def mapOnCells(
+        self, callable: Callable[[SparseGridCell_T], Any], overscan: int = 0
+    ) -> Any:
         """Like `generateAllCells` but as a mapping"""
         return map(callable, self.generateAllCells(overscan=overscan))
 
     def printGrid(
-        self, 
-        overscan: int = 0, 
+        self,
+        overscan: int = 0,
         formatter: Callable[[SparseGridCell_T], str] = str,
-        line_break: str = '\n',
+        line_break: str = "\n",
     ) -> None:
         """Print the grid to the console in lines of increasing y
-            cells are formatted with `formatter` and 
-            `line_break` is inserted between lines
+        cells are formatted with `formatter` and
+        `line_break` is inserted between lines
         """
         if self.is_all_default:
             return
@@ -175,6 +177,3 @@ class SparseGrid:
                 last_y = pos[1]
             print(formatter(self[pos]), end="")
         print(line_break, end="")
-
-
-    

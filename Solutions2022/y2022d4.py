@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -6,7 +5,6 @@ from typing import Optional
 from AOC_Lib.Geometry.LineSegment import Segment2_DiscreteAA, DegenerateMultipoint
 from AOC_Lib.Geometry.Point import DiscretePoint2
 from AOC_Lib.SolutionBase import SolutionBase, Answer_T
-
 
 
 @dataclass
@@ -24,19 +22,19 @@ class ElfRange:
         )
 
     @classmethod
-    def from_str(cls, s: str) -> 'ElfRange':
+    def from_str(cls, s: str) -> "ElfRange":
         """From the #-# format"""
-        a,_,b = s.partition('-')
+        a, _, b = s.partition("-")
         l = min(int(a), int(b))
         u = max(int(a), int(b))
         return cls(low=l, high=u)
 
-    def contains(self, other: 'ElfRange') -> bool:
+    def contains(self, other: "ElfRange") -> bool:
         return self.low <= other.low and self.high >= other.high
 
-    def overlaps(self, other: 'ElfRange') -> bool:
+    def overlaps(self, other: "ElfRange") -> bool:
         try:
-            return (self._segment.get_intersection(other._segment) is not None)
+            return self._segment.get_intersection(other._segment) is not None
         except DegenerateMultipoint:
             return True
 
@@ -49,9 +47,9 @@ class Solution_2022_04(SolutionBase):
 
         p1_counter = 0
         p2_counter = 0
-        
+
         for line in self.input_str_list(include_empty_lines=False):
-            r1, _, r2 = line.partition(',')
+            r1, _, r2 = line.partition(",")
 
             elf1 = ElfRange.from_str(r1)
             elf2 = ElfRange.from_str(r2)
@@ -62,4 +60,3 @@ class Solution_2022_04(SolutionBase):
                 p2_counter += 1
         self._part_1_answer = p1_counter
         self._part_2_answer = p2_counter
-

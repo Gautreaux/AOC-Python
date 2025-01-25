@@ -3,7 +3,10 @@
 from collections import defaultdict, deque
 from typing import Generator
 
-def generatePositions(s) -> Generator[tuple[tuple[int,int], tuple[int,int]], None, None]:
+
+def generatePositions(
+    s,
+) -> Generator[tuple[tuple[int, int], tuple[int, int]], None, None]:
     x = 0
     y = 0
 
@@ -16,28 +19,28 @@ def generatePositions(s) -> Generator[tuple[tuple[int,int], tuple[int,int]], Non
             continue
         elif c == "E":
             x += 1
-            yield ((x-1,y), (x,y))
+            yield ((x - 1, y), (x, y))
         elif c == "W":
             x -= 1
-            yield ((x+1,y), (x,y))
+            yield ((x + 1, y), (x, y))
         elif c == "N":
             y -= 1
-            yield ((x,y+1), (x,y))
+            yield ((x, y + 1), (x, y))
         elif c == "S":
             y += 1
-            yield ((x,y-1), (x,y))
+            yield ((x, y - 1), (x, y))
         elif c == "|":
-            x,y = rollback_pos[-1]
+            x, y = rollback_pos[-1]
         elif c == "(":
-            rollback_pos.append((x,y))
+            rollback_pos.append((x, y))
         elif c == ")":
-            x,y=rollback_pos.pop()
+            x, y = rollback_pos.pop()
         else:
             raise RuntimeError(f"Did not recognize character: `{c}`")
 
 
-def y2018d20(inputPath = None):
-    if(inputPath == None):
+def y2018d20(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d20.txt"
     print("2018 day 20:")
 
@@ -52,16 +55,16 @@ def y2018d20(inputPath = None):
 
     adj_map = defaultdict(list)
 
-    for a,b in list(generatePositions(lineList[-1])):
+    for a, b in list(generatePositions(lineList[-1])):
         adj_map[a].append(b)
         adj_map[b].append(a)
-    
+
     # now the search
 
     visited = {}
     frontier = deque()
-    frontier.append(((0,0), 0))
-    visited[(0,0)] = 0
+    frontier.append(((0, 0), 0))
+    visited[(0, 0)] = 0
     furthest_depth = 0
 
     while frontier:
@@ -72,7 +75,7 @@ def y2018d20(inputPath = None):
         for neighbor in adj_map[this_pos]:
             if neighbor not in visited:
                 visited[neighbor] = this_depth + 1
-                frontier.append((neighbor, this_depth+1))
+                frontier.append((neighbor, this_depth + 1))
 
     Part_1_Answer = furthest_depth
 

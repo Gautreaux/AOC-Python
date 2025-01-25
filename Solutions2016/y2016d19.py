@@ -4,11 +4,11 @@
 class ElfCircle:
     def __init__(self, qty: int) -> None:
         # can use disjoint sets to quickly skip empty parts
-        
-        l = [-1]*(qty+2)
+
+        l = [-1] * (qty + 2)
 
         for x in range(1, qty + 1):
-            l[x] = x+1 
+            l[x] = x + 1
         l[qty] = 1
         self._next_list = l
         self._num_with_presents = qty
@@ -23,7 +23,7 @@ class ElfCircle:
         """Return the number of elves that remain"""
         return self._num_with_presents
 
-    def _getNext(self, elf:int) -> int:
+    def _getNext(self, elf: int) -> int:
         """Get the next elf for a given elf"""
         to_compress = []
         a = self._next_list[elf]
@@ -35,7 +35,7 @@ class ElfCircle:
             self._next_list[-x] = a
         return a
 
-    def _removeElf(self, elf:int) -> None:
+    def _removeElf(self, elf: int) -> None:
         """Remove the given elf"""
         n = self._next_list[elf]
         if n > 0:
@@ -46,10 +46,10 @@ class ElfCircle:
 
     def Play(self, start_elf: int = 1) -> int:
         """Play a game where each steals from the next (Part 1),
-            and return the winning elf
+        and return the winning elf
         """
         # check the elf index is valid
-        assert(start_elf >= 1 and start_elf <= self._start_qty)
+        assert start_elf >= 1 and start_elf <= self._start_qty
         active = start_elf
 
         while len(self) > 1:
@@ -58,8 +58,9 @@ class ElfCircle:
             active = self._getNext(active)
         return active
 
-def y2016d19(inputPath = None):
-    if(inputPath == None):
+
+def y2016d19(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d19.txt"
     print("2016 day 19:")
 
@@ -71,7 +72,7 @@ def y2016d19(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     number_elves = int(lineList[-1])
 
     ec = ElfCircle(number_elves)
@@ -80,7 +81,7 @@ def y2016d19(inputPath = None):
 
     # this doesnt actually work:
     #   its very easy to end up in a cyclic problem
-    #   where you point to yourself, 
+    #   where you point to yourself,
     # There is definetly some optimization from disjoint sets
     #   but I just can't make it work ...
 

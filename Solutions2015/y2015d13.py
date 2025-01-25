@@ -2,6 +2,7 @@
 
 import itertools
 
+
 def getMaxHappiness(person_pair_list):
     max_happiness = 0
     for p in itertools.permutations(person_pair_list.keys(), len(person_pair_list)):
@@ -10,7 +11,7 @@ def getMaxHappiness(person_pair_list):
 
         happiness = sum(
             map(
-                (lambda x,y: person_pair_list[x][y] + person_pair_list[y][x]),
+                (lambda x, y: person_pair_list[x][y] + person_pair_list[y][x]),
                 p,
                 i,
             )
@@ -19,8 +20,9 @@ def getMaxHappiness(person_pair_list):
         max_happiness = max(max_happiness, happiness)
     return max_happiness
 
-def y2015d13(inputPath = None):
-    if(inputPath == None):
+
+def y2015d13(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d13.txt"
     print("2015 day 13:")
 
@@ -40,14 +42,14 @@ def y2015d13(inputPath = None):
         # t = (s[0], s[2], int(s[3]), s[-1][:-1])
         if s[0] not in person_pair_list:
             person_pair_list[s[0]] = {}
-        
+
         person_pair_list[s[0]][s[-1][:-1]] = int(s[3]) * (1 if s[2] == "gain" else -1)
 
     Part_1_Answer = getMaxHappiness(person_pair_list)
 
     for v in person_pair_list.values():
         v["self"] = 0
-    
+
     person_pair_list["self"] = {}
     for k in person_pair_list:
         person_pair_list["self"][k] = 0

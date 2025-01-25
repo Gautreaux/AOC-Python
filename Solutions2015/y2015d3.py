@@ -1,5 +1,3 @@
-
-
 from typing import Optional
 
 
@@ -10,11 +8,11 @@ from AOC_Lib.Geometry.PointTransforms import Direction2, DirectionsCharset_T
 
 class Santa:
 
-    def __init__(self, start_position: DiscretePoint2 = DiscretePoint2(0,0)) -> None:
+    def __init__(self, start_position: DiscretePoint2 = DiscretePoint2(0, 0)) -> None:
         self._pos: DiscretePoint2 = start_position
         self._visited: set[DiscretePoint2] = set()
         self._visited.add(start_position)
-    
+
     @property
     def position(self) -> DiscretePoint2:
         """Get the current position"""
@@ -39,7 +37,7 @@ class Solution_2015_03(SolutionBase):
 
         santa = Santa()
         for c in self.input_str():
-            santa.step(c) # type: ignore
+            santa.step(c)  # type: ignore
         return len(santa.visited)
 
     def _part_2_hook(self) -> Optional[Answer_T]:

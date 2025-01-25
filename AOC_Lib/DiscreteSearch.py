@@ -1,8 +1,8 @@
-
 from typing import Any, Callable
 
 
 SearchFn_T = Callable[[int], int]
+
 
 class DiscreteSearch:
     """
@@ -11,11 +11,9 @@ class DiscreteSearch:
     SearchFn must be stateless
     """
 
-
     def __init__(self, fn: SearchFn_T) -> None:
         self._fn = fn
 
-    
     def _increasing_common(self, start: int, selector: Callable[[int], bool]) -> int:
         """Common worker for less than and less than or equal to"""
 
@@ -25,10 +23,9 @@ class DiscreteSearch:
 
         if not selector(last_result):
             raise RuntimeError("The start value is already not a valid solution")
-        
 
         best_guess = last_guess
-        
+
         incr = 1
 
         while True:
@@ -36,7 +33,7 @@ class DiscreteSearch:
             new_result = self._fn(new_guess)
 
             if selector(new_result):
-                # The new value is valid so 
+                # The new value is valid so
                 #   we take that as the new best
                 #   and double incr to search more
                 incr *= 2
@@ -52,16 +49,16 @@ class DiscreteSearch:
 
     def find_biggest_less_than(self, target: int, hint: int = 0) -> int:
         """Find the biggest value V that satisfies
-            `fn(V) < target`
+        `fn(V) < target`
 
-            Start with `V=hint`
+        Start with `V=hint`
         """
         return self._increasing_common(start=hint, selector=lambda x: x < target)
-    
+
     def find_biggest_less_than_equal_to(self, target: int, hint: int = 0) -> int:
         """Find the biggest value V that satisfies
-            `fn(V) <= target`
+        `fn(V) <= target`
 
-            Start with `V=hint`
+        Start with `V=hint`
         """
         return self._increasing_common(start=hint, selector=lambda x: x <= target)

@@ -7,20 +7,21 @@ from typing import Optional
 from random import randint
 
 # A shared lock for all queue pushes
-#   Should not be necessary 
+#   Should not be necessary
 #   but it costs nothing to be sure
 _push_lock = asyncio.Lock()
 
+
 async def PushRouter(
-    q: asyncio.Queue, 
-    network_addresses: dict[int, asyncio.Queue], 
-    NAT: Optional['NAT'] = None,
+    q: asyncio.Queue,
+    network_addresses: dict[int, asyncio.Queue],
+    NAT: Optional["NAT"] = None,
 ):
     """Listen and construct the three-byte messages on q; send to the appropriate address
-        When NAT is provided,
-            pass any 255 packets to the NAT (part 2)
-        when not provided, 
-            return the value
+    When NAT is provided,
+        pass any 255 packets to the NAT (part 2)
+    when not provided,
+        return the value
     """
     global _push_lock
 
@@ -43,7 +44,7 @@ async def PushRouter(
                     NAT.in_q.put_nowait(x_value)
                     NAT.in_q.put_nowait(y_value)
                     continue
-        
+
         if address not in network_addresses:
             raise RuntimeError(f"Unsupported network address: {address}")
 
@@ -60,7 +61,7 @@ async def PushRouter(
 async def RandomNegOne(runners: dict[int, IntcodeRunner]):
     """Randomly find blocked NICs and push instructions"""
     while True:
-        await asyncio.sleep(.05)
+        await asyncio.sleep(0.05)
         async with _push_lock:
             for _ in range(5):
                 i = randint(0, 49)
@@ -71,6 +72,7 @@ async def RandomNegOne(runners: dict[int, IntcodeRunner]):
 
 class NAT:
     """Not Always Transmitting Controller"""
+
     def __init__(self, nic: dict[int, IntcodeRunner]) -> None:
         self._in_q = asyncio.Queue()
 
@@ -93,13 +95,13 @@ class NAT:
         loop = asyncio.get_event_loop()
         self._recv_task = loop.create_task(self._NAT_recv())
         self._monitor_task = loop.create_task(self._NAT_monitor())
-    
+
     def __del__(self):
         if not self._recv_task.done():
             self._recv_task.cancel()
         if not self._monitor_task.done():
             self._monitor_task.cancel()
-    
+
     @property
     def in_q(self) -> asyncio.Queue:
         """Get the queue that the NAT is running on"""
@@ -112,7 +114,7 @@ class NAT:
 
     def transmissionOccurred(self) -> None:
         """Notify that some network transmission occurred
-            used to reset internal watchdogs in the NAT
+        used to reset internal watchdogs in the NAT
         """
         self._reset_retry_tracker()
 
@@ -126,9 +128,9 @@ class NAT:
         await self._done_event.wait()
         return self.result
 
-    async def _NAT_recv(self) -> None: 
+    async def _NAT_recv(self) -> None:
         """Receive function for NAT;
-            Managed internally by the NAT
+        Managed internally by the NAT
         """
         while True:
             x = await self._in_q.get()
@@ -158,12 +160,12 @@ class NAT:
 
     async def _NAT_monitor(self) -> None:
         """Monitor function for NAT;
-            Managed internally by the NAT
+        Managed internally by the NAT
         """
         while True:
-            await asyncio.sleep(.1)
+            await asyncio.sleep(0.1)
             to_pop = []
-            for k,v in self._retry_tracker.items():
+            for k, v in self._retry_tracker.items():
                 runner = self._nic_dict[k]
                 if runner.isIOBlocked():
                     if v == 0:
@@ -173,13 +175,13 @@ class NAT:
                         self._retry_tracker[k] -= 1
             for k in to_pop:
                 self._retry_tracker.pop(k)
-            
+
             if len(self._retry_tracker) == 0:
                 await self._unblock()
 
 
-def y2019d23(inputPath = None):
-    if(inputPath == None):
+def y2019d23(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2019/d23.txt"
     print("2019 day 23:")
 
@@ -191,7 +193,7 @@ def y2019d23(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     prog = IntcodeProgram(map(int, lineList[0].split(",")))
 
     network_addresses = {}
@@ -206,16 +208,18 @@ def y2019d23(inputPath = None):
         network_addresses[i] = q
         q.put_nowait(i)
         runner = IntcodeRunner(prog, in_q=q)
-        task_list.append(loop.create_task(PushRouter(runner.getOutputQ(), network_addresses)))
+        task_list.append(
+            loop.create_task(PushRouter(runner.getOutputQ(), network_addresses))
+        )
         runners[i] = runner
         task_list.append(loop.create_task(runner.run()))
 
     task_list.append(RandomNegOne(runners))
-        
-    done, pending = loop.run_until_complete(asyncio.wait(
-        task_list, return_when=asyncio.FIRST_COMPLETED
-    ))
-    
+
+    done, pending = loop.run_until_complete(
+        asyncio.wait(task_list, return_when=asyncio.FIRST_COMPLETED)
+    )
+
     candidates = list(map(lambda x: x.result(), done))
 
     if len(candidates) <= 0:
@@ -225,7 +229,7 @@ def y2019d23(inputPath = None):
     else:
         print(f"Part 1: {candidates[0]}")
     print(f"  done tasks: {done}")
-    
+
     Part_1_Answer = candidates[0]
 
     # Part 2
@@ -243,12 +247,17 @@ def y2019d23(inputPath = None):
         runner = IntcodeRunner(prog, in_q=q)
         network_addresses[i] = q
         nic_dict[i] = runner
-        task_list.append(loop.create_task(PushRouter(runner.getOutputQ(), network_addresses, nat)))
+        task_list.append(
+            loop.create_task(PushRouter(runner.getOutputQ(), network_addresses, nat))
+        )
         task_list.append(loop.create_task(runner.run()))
-    
-    done, pending = loop.run_until_complete(asyncio.wait(
-        task_list, return_when=asyncio.FIRST_COMPLETED,
-    ))
+
+    done, pending = loop.run_until_complete(
+        asyncio.wait(
+            task_list,
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+    )
 
     if not task_list[0].done():
         print("WARN: The task that should have finished, didn't")
@@ -262,7 +271,7 @@ def y2019d23(inputPath = None):
     else:
         print(f"Part 2: {candidates[0]}")
     print(f"  done tasks: {done}")
-    
+
     Part_2_Answer = candidates[0]
 
     return (Part_1_Answer, Part_2_Answer)

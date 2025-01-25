@@ -2,8 +2,9 @@
 
 from typing import Iterable, Generator
 
-def y2017d9(inputPath = None):
-    if(inputPath == None):
+
+def y2017d9(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2017/d9.txt"
     print("2017 day 9:")
 
@@ -15,9 +16,8 @@ def y2017d9(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
-    assert(len(lineList) == 1)
 
+    assert len(lineList) == 1
 
     # Total characters trashed
     trash_counter = 0
@@ -28,15 +28,15 @@ def y2017d9(inputPath = None):
         in_trash = False
 
         for c in itr:
-            if c == '!':
+            if c == "!":
                 # trash the next character
                 next(itr)
-            elif c == '<':
+            elif c == "<":
                 if in_trash:
                     trash_counter += 1
                 else:
                     in_trash = True
-            elif c == '>':
+            elif c == ">":
                 in_trash = False
             elif in_trash:
                 trash_counter += 1
@@ -54,7 +54,7 @@ def y2017d9(inputPath = None):
             depth += 1
         elif c == "}":
             depth -= 1
-        elif c == ',':
+        elif c == ",":
             pass
         else:
             raise RuntimeError(f"Unexpected character: `{c}`")

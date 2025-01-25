@@ -1,9 +1,9 @@
-
 from typing import Generator
 from .IntcodeLib import IntcodeProgram, IntcodeRunner
 
 import asyncio
 from collections import deque
+
 
 async def waitThenPrompt(event: asyncio.Event, push_q: asyncio.Queue):
     """Wait for an event to signal that input is needed,
@@ -37,14 +37,15 @@ async def waitThenPrompt(event: asyncio.Event, push_q: asyncio.Queue):
 
     def _inp_generator() -> Generator[bytes, None, None]:
         for k in inputs:
-            if not k.endswith('\n'):
+            if not k.endswith("\n"):
                 k = f"{k}\n"
-            yield k.encode('ascii')
+            yield k.encode("ascii")
         while True:
             i = input(">")
-            if not i.endswith('\n'):
+            if not i.endswith("\n"):
                 i = f"{i}\n"
-            yield i.encode('ascii')
+            yield i.encode("ascii")
+
     _g = _inp_generator()
 
     while True:
@@ -56,7 +57,9 @@ async def waitThenPrompt(event: asyncio.Event, push_q: asyncio.Queue):
             await push_q.put(b)
 
 
-async def echoOutput(in_q: asyncio.Queue, event: asyncio.Event, pattern: str = "Command?"):
+async def echoOutput(
+    in_q: asyncio.Queue, event: asyncio.Event, pattern: str = "Command?"
+):
     """Collect output from `in_q` and when `pattern` is see, signal event"""
     dq = deque(maxlen=len(pattern))
 
@@ -80,16 +83,19 @@ def interactiveMode(runner: IntcodeRunner):
     prompt_task = loop.create_task(waitThenPrompt(ready_for_input, runner.getInputQ()))
     run_task = loop.create_task(runner.run())
 
-    done, pending = loop.run_until_complete(asyncio.wait(
-        [prompt_task, echo_task, run_task], return_when=asyncio.FIRST_COMPLETED
-    ))
-
+    done, pending = loop.run_until_complete(
+        asyncio.wait(
+            [prompt_task, echo_task, run_task], return_when=asyncio.FIRST_COMPLETED
+        )
+    )
 
     if run_task.done():
         pass
     else:
-        print("WARNING, one of the tasks exited unexpectedly.\n"
-            "  Pending is {}".format(pending))
+        print(
+            "WARNING, one of the tasks exited unexpectedly.\n"
+            "  Pending is {}".format(pending)
+        )
 
     for t in pending:
         t.cancel()
@@ -97,8 +103,8 @@ def interactiveMode(runner: IntcodeRunner):
     return (20483, None)
 
 
-def y2019d25(inputPath = None):
-    if(inputPath == None):
+def y2019d25(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2019/d25.txt"
     print("2019 day 25:")
 
@@ -110,7 +116,7 @@ def y2019d25(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     prog = IntcodeProgram(map(int, lineList[0].split(",")))
     runner = IntcodeRunner(prog)
 

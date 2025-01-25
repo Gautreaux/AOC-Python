@@ -7,8 +7,8 @@ from functools import reduce
 from operator import mul
 
 
-def y2020d1(inputPath = None):
-    if(inputPath == None):
+def y2020d1(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2020/d1.txt"
     print("2020 day 1:")
 
@@ -27,5 +27,5 @@ def y2020d1(inputPath = None):
     for e in allTriplesGenerator(l):
         if sum(e) == 2020:
             Part_2_Answer = reduce(mul, e)
-        
+
     return (Part_1_Answer, Part_2_Answer)

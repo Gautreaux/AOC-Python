@@ -3,7 +3,8 @@
 import json
 from os.path import pardir
 
-def sumNumbers(obj, ignoreProperty = None):
+
+def sumNumbers(obj, ignoreProperty=None):
     sum = 0
     if type(obj) == dict:
         for k in obj:
@@ -24,8 +25,8 @@ def sumNumbers(obj, ignoreProperty = None):
     return sum
 
 
-def y2015d12(inputPath = None):
-    if(inputPath == None):
+def y2015d12(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d12.txt"
     print("2015 day 12:")
 
@@ -34,8 +35,8 @@ def y2015d12(inputPath = None):
 
     with open(inputPath) as f:
         j = json.load(f)
-    
-    #print(j)
+
+    # print(j)
 
     Part_1_Answer = sumNumbers(j)
     Part_2_Answer = sumNumbers(j, "red")

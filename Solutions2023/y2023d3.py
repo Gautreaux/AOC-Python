@@ -38,25 +38,28 @@ class PartNumber:
                     break
             else:
                 break
-        
+
         return total
 
-
     @classmethod
-    def check_location(cls, grid: list[list[str]], start_x: int, start_y: int) -> "PartNumber | None":
+    def check_location(
+        cls, grid: list[list[str]], start_x: int, start_y: int
+    ) -> "PartNumber | None":
         """Check if a location has a part number"""
         c = grid[start_y][start_x]
         if c not in digits:
             return None
-        
+
         root_x, root_y = cls.find_root(grid, start_x, start_y)
         total = cls.parse_total(grid, root_x, root_y)
-        borders_symbol: str = ''
+        borders_symbol: str = ""
 
         seen: set[tuple[int, int]] = set()
         frontier = [(root_x, root_y)]
 
-        n_factory = neighborGeneratorFactory(len(grid[0])-1, len(grid)-1, allow_diagonal=True)
+        n_factory = neighborGeneratorFactory(
+            len(grid[0]) - 1, len(grid) - 1, allow_diagonal=True
+        )
 
         while frontier:
             p = frontier.pop()
@@ -65,7 +68,7 @@ class PartNumber:
             seen.add(p)
             c = grid[p[1]][p[0]]
 
-            if c not in digits and c != '.':
+            if c not in digits and c != ".":
                 borders_symbol = borders_symbol + c
             if c not in digits:
                 continue
@@ -79,10 +82,8 @@ class PartNumber:
         return PartNumber((root_x, root_y), total, borders_symbol)
 
 
-
-
-def y2023d3(inputPath = None):
-    if(inputPath == None):
+def y2023d3(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2023/d3.txt"
     print("2023 day 3:")
 
@@ -94,39 +95,39 @@ def y2023d3(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     # for single line inputs
     for c in lineList[-1]:
         pass
 
     ds = DisjointSets(itertools.product(range(len(lineList[0])), range(len(lineList))))
 
-    assert lineList[0][0] == '.'
+    assert lineList[0][0] == "."
 
     gear_locations: list[tuple[int, int]] = []
 
     for y in range(len(lineList)):
         for x in range(len(lineList[0])):
             c = lineList[y][x]
-            if c == '.':
-                ds.union((x,y), (0,0))
-            if c == '*':
-                gear_locations.append((x,y))
+            if c == ".":
+                ds.union((x, y), (0, 0))
+            if c == "*":
+                gear_locations.append((x, y))
             if c not in digits:
                 continue
-            if x > 0 and lineList[y][x-1] in digits:
-                ds.union((x,y), (x-1,y))
-            if x < len(lineList[0])-1 and lineList[y][x+1] in digits:
-                ds.union((x,y), (x+1,y))
+            if x > 0 and lineList[y][x - 1] in digits:
+                ds.union((x, y), (x - 1, y))
+            if x < len(lineList[0]) - 1 and lineList[y][x + 1] in digits:
+                ds.union((x, y), (x + 1, y))
 
-    print('(Approximate) Number of numbers', len(ds))
-    
+    print("(Approximate) Number of numbers", len(ds))
+
     seen_sets: set = set()
     numbers: dict[int, PartNumber] = {}
 
     for y in range(len(lineList)):
         for x in range(len(lineList[0])):
-            h = ds.find((x,y))
+            h = ds.find((x, y))
             if h in seen_sets:
                 continue
             seen_sets.add(h)
@@ -135,23 +136,25 @@ def y2023d3(inputPath = None):
             if ps is not None:
                 numbers[h] = ps
 
-    print('Loaded Qty Number of Numbers:', len(numbers))
+    print("Loaded Qty Number of Numbers:", len(numbers))
 
     Part_1_Answer = sum(p.value for p in numbers.values() if p.borders_symbol)
 
     Part_2_Answer = 0
 
-    neighbor_gen = neighborGeneratorFactory(len(lineList[0])-1, len(lineList)-1, allow_diagonal=True)
+    neighbor_gen = neighborGeneratorFactory(
+        len(lineList[0]) - 1, len(lineList) - 1, allow_diagonal=True
+    )
 
     for g in gear_locations:
         neighbors: dict[int, PartNumber] = {}
-        for x,y in neighbor_gen(*g):
+        for x, y in neighbor_gen(*g):
             if lineList[y][x] not in digits:
                 continue
-            h = ds.find((x,y))
+            h = ds.find((x, y))
             if h not in neighbors:
                 neighbors[h] = numbers[h]
-        
+
         assert len(neighbors) <= 2
         if len(neighbors) < 2:
             continue

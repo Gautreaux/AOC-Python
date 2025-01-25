@@ -6,8 +6,8 @@ from AOC_Lib.point import Y_UP_2_TRANSFORMS as transforms
 from AOC_Lib.boundedInt import BoundedInt
 
 
-def y2016d1(inputPath = None):
-    if(inputPath == None):
+def y2016d1(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2016/d1.txt"
     print("2016 day 1:")
 
@@ -24,18 +24,18 @@ def y2016d1(inputPath = None):
     WEST = 3
 
     direction = BoundedInt(4, value=NORTH)
-    pos = Point2(0,0)
-    
-    tokens = line.replace(" ", "").split(',')
+    pos = Point2(0, 0)
+
+    tokens = line.replace(" ", "").split(",")
 
     part2Set = set()
     part2Set.add(pos)
 
     # iterate the tokens
     for t in tokens:
-        if t[0] == 'R':
+        if t[0] == "R":
             direction += 1
-        elif t[0] == 'L':
+        elif t[0] == "L":
             direction -= 1
         else:
             raise ValueError(t[0])
@@ -50,5 +50,5 @@ def y2016d1(inputPath = None):
                 Part_2_Answer = abs(pos.x) + abs(pos.y)
 
     Part_1_Answer = abs(pos.x) + abs(pos.y)
-        
+
     return (Part_1_Answer, Part_2_Answer)

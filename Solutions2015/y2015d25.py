@@ -4,7 +4,7 @@ import itertools
 from typing import Generator
 
 
-def generateCodes(first_code:int = 20151125) -> Generator[int, None, None]:
+def generateCodes(first_code: int = 20151125) -> Generator[int, None, None]:
     """Generate the codes in order"""
     c = first_code
 
@@ -18,14 +18,14 @@ def generateGridTiles() -> Generator[tuple[int, int], None, None]:
     for i in itertools.count(start=2):
         for j in range(1, i):
             r = i - j
-            assert(r >= 1)
-            assert(j >= 1)
-            assert((r + j) == i)
-            yield (r,j)
+            assert r >= 1
+            assert j >= 1
+            assert (r + j) == i
+            yield (r, j)
 
 
-def y2015d25(inputPath = None):
-    if(inputPath == None):
+def y2015d25(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d25.txt"
     print("2015 day 25:")
 
@@ -37,8 +37,8 @@ def y2015d25(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
-    assert(len(lineList) == 1)
+
+    assert len(lineList) == 1
 
     s = lineList[-1].split(" ")
 
@@ -49,7 +49,7 @@ def y2015d25(inputPath = None):
 
     last_sum = 0
 
-    for tile,value in zip(generateGridTiles(), generateCodes()):
+    for tile, value in zip(generateGridTiles(), generateCodes()):
         if sum(tile) > last_sum:
             print(f"At {sum(tile)} of {sum(rc_target)}")
             last_sum = sum(tile) + 25

@@ -20,20 +20,22 @@ ERIS_RMAP_T = set[tuple[int, int, int]]
 
 def getNextState(state: ERIS_MAP_T) -> ERIS_MAP_T:
     """Get the next state for this map"""
-    ngf = neighborGeneratorFactory(4,4)
+    ngf = neighborGeneratorFactory(4, 4)
 
     new_map = [
-        [0]*5,
-        [0]*5,
-        [0]*5,
-        [0]*5,
-        [0]*5,
+        [0] * 5,
+        [0] * 5,
+        [0] * 5,
+        [0] * 5,
+        [0] * 5,
     ]
 
     for y, row in enumerate(state):
         for x, c in enumerate(row):
-            num_neighbor_bugs = sum(map(lambda x: 1 if state[x[1]][x[0]] else 0, ngf(x,y)))
-            
+            num_neighbor_bugs = sum(
+                map(lambda x: 1 if state[x[1]][x[0]] else 0, ngf(x, y))
+            )
+
             if c == TileType.BUG:
                 if num_neighbor_bugs == 1:
                     new_map[y][x] = TileType.BUG
@@ -67,17 +69,19 @@ def getBioDiversityScore(eris_map: ERIS_MAP_T) -> int:
 
     for p, t in enumerate(itertools.chain.from_iterable(eris_map)):
         if t == TileType.BUG:
-            score += (2 ** p)
+            score += 2**p
 
     return score
 
 
-def getPlutonianAdjacent(x_value:int, y_value: int, z_value:int) -> Generator[tuple[int, int, int], None, None]:
+def getPlutonianAdjacent(
+    x_value: int, y_value: int, z_value: int
+) -> Generator[tuple[int, int, int], None, None]:
 
-    assert(not (x_value == 2 and y_value == 2))
+    assert not (x_value == 2 and y_value == 2)
 
     # the non-recursive cases
-    ngf = neighborGeneratorFactory(4,4)
+    ngf = neighborGeneratorFactory(4, 4)
     for new_x, new_y in ngf(x_value, y_value):
         if new_x == 2 and new_y == 2:
             continue
@@ -111,7 +115,7 @@ def getPlutonianAdjacent(x_value:int, y_value: int, z_value:int) -> Generator[tu
 def getNewPlutonianMap(current_map: ERIS_RMAP_T) -> ERIS_RMAP_T:
     """O(bad)"""
 
-    assert(not any(map(lambda x: x[0] == 2 and x[1] == 2, current_map)))
+    assert not any(map(lambda x: x[0] == 2 and x[1] == 2, current_map))
     max_z = max(map(lambda x: x[2], current_map))
     min_z = min(map(lambda x: x[2], current_map))
 
@@ -125,107 +129,159 @@ def getNewPlutonianMap(current_map: ERIS_RMAP_T) -> ERIS_RMAP_T:
 
                 num_neighbor_bugs = sum(
                     map(
-                        lambda c: 1 if c in current_map else 0, 
-                        getPlutonianAdjacent(x_value,y_value,z_layer)
+                        lambda c: 1 if c in current_map else 0,
+                        getPlutonianAdjacent(x_value, y_value, z_layer),
                     )
                 )
 
-                if (x_value,y_value,z_layer) in current_map:
+                if (x_value, y_value, z_layer) in current_map:
                     if num_neighbor_bugs == 1:
-                        new_map.add((x_value,y_value,z_layer))
+                        new_map.add((x_value, y_value, z_layer))
                 else:
                     if num_neighbor_bugs == 1 or num_neighbor_bugs == 2:
-                        new_map.add((x_value,y_value,z_layer))
-    assert(not any(map(lambda p: p[0] == 2 and p[1] == 2, new_map)))
+                        new_map.add((x_value, y_value, z_layer))
+    assert not any(map(lambda p: p[0] == 2 and p[1] == 2, new_map))
     return new_map
 
 
-def parseRMap(lines:list[str], base_layer:int = 0) -> ERIS_RMAP_T:
+def parseRMap(lines: list[str], base_layer: int = 0) -> ERIS_RMAP_T:
     """Parse a map from a list of lines"""
-    assert(len(lines) == 5)
+    assert len(lines) == 5
     new_map = set()
-    for y,row in enumerate(lines):
-        assert(len(row) == 5)
-        for x,cell in enumerate(row):
+    for y, row in enumerate(lines):
+        assert len(row) == 5
+        for x, cell in enumerate(row):
             if cell == "#":
-                new_map.add((x,y,base_layer))
+                new_map.add((x, y, base_layer))
     return new_map
 
 
 def y2019d24_tests() -> bool:
     """Just some test functions"""
-    assert(sum(1 for _ in getPlutonianAdjacent(0,0,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(1,0,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(2,0,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(3,0,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(4,0,0)) == 4)
+    assert sum(1 for _ in getPlutonianAdjacent(0, 0, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(1, 0, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(2, 0, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(3, 0, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(4, 0, 0)) == 4
 
-    assert(sum(1 for _ in getPlutonianAdjacent(0,1,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(1,1,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(2,1,0)) == 8)
-    assert(sum(1 for _ in getPlutonianAdjacent(3,1,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(4,1,0)) == 4)
+    assert sum(1 for _ in getPlutonianAdjacent(0, 1, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(1, 1, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(2, 1, 0)) == 8
+    assert sum(1 for _ in getPlutonianAdjacent(3, 1, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(4, 1, 0)) == 4
 
-    assert(sum(1 for _ in getPlutonianAdjacent(0,2,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(1,2,0)) == 8)
+    assert sum(1 for _ in getPlutonianAdjacent(0, 2, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(1, 2, 0)) == 8
     # assert(sum(1 for _ in getPlutonianAdjacent(2,2,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(3,2,0)) == 8)
-    assert(sum(1 for _ in getPlutonianAdjacent(4,2,0)) == 4)
+    assert sum(1 for _ in getPlutonianAdjacent(3, 2, 0)) == 8
+    assert sum(1 for _ in getPlutonianAdjacent(4, 2, 0)) == 4
 
-    assert(sum(1 for _ in getPlutonianAdjacent(0,3,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(1,3,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(2,3,0)) == 8)
-    assert(sum(1 for _ in getPlutonianAdjacent(3,3,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(4,3,0)) == 4)
+    assert sum(1 for _ in getPlutonianAdjacent(0, 3, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(1, 3, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(2, 3, 0)) == 8
+    assert sum(1 for _ in getPlutonianAdjacent(3, 3, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(4, 3, 0)) == 4
 
-    assert(sum(1 for _ in getPlutonianAdjacent(0,4,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(1,4,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(2,4,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(3,4,0)) == 4)
-    assert(sum(1 for _ in getPlutonianAdjacent(4,4,0)) == 4)
+    assert sum(1 for _ in getPlutonianAdjacent(0, 4, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(1, 4, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(2, 4, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(3, 4, 0)) == 4
+    assert sum(1 for _ in getPlutonianAdjacent(4, 4, 0)) == 4
 
     adv_test_cases = {
-        (0,0,0) : (4, set([(0,1,0), (1,0,0), (2,1,-1), (1,2,-1)])),
-        (1,0,0) : (4, set([(0,0,0), (2,0,0), (1,1,0), (2,1,-1)])),
-        (2,0,0) : (4, set([(1,0,0), (3,0,0), (2,1,0), (2,1,-1)])),
-        (3,0,0) : (4, set([(2,0,0), (4,0,0), (3,1,0), (2,1,-1)])),
-        (4,0,0) : (4, set([(3,0,0), (4,1,0), (2,1,-1), (3,2,-1)])),
-
-        (0,1,0) : (4, set([(0,0,0), (0,2,0), (1,1,0), (1,2,-1)])),
-        (1,1,0) : (4, set([(1,0,0), (0,1,0), (1,2,0), (2,1,0)])),
-        (2,1,0) : (8, set([(2,0,0), (1,1,0), (3,1,0), (0,0,1), (1,0,1), (2,0,1), (3,0,1), (4,0,1)])),
-        (3,1,0) : (4, set([(3,0,0), (3,2,0), (2,1,0), (4,1,0)])),
-        (4,1,0) : (4, set([(4,0,0), (4,2,0), (3,1,0), (3,2,-1)])),
-
-        (0,2,0) : (4, set([(0,1,0), (0,3,0), (1,2,0), (1,2,-1)])),
-        (1,2,0) : (8, set([(0,2,0), (1,1,0), (1,3,0), (0,0,1), (0,1,1), (0,2,1), (0,3,1), (0,4,1)])),
+        (0, 0, 0): (4, set([(0, 1, 0), (1, 0, 0), (2, 1, -1), (1, 2, -1)])),
+        (1, 0, 0): (4, set([(0, 0, 0), (2, 0, 0), (1, 1, 0), (2, 1, -1)])),
+        (2, 0, 0): (4, set([(1, 0, 0), (3, 0, 0), (2, 1, 0), (2, 1, -1)])),
+        (3, 0, 0): (4, set([(2, 0, 0), (4, 0, 0), (3, 1, 0), (2, 1, -1)])),
+        (4, 0, 0): (4, set([(3, 0, 0), (4, 1, 0), (2, 1, -1), (3, 2, -1)])),
+        (0, 1, 0): (4, set([(0, 0, 0), (0, 2, 0), (1, 1, 0), (1, 2, -1)])),
+        (1, 1, 0): (4, set([(1, 0, 0), (0, 1, 0), (1, 2, 0), (2, 1, 0)])),
+        (2, 1, 0): (
+            8,
+            set(
+                [
+                    (2, 0, 0),
+                    (1, 1, 0),
+                    (3, 1, 0),
+                    (0, 0, 1),
+                    (1, 0, 1),
+                    (2, 0, 1),
+                    (3, 0, 1),
+                    (4, 0, 1),
+                ]
+            ),
+        ),
+        (3, 1, 0): (4, set([(3, 0, 0), (3, 2, 0), (2, 1, 0), (4, 1, 0)])),
+        (4, 1, 0): (4, set([(4, 0, 0), (4, 2, 0), (3, 1, 0), (3, 2, -1)])),
+        (0, 2, 0): (4, set([(0, 1, 0), (0, 3, 0), (1, 2, 0), (1, 2, -1)])),
+        (1, 2, 0): (
+            8,
+            set(
+                [
+                    (0, 2, 0),
+                    (1, 1, 0),
+                    (1, 3, 0),
+                    (0, 0, 1),
+                    (0, 1, 1),
+                    (0, 2, 1),
+                    (0, 3, 1),
+                    (0, 4, 1),
+                ]
+            ),
+        ),
         # (2,2,0) : (??, set([])),
-        (3,2,0) : (8, set([(3,1,0), (3,3,0), (4,2,0), (4,0,1), (4,1,1), (4,2,1), (4,3,1), (4,4,1)])),
-        (4,2,0) : (4, set([(4,1,0), (4,3,0), (3,2,0), (3,2,-1)])),
-
-        (0,3,0) : (4, set([(0,2,0), (0,4,0), (1,3,0), (1,2,-1)])),
-        (1,3,0) : (4, set([(0,3,0), (2,3,0), (1,2,0), (1,4,0)])),
-        (2,3,0) : (8, set([(1,3,0), (3,3,0), (2,4,0), (0,4,1), (1,4,1), (2,4,1), (3,4,1), (4,4,1)])),
-        (3,3,0) : (4, set([(2,3,0), (4,3,0), (3,2,0), (3,4,0)])),
-        (4,3,0) : (4, set([(4,2,0), (4,4,0), (3,3,0), (3,2,-1)])),
-
-        (0,4,0) : (4, set([(0,3,0), (1,4,0), (1,2,-1), (2,3,-1)])),
-        (1,4,0) : (4, set([(0,4,0), (2,4,0), (1,3,0), (2,3,-1)])),
-        (2,4,0) : (4, set([(1,4,0), (3,4,0), (2,3,0), (2,3,-1)])),
-        (3,4,0) : (4, set([(2,4,0), (4,4,0), (3,3,0), (2,3,-1)])),
-        (4,4,0) : (4, set([(3,4,0), (4,3,0), (3,2,-1), (2,3,-1)])),
+        (3, 2, 0): (
+            8,
+            set(
+                [
+                    (3, 1, 0),
+                    (3, 3, 0),
+                    (4, 2, 0),
+                    (4, 0, 1),
+                    (4, 1, 1),
+                    (4, 2, 1),
+                    (4, 3, 1),
+                    (4, 4, 1),
+                ]
+            ),
+        ),
+        (4, 2, 0): (4, set([(4, 1, 0), (4, 3, 0), (3, 2, 0), (3, 2, -1)])),
+        (0, 3, 0): (4, set([(0, 2, 0), (0, 4, 0), (1, 3, 0), (1, 2, -1)])),
+        (1, 3, 0): (4, set([(0, 3, 0), (2, 3, 0), (1, 2, 0), (1, 4, 0)])),
+        (2, 3, 0): (
+            8,
+            set(
+                [
+                    (1, 3, 0),
+                    (3, 3, 0),
+                    (2, 4, 0),
+                    (0, 4, 1),
+                    (1, 4, 1),
+                    (2, 4, 1),
+                    (3, 4, 1),
+                    (4, 4, 1),
+                ]
+            ),
+        ),
+        (3, 3, 0): (4, set([(2, 3, 0), (4, 3, 0), (3, 2, 0), (3, 4, 0)])),
+        (4, 3, 0): (4, set([(4, 2, 0), (4, 4, 0), (3, 3, 0), (3, 2, -1)])),
+        (0, 4, 0): (4, set([(0, 3, 0), (1, 4, 0), (1, 2, -1), (2, 3, -1)])),
+        (1, 4, 0): (4, set([(0, 4, 0), (2, 4, 0), (1, 3, 0), (2, 3, -1)])),
+        (2, 4, 0): (4, set([(1, 4, 0), (3, 4, 0), (2, 3, 0), (2, 3, -1)])),
+        (3, 4, 0): (4, set([(2, 4, 0), (4, 4, 0), (3, 3, 0), (2, 3, -1)])),
+        (4, 4, 0): (4, set([(3, 4, 0), (4, 3, 0), (3, 2, -1), (2, 3, -1)])),
     }
 
     for pos, (expected_len, expected_adj) in adv_test_cases.items():
         adj = set(getPlutonianAdjacent(*pos))
-        assert(len(adj) == expected_len)
+        assert len(adj) == expected_len
 
         if len(expected_adj) != 0:
-            assert(pos not in expected_adj)
-            if(len(expected_adj)) != expected_len:
+            assert pos not in expected_adj
+            if (len(expected_adj)) != expected_len:
                 raise RuntimeError(f"The test case failed its own covariant check")
             try:
-                assert(adj == expected_adj)
+                assert adj == expected_adj
             except AssertionError:
                 l = list(adj)
                 l.sort()
@@ -235,92 +291,110 @@ def y2019d24_tests() -> bool:
                 print("\tExpected:", el)
                 print("\tGot:     ", l)
                 raise
-    
 
-    test_eris_r_map = parseRMap([
-        "....#",
-        "#..#.",
-        "#..##",
-        "..#..",
-        "#....",
-    ])
-    
-    
-    assert(test_eris_r_map == {
-        (4,0,0),
-        (0,1,0),
-        (3,1,0),
-        (0,2,0),
-        (3,2,0),
-        (4,2,0),
-        (2,3,0),
-        (0,4,0),
-    })
+    test_eris_r_map = parseRMap(
+        [
+            "....#",
+            "#..#.",
+            "#..##",
+            "..#..",
+            "#....",
+        ]
+    )
+
+    assert test_eris_r_map == {
+        (4, 0, 0),
+        (0, 1, 0),
+        (3, 1, 0),
+        (0, 2, 0),
+        (3, 2, 0),
+        (4, 2, 0),
+        (2, 3, 0),
+        (0, 4, 0),
+    }
 
     for i in range(10):
         test_eris_r_map = getNewPlutonianMap(test_eris_r_map)
 
     check_maps = {
-        -5 : parseRMap([
-            "..#..",
-            ".#.#.",
-            "....#",
-            ".#.#.",
-            "..#..",
-        ], base_layer=-5),
-        -4 : parseRMap([
-            "...#.",
-            "...##",
-            ".....",
-            "...##",
-            "...#.",
-        ], base_layer=-4),
-        -3 : parseRMap([
-            "#.#..",
-            ".#...",
-            ".....",
-            ".#...",
-            "#.#..",
-        ], base_layer=-3),
-        -2 : parseRMap([
-            ".#.##",
-            "....#",
-            "....#",
-            "...##",
-            ".###.",
-        ], base_layer=-2),
-        -1 : parseRMap([
-            "#..##",
-            "...##",
-            ".....",
-            "...#.",
-            ".####",
-        ], base_layer=-1),
-        00 : parseRMap([
-            ".#...",
-            ".#.##",
-            ".#...",
-            ".....",
-            ".....",
-        ], base_layer=0),
+        -5: parseRMap(
+            [
+                "..#..",
+                ".#.#.",
+                "....#",
+                ".#.#.",
+                "..#..",
+            ],
+            base_layer=-5,
+        ),
+        -4: parseRMap(
+            [
+                "...#.",
+                "...##",
+                ".....",
+                "...##",
+                "...#.",
+            ],
+            base_layer=-4,
+        ),
+        -3: parseRMap(
+            [
+                "#.#..",
+                ".#...",
+                ".....",
+                ".#...",
+                "#.#..",
+            ],
+            base_layer=-3,
+        ),
+        -2: parseRMap(
+            [
+                ".#.##",
+                "....#",
+                "....#",
+                "...##",
+                ".###.",
+            ],
+            base_layer=-2,
+        ),
+        -1: parseRMap(
+            [
+                "#..##",
+                "...##",
+                ".....",
+                "...#.",
+                ".####",
+            ],
+            base_layer=-1,
+        ),
+        00: parseRMap(
+            [
+                ".#...",
+                ".#.##",
+                ".#...",
+                ".....",
+                ".....",
+            ],
+            base_layer=0,
+        ),
         # TODO - other samples layers 1-5
     }
-    
+
     for layer, expected_r_map in check_maps.items():
-        assert({layer} == set(map(lambda x: x[2], expected_r_map)))
+        assert {layer} == set(map(lambda x: x[2], expected_r_map))
         out_map = set(filter(lambda x: x[2] == layer, test_eris_r_map))
         try:
-            assert(out_map == expected_r_map)
+            assert out_map == expected_r_map
         except AssertionError:
             print(f"Error found when checking map {layer}")
             raise
 
-    assert(len(test_eris_r_map) == 99)
+    assert len(test_eris_r_map) == 99
     return True
 
 
-def y2019d24(inputPath = None):
-    if(inputPath == None):
+def y2019d24(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2019/d24.txt"
     print("2019 day 24:")
 
@@ -332,14 +406,14 @@ def y2019d24(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
+
     eris_map = []
 
     for line in lineList:
-        assert(len(line) == 5)
+        assert len(line) == 5
         this_row = []
         for c in line:
-            if c == '#':
+            if c == "#":
                 this_row.append(TileType.BUG)
             elif c == ".":
                 this_row.append(TileType.EMPTY)
@@ -347,7 +421,7 @@ def y2019d24(inputPath = None):
                 raise RuntimeError(f"Unrecognized character `{c}`")
         eris_map.append(this_row)
 
-    assert(len(eris_map) == 5)
+    assert len(eris_map) == 5
 
     seen_maps = set()
 
@@ -365,14 +439,14 @@ def y2019d24(inputPath = None):
 
     eris_r_map = parseRMap(lineList)
 
-    assert(y2019d24_tests())
+    assert y2019d24_tests()
 
     for i in range(200):
         print(f"[Part 2] i == {i} of 200")
         eris_r_map = getNewPlutonianMap(eris_r_map)
     Part_2_Answer = len(eris_r_map)
 
-    assert(not any(map(lambda p: p[0] == 2 and p[1] == 2, eris_r_map)))
+    assert not any(map(lambda p: p[0] == 2 and p[1] == 2, eris_r_map))
 
     # print("Part 2 guess: ", Part_2_Answer)
     # assert(Part_2_Answer < 2012)

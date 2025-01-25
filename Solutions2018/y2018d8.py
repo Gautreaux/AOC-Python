@@ -13,6 +13,7 @@ NodeIndex_T = namedtuple("NodeIndex_T", "start_index child_list meta_list")
 @unique
 class OperatorEnum(Enum):
     """Types of operators"""
+
     HEADER = 0
     METADATA = 1
     END_NODE = 255
@@ -20,11 +21,12 @@ class OperatorEnum(Enum):
 
 value_cache = {}
 
-def _getNodeValue(data:NodeIndex_T, nodes: dict[int, NodeIndex_T]) -> int:
+
+def _getNodeValue(data: NodeIndex_T, nodes: dict[int, NodeIndex_T]) -> int:
     if len(data.child_list) == 0:
         # simply sum the meta data
         return sum(data.meta_list)
-    
+
     s = 0
 
     for child_index in data.meta_list:
@@ -41,7 +43,7 @@ def _getNodeValue(data:NodeIndex_T, nodes: dict[int, NodeIndex_T]) -> int:
     return s
 
 
-def getNodeValue(data:NodeIndex_T, nodes: dict[int, NodeIndex_T]) -> int:
+def getNodeValue(data: NodeIndex_T, nodes: dict[int, NodeIndex_T]) -> int:
     """Get the score value for the node"""
     global value_cache
 
@@ -53,8 +55,8 @@ def getNodeValue(data:NodeIndex_T, nodes: dict[int, NodeIndex_T]) -> int:
         return k
 
 
-def y2018d8(inputPath = None):
-    if(inputPath == None):
+def y2018d8(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2018/d8.txt"
     print("2018 day 8:")
 
@@ -66,10 +68,10 @@ def y2018d8(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
-    assert(len(lineList) == 1)
 
-    tokens = list(map(int,lineList[0].split(" ")))
+    assert len(lineList) == 1
+
+    tokens = list(map(int, lineList[0].split(" ")))
     metadata_sum = 0
     operator_stack = [OperatorEnum.HEADER]
     nodes_start_stack = []
@@ -79,7 +81,7 @@ def y2018d8(inputPath = None):
     nodes: dict[int, NodeIndex_T] = {}
 
     tkn_iter = enumerate(tokens)
-    for i,t in tkn_iter:
+    for i, t in tkn_iter:
         if len(operator_stack) == 0:
             raise RuntimeError("Should not be able to empty the operator stack")
 
@@ -91,19 +93,21 @@ def y2018d8(inputPath = None):
             meta = []
             children = []
             for _ in range(details.num_meta):
-                assert(len(finished_metadata_stack) > 0)
+                assert len(finished_metadata_stack) > 0
                 meta.append(finished_metadata_stack.pop())
             for _ in range(details.num_children):
-                assert(len(finished_nodes_stack) > 0)
+                assert len(finished_nodes_stack) > 0
                 children.append(finished_nodes_stack.pop())
             # meta.reverse() # ordering here does not matter
             children.reverse()
-            nodes[details.start_index] = NodeIndex_T(details.start_index, children, meta)
+            nodes[details.start_index] = NodeIndex_T(
+                details.start_index, children, meta
+            )
             finished_nodes_stack.append(details.start_index)
 
             # and fix
             op = operator_stack.pop()
-            assert(op != op.END_NODE)
+            assert op != op.END_NODE
 
         if op == op.METADATA:
             metadata_sum += t
@@ -132,10 +136,10 @@ def y2018d8(inputPath = None):
         meta = []
         children = []
         for _ in range(details.num_meta):
-            assert(len(finished_metadata_stack) > 0)
+            assert len(finished_metadata_stack) > 0
             meta.append(finished_metadata_stack.pop())
         for _ in range(details.num_children):
-            assert(len(finished_nodes_stack) > 0)
+            assert len(finished_nodes_stack) > 0
             children.append(finished_nodes_stack.pop())
         # meta.reverse() # ordering here does not matter
         children.reverse()
@@ -144,24 +148,23 @@ def y2018d8(inputPath = None):
     if len(operator_stack) != 0:
         raise RuntimeError("There should not be operators left on the operator stack")
 
-    assert(len(operator_stack) == 0)
-    assert(len(finished_metadata_stack) == 0)
-    assert(len(finished_nodes_stack) == 0)
-    assert(len(nodes_start_stack) == 0)
-
+    assert len(operator_stack) == 0
+    assert len(finished_metadata_stack) == 0
+    assert len(finished_nodes_stack) == 0
+    assert len(nodes_start_stack) == 0
 
     Part_1_Answer = metadata_sum
 
     # Part 2
 
     meta_alt = sum(map(lambda x: sum(x.meta_list), nodes.values()))
-    assert(meta_alt == metadata_sum)
+    assert meta_alt == metadata_sum
 
     k = list(nodes.keys())
     k.sort()
-    for _,k in zip(range(10), k):
+    for _, k in zip(range(10), k):
         print(nodes[k])
-    
+
     for i in [10, 8, 29, 45, 6]:
         print(f"Node {i} value: {getNodeValue(nodes[i], nodes)}")
 

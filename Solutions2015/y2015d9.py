@@ -4,8 +4,8 @@ import itertools
 from typing import Tuple
 
 
-def y2015d9(inputPath = None):
-    if(inputPath == None):
+def y2015d9(inputPath=None):
+    if inputPath == None:
         inputPath = "Input2015/d9.txt"
     print("2015 day 9:")
 
@@ -17,7 +17,6 @@ def y2015d9(inputPath = None):
         for line in f:
             line = line.strip()
             lineList.append(line)
-    
 
     adjList = {}
 
@@ -28,7 +27,7 @@ def y2015d9(inputPath = None):
         sink = s[2]
         dist = int(s[4])
 
-        for p in [(source, sink), (sink,source)]:
+        for p in [(source, sink), (sink, source)]:
             if p[0] not in adjList:
                 adjList[p[0]] = []
             adjList[p[0]].append((p[1], dist))
@@ -41,7 +40,7 @@ def y2015d9(inputPath = None):
         """raw all permutations"""
         for i in itertools.permutations(nodeNames):
             yield i
-    
+
     def getLen(source, sink) -> int:
         a = adjList[source]
         for k in a:
@@ -53,12 +52,12 @@ def y2015d9(inputPath = None):
         return getLen(source, sink) is not None
 
     def getValidPermutation():
-        """"all valid permutations"""
+        """ "all valid permutations"""
         for permu in getAllNodePermutations():
             allValid = True
-            for i in range(len(permu)-1):
+            for i in range(len(permu) - 1):
                 source = permu[i]
-                sink = permu[i+1]
+                sink = permu[i + 1]
                 if isAdj(source, sink) is False:
                     allValid = False
                     break
@@ -67,14 +66,14 @@ def y2015d9(inputPath = None):
 
     def getPermutationLen(permu) -> int:
         l = 0
-        for i in range(len(permu)-1):
+        for i in range(len(permu) - 1):
             source = permu[i]
-            sink = permu[i+1]
+            sink = permu[i + 1]
             l += getLen(source, sink)
         return l
 
     # get shortest permu
-    minLen = float('inf')
+    minLen = float("inf")
     maxLen = 0
     for permu in getValidPermutation():
         l = getPermutationLen(permu)
@@ -84,7 +83,6 @@ def y2015d9(inputPath = None):
             maxLen = l
     Part_1_Answer = minLen
     Part_2_Answer = maxLen
-
 
     # i = 0
     # for _ in getAllNodePermutations():
@@ -97,6 +95,5 @@ def y2015d9(inputPath = None):
     # print(i)
     # turns out its fully connected
     #   this is probably important for part 2
-
 
     return (Part_1_Answer, Part_2_Answer)

@@ -1,5 +1,4 @@
-
-
+from AOC_Lib.SolutionBase import InputSpecification, InputType
 import itertools
 from typing import Callable, Iterable, Iterator, Optional
 
@@ -16,7 +15,7 @@ class FFTRunner:
 
         # pre build and compute functions for reach row
         # This is a little magic so lets explain
-        # 
+        #
         # In each iteration, each output digit is a fixed mapping
         #   against the input digits
         # Rather than actually building the pattern, we can jump to doing
@@ -32,12 +31,14 @@ class FFTRunner:
 
         current_positive = set()
         current_negative = set()
-        
+
         # Stores the 'compiled' functions
         operators: list[Callable[[list[int], int, int], tuple[int, int]]] = []
 
         # will produce functions that do minimum amounts of work to get the answer
-        def change_function_factory(positive_needed: set[int], negative_needed: set[int]):
+        def change_function_factory(
+            positive_needed: set[int], negative_needed: set[int]
+        ):
 
             nonlocal current_positive
             nonlocal current_negative
@@ -51,8 +52,10 @@ class FFTRunner:
             current_positive = positive_needed
             current_negative = negative_needed
 
-            def change_function(in_list: list[int], positive_sum: int, negative_sum: int) -> tuple[int, int]:
-                
+            def change_function(
+                in_list: list[int], positive_sum: int, negative_sum: int
+            ) -> tuple[int, int]:
+
                 new_pos = (
                     positive_sum
                     + sum(map(lambda x: in_list[x], positive_to_add))
@@ -66,6 +69,7 @@ class FFTRunner:
                 )
 
                 return (new_pos, new_negative)
+
             return change_function
 
         for n in range(dimension):
@@ -77,13 +81,14 @@ class FFTRunner:
             # positive_items = set(map(lambda x: x[0], filter(lambda x: x[1] == 1, rz_list)))
             # negative_items = set(map(lambda x: x[0], filter(lambda x: x[1] == -1, rz_list)))
 
-            positive_items, negative_items = self.better_pattern_factory(n+1, dimension)
+            positive_items, negative_items = self.better_pattern_factory(
+                n + 1, dimension
+            )
 
             operators.append(change_function_factory(positive_items, negative_items))
 
             if (len(operators) % _INTERVAL) == 0:
                 print(f"'Compiled' {len(operators)} / {dimension} Operators")
-
 
         print(f"Finished Building Operators")
         assert len(operators) == dimension
@@ -96,7 +101,7 @@ class FFTRunner:
             to_return = []
             for op in operators:
                 running_pos, running_neg = op(in_list, running_pos, running_neg)
-                to_return.append(self.clamp(running_pos-running_neg))
+                to_return.append(self.clamp(running_pos - running_neg))
             return to_return
 
         self._output_fn = _output_fn
@@ -105,10 +110,12 @@ class FFTRunner:
     @classmethod
     def clamp(cls, value: int) -> int:
         """Clamp `n` to the proper domain"""
-        return abs(value) % 10 
+        return abs(value) % 10
 
     @classmethod
-    def pattern_factory(cls, n: int, base_pattern: Iterable[int] = [0, 1, 0, -1]) -> Iterator[int]:
+    def pattern_factory(
+        cls, n: int, base_pattern: Iterable[int] = [0, 1, 0, -1]
+    ) -> Iterator[int]:
         """Produce the pattern for Flawed Frequency Transmission"""
 
         assert n != 0
@@ -119,7 +126,7 @@ class FFTRunner:
         #       return base_pattern[((x+1)//n)%len(base_pattern)]
 
         # Iterator based variant
-        
+
         # repeat the base pattern forever:
         base_forever = itertools.cycle(base_pattern)
 
@@ -136,42 +143,37 @@ class FFTRunner:
         return as_iter
 
     @classmethod
-    def better_pattern_factory(cls, n: int, max:int) -> tuple[set[int], set[int]]:
+    def better_pattern_factory(cls, n: int, max: int) -> tuple[set[int], set[int]]:
         """Produce the pattern for Flawed Frequency Transmission, but smart
-        
+
         Returns two sets: the indexes of positive items and the indexes of negative items
         """
 
-        assert(n != 0)
+        assert n != 0
 
         step_amount = 4 * n
 
         positive_start = n - 1
-        negative_start = 3*n - 1
+        negative_start = 3 * n - 1
 
         # print(f"N {n}, Step: {step_amount}: {positive_start}, {negative_start}")
 
         def get_set(this_start: int) -> set[int]:
             positive_series_starts = itertools.takewhile(
-                lambda x: x < max,
-                itertools.count(start=this_start, step=step_amount)
+                lambda x: x < max, itertools.count(start=this_start, step=step_amount)
             )
 
-            expand = itertools.chain.from_iterable(map(
-                lambda x: range(x, x+n),
-                positive_series_starts
-            ))
+            expand = itertools.chain.from_iterable(
+                map(lambda x: range(x, x + n), positive_series_starts)
+            )
 
-            return set(filter(
-                lambda x: x < max,
-                expand
-            ))
+            return set(filter(lambda x: x < max, expand))
 
         return (get_set(positive_start), get_set(negative_start))
 
-
-
-    def n_rounds(self, n: int, in_list: list[int], report_interval: Optional[int] = 10) -> list[int]:
+    def n_rounds(
+        self, n: int, in_list: list[int], report_interval: Optional[int] = 10
+    ) -> list[int]:
         """Run `n` rounds and return the result"""
 
         assert n > 0
@@ -208,15 +210,17 @@ class Solution_2019_16(SolutionBase):
     def _part_2_hook(self) -> Optional[Answer_T]:
         """Called once and return value is taken as `part_2_answer`"""
 
-        val = list(map(
-            int,
-            itertools.chain.from_iterable(
-                itertools.repeat(
-                    self.input_str().strip(),
-                    10000,
-                )
+        val = list(
+            map(
+                int,
+                itertools.chain.from_iterable(
+                    itertools.repeat(
+                        self.input_str().strip(),
+                        10000,
+                    )
+                ),
             )
-        ))
+        )
 
         runner = FFTRunner(len(val))
 
@@ -224,22 +228,20 @@ class Solution_2019_16(SolutionBase):
 
         offset = int(self.input_str()[:7])
 
-        return "".join(map(str, itertools.islice(val, offset, offset+8)))
-
+        return "".join(map(str, itertools.islice(val, offset, offset + 8)))
 
 
 def printNice(l: list[int]):
-    print("[{}]".format(','.join(
-        map(lambda x: "{:>2}".format(str(x)), l)
-    )))
+    print("[{}]".format(",".join(map(lambda x: "{:>2}".format(str(x)), l))))
+
 
 for i in range(16):
-    printNice(list(itertools.islice(FFTRunner.pattern_factory(i+1), 32)))
+    printNice(list(itertools.islice(FFTRunner.pattern_factory(i + 1), 32)))
 
 print("================")
 
 for i in range(8):
-    printNice(list(itertools.islice(FFTRunner.pattern_factory(i+1), 8)))
+    printNice(list(itertools.islice(FFTRunner.pattern_factory(i + 1), 8)))
 
 print("================")
 
@@ -259,18 +261,18 @@ for _ in range(4):
 
 
 print("==============")
-from AOC_Lib.SolutionBase import InputSpecification, InputType
-s1 = Solution_2019_16(input_spec=InputSpecification(
-    InputType.BYTES,
-    bytes_content=b'03036732577212944063491565474664'
-))
+s1 = Solution_2019_16(
+    input_spec=InputSpecification(
+        InputType.BYTES, bytes_content=b"03036732577212944063491565474664"
+    )
+)
 print("Test part 2: ", s1.part_2_answer)
 print("==============")
-from AOC_Lib.SolutionBase import InputSpecification, InputType
-s2 = Solution_2019_16(input_spec=InputSpecification(
-    InputType.BYTES,
-    bytes_content=b'02935109699940807407585447034323'
-))
+s2 = Solution_2019_16(
+    input_spec=InputSpecification(
+        InputType.BYTES, bytes_content=b"02935109699940807407585447034323"
+    )
+)
 print("Test part 2: ", s2.part_2_answer)
 print("==============")
 print(s1.part_2_answer)
