@@ -1,175 +1,128 @@
+
+from collections import defaultdict
+import itertools
 import math
+from typing import Optional
 
-def hashPair(tuple1):
-    return tuple1[0]*20+tuple1[1]
 
-def getDist(p1, p2):
-    return math.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+from AOC_Lib.Geometry.Point import DiscretePoint2, Point2
 
-def getRay(p1, p2):
-    r =  ((p2[0]-p1[0]),(p2[1]-p1[1]))
-    rmag = getDist(r, (0,0))
-    return (round(r[0]/rmag,6), round(r[1]/rmag,6))
 
-def findStandardFormAngularDistance(station, asteroid):
-    #get the angle between the station and the asteroid in radians
-    #in standard form i might add
-    ray = getRay(station, asteroid)
-    ang = math.atan2(ray[1], ray[0])
-    if(ang < 0):
-        ang += math.pi*2
-    return ang
+Ray2_T = Point2
 
-def findAngularDistance(station, laserOrientation, asteroid):
-    #laser orientation is already in [0, 2pi)
-    
-    astStandDist = findStandardFormAngularDistance(station, asteroid)
-    if(astStandDist == laserOrientation):
-        return 0
-    if(laserOrientation > astStandDist):
-        return laserOrientation - astStandDist
-    if(laserOrientation < astStandDist):
-        return 2*math.pi-astStandDist+laserOrientation
-    raise ValueError("How did you get here?")
-    
 
-def vaporize(asteroidList, laserOrientation, station):
-    #laser orientation should be in range [0,2pi)
-    #find the closest asteroid to vaporize 
+def get_ray(a: DiscretePoint2, b: DiscretePoint2) -> Ray2_T:
+    """Get the ray from a to b"""
+    assert isinstance(a, DiscretePoint2)
+    assert isinstance(b, DiscretePoint2)
+    r = b-a
+    ray = r.scale(1 / r.distance(DiscretePoint2(0,0)))
+    return Point2(round(ray.x, 10), round(ray.y, 10))
 
-    minAngDist = 2*math.pi
-    linearDist = float("inf")
-    minAst = None
 
-    for asteroid in asteroidList:
-        if(asteroid == station):
-            continue
-        angDist = findAngularDistance(station, laserOrientation, asteroid)
-        linDist = getDist(station, asteroid)
-        if(angDist < minAngDist):
-            minAngDist = angDist
-            linearDist = linDist
-            minAst = asteroid
-        elif(angDist == minAngDist and linDist < linearDist):
-            linearDist = linDist
-            minAst = asteroid
-    
-    if(minAngDist < 0):
-        print("Found negative angular distance: " + str(minAngDist) + " on " + str(minAst))
-    return (minAngDist, minAst)
+class Solution_2019_10(SolutionBase):
+    """https://adventofcode.com/2019/day/10"""
 
-def y2019d10(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d10.txt"
-    print("2019 day 10:")
-
-    with open(inputPath) as f:
-        lineList = []
-        for line in f:
-            #do something
-            lineList.append(line.strip())
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
         
+        self.asteroid_positions: list[DiscretePoint2] = []
 
-        # print(len(lineList))
+        for y, line in enumerate(self.input_str_list(include_empty_lines=False)):
+            for x, char in enumerate(line):
+                if char == '#':
+                    self.asteroid_positions.append(DiscretePoint2(x,y))
 
-        bestXY = (None, None)
-        bestCount = 0
+    def get_visible_directions(self, origin: DiscretePoint2) -> set[Ray2_T]:
+        """Get all asteroids visible from the origin"""
+        
+        rays: set[Ray2_T] = set()
 
-        asteroidPos = [] # a list of all the asteroids
-        for y in range(len(lineList)):
-            for x in range(len(lineList[0])):
-                if(lineList[y][x] == '#'):
-                    asteroidPos.append((x,y))
+        for other_asteroid in self.asteroid_positions:
+            if other_asteroid == origin:
+                continue
 
-        print(len(asteroidPos))
+            rays.add(get_ray(origin, other_asteroid))
+        return rays
 
-        for asteroid in asteroidPos:
-            takenRaysDict = {} #maps a ray to a distance
-            rayDict = {}
+    def get_asteroid_most_visible(self) -> DiscretePoint2:
+        """Return the position of the asteroid that can see the most"""
 
-            for otherAsteroid in asteroidPos:
-                if(otherAsteroid == asteroid):
-                    continue
-                rt = getRay(asteroid, otherAsteroid)
-                r = hashPair(rt)
+        asteroids_and_qty_seen = map(lambda x: (x, len(self.get_visible_directions(x))), self.asteroid_positions)
+        best_asteroid_and_qty = max(asteroids_and_qty_seen, key=lambda x: x[1])
+        return best_asteroid_and_qty[0]
 
-                if(r not in rayDict):
-                    rayDict[r] = rt
-                else:
-                    if(rayDict[r] != rt):
-                        print("HASH COLLISION:" + str(rayDict[r])+  " " + str(rt))
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+        return max(map(lambda x: len(self.get_visible_directions(x)), self.asteroid_positions))
 
-                d = getDist(asteroid, otherAsteroid)
-                if(r not in takenRaysDict):
-                    takenRaysDict[r] = d
-                else:
-                    if(d < takenRaysDict[r]):
-                        takenRaysDict[r] = d
-            
-            totalVisible = len(takenRaysDict)
-            if(totalVisible > bestCount):
-                bestCount = totalVisible
-                bestXY = asteroid
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
 
-        print("PART 1:The best location " + str(bestXY) + " can see " + str(bestCount));
+        base_asteroid = self.get_asteroid_most_visible()
 
-        laserOrientation = math.pi/2 #90deg in radians (up on the standard repr)
-        #rotates clockwise
-
-        asteroidPosCopy = asteroidPos #store a copy of the original asteroid list
-
-        stationLocation = bestXY
-
-        #recenter the list have station at 0,0
-        fixedAsteroidList = []
-        for asteroid in asteroidPos:
-            fixedAsteroidList.append((asteroid[0]-stationLocation[0],asteroid[1]-stationLocation[1]))
-
-        #modify so that positive y is the up direction
-        asteroidPos = []
-        for fAsteroid in fixedAsteroidList:
-            asteroidPos.append((fAsteroid[0], -fAsteroid[1]))
+        print("Base Asteroid is on: {}".format(base_asteroid))
 
 
-        #items destroyed
-        destorycounter = 0
+        # Build a mapping of rays to the asteroids
+        to_vaporize_dict: defaultdict[Ray2_T, list[DiscretePoint2]] = defaultdict(list)
+        for a in self.asteroid_positions:
+            if a == base_asteroid:
+                continue
+            to_vaporize_dict[get_ray(base_asteroid, a)].append(a)
 
-        for i in range(1,201):
-            (aDist, asteroid) = vaporize(asteroidPos, laserOrientation, (0,0))
+        # Convert the ray to its corresponding angle with the X-Axis in radians
+        to_vaporize_angle: list[tuple[float, list[DiscretePoint2]]] = list(map(
+            lambda rt: (math.atan2(rt[0].y, rt[0].x), rt[1]),
+            to_vaporize_dict.items(),
+        ))
 
-            origAsteroid = asteroidPosCopy[asteroidPos.index(asteroid)]
+        # organize in reverse 'destruction order'
+        #   i.e. how close they are to the base
+        # Note: we want to use the list like a stack
+        #   so we place the furthest away items first (reverse sort)
+        for _,aligned_asteroids in to_vaporize_angle:
+            if len(aligned_asteroids) == 0:
+                continue
+            aligned_asteroids.sort(key=lambda x: base_asteroid.distance(x), reverse=True)
 
-            if(i == 200):
-                break
+        # Sort the rays
+        #   based on their angle (in radians) with the positive x axis
+        # There is some coordinate system nastiness that all cancels out:
+        #  * The laser moves clockwise
+        #  * The laser starts "up"
+        #  * Positive Y is "down"
+        # The first and last point cancel each other out
+        #   and increasing radians is the same as the direction of the laser travel
+        #   we just need to keep in mind that the start point ("up") is at -pi/2
+        #       which is non-standard
+        to_vaporize_angle.sort()
 
-            # print("["+str(i)+"] " + str(asteroid) + " " + str(origAsteroid))
-            asteroidPos.remove(asteroid)
-            asteroidPosCopy.remove(origAsteroid)
-            
-            if(aDist == 0 and not(i == 1)):
-                print("Warning: no laser motion between destroys: " + str(i))
-            laserOrientation -= aDist
-            laserOrientation -= .0000001 #make move for the next one
-            if(laserOrientation < 0):
-                laserOrientation+=2*math.pi
+        # Iterator to cycle over the asteroids forever
+        i = itertools.cycle(to_vaporize_angle)
 
-            # destorycounter+=1
-            # print("Destroyed " + str(destorycounter))
+        # Skip the first portion since laser starts point "upwards"
+        #   awful coordinate system stuff
+        i = itertools.dropwhile(lambda x: x[0] < -math.pi / 2, i)
 
-            
-        # (aDist, asteroid) = vaporize(asteroidPos, laserOrientation, (0,))
-        origAsteroid = asteroidPosCopy[asteroidPos.index(asteroid)]
-        print("The 200th (part 2) asteroid to be destroyed is " + str(origAsteroid) + ". part2 value: " + str(origAsteroid[0]*100+origAsteroid[1]))
+        last_pop = None
+        destroyed_200th = None
+        ctr = 0
+        for _, asteroids in i:
 
-    print("===========")
+            # vaporize the closest asteroid along this angle
+            if asteroids:
+                last_pop = asteroids.pop()
+                ctr += 1
+                if ctr == 200:
+                    destroyed_200th = last_pop
+                # print(f"{ctr:>03} Destroyed {last_pop} <{last_pop-base_asteroid}> {round(_, 4)} {base_asteroid.distance(last_pop)}")
 
-    #285 incorrect
-    #728 too high
-    #404 too high
-    #295 incorrect
+                # check if there are any asteroids left
+                if not any(map(lambda x: x[1], to_vaporize_angle)):
+                    break
+        if destroyed_200th is None:
+            raise RuntimeError('???')
 
-    #part 2
-    #1413 too high
-    #1213 too high
-
-    return(bestCount, origAsteroid[0]*100+origAsteroid[1])
+        return destroyed_200th.x * 100 + destroyed_200th.y

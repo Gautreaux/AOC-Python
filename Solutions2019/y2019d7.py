@@ -1,6 +1,9 @@
-from .IntcodeLib import *
 import itertools
 import asyncio
+from typing import Optional
+
+from .IntcodeLib import *
+from AOC_Lib.SolutionBase import Answer_T
 
 
 def buildLinkedRunners(prog: IntcodeProgram, qty:int) -> list[IntcodeRunner]:
@@ -18,29 +21,15 @@ def buildLinkedRunners(prog: IntcodeProgram, qty:int) -> list[IntcodeRunner]:
             runners.append(r_new)
     return runners
 
-def y2019d7(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d7.txt"
-    print("2019 day 7:")
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
+class Solution_2019_07(IntcodeSolutionBase):
+    """https://adventofcode.com/2019/day/7"""
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
 
-    prog = IntcodeProgram(map(int, lineList[0].split(",")))
+    def _test_one_config(self, config: tuple[int, ...]) -> int:
+        """Test one config and return amount of thrust"""
 
-    max_thrust = 0
-
-    NUM_AMPS = 5
-
-    for config in itertools.permutations(range(NUM_AMPS), NUM_AMPS):
-
-        runners = buildLinkedRunners(prog, NUM_AMPS)
+        runners = buildLinkedRunners(self.program, len(config))
             
         # push starting values
         for r,c in zip(runners, config):
@@ -53,22 +42,14 @@ def y2019d7(inputPath = None):
 
         asyncio.get_event_loop().run_until_complete(fut)
             
-        sc = runners[-1].getOutputQ().get_nowait()
-        max_thrust = max(sc, max_thrust)
+        return runners[-1].getOutputQ().get_nowait()
 
-    Part_1_Answer = max_thrust
+    def _test_once_config_pt2(self, config: tuple[int, ...]) -> int:
+        """Test one config and return amount of thrust"""
 
-    max_thrust_2 = 0
+        runners = buildLinkedRunners(self.program, len(config))
 
-    last_start = (4,4)
-
-    for config in itertools.permutations(range(5, 5 + NUM_AMPS), NUM_AMPS):
-        if config[:2] != last_start:
-            last_start = config[:2]
-            print(f"Starting: ", last_start)
-        runners = buildLinkedRunners(prog, NUM_AMPS)
-
-        # push starting valuse
+        # push starting values
         for r,c in zip(runners, config):
             r._input_q.put_nowait(c)
 
@@ -89,13 +70,42 @@ def y2019d7(inputPath = None):
 
         loop.run_until_complete(runUntilHalt(runners, 0.1))
 
+        v = None
+
         while not q.empty():
             v = q.get_nowait()
-            max_thrust_2 = max(v, max_thrust_2)
+
+        if v is None:
+            raise RuntimeError('No Output was produced')
 
         for t in tasks:
-            t.cancel()   
-        
-    Part_2_Answer = max_thrust_2
+            t.cancel()
 
-    return (Part_1_Answer, Part_2_Answer)
+        return v
+
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+
+        NUM_AMPS = 5
+
+        return max(map(
+            lambda x: self._test_one_config(x),
+            itertools.permutations(range(NUM_AMPS), NUM_AMPS),
+        ))
+
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+
+        NUM_AMPS = 5
+
+        print("{} Doing part 2. This will be slow".format(
+            self.__class__.__name__,
+        ))
+
+        return max(map(
+            lambda x: self._test_once_config_pt2(x),
+            itertools.permutations(
+                map(lambda x: x+5, range(NUM_AMPS)),
+                NUM_AMPS,
+            )
+        ))

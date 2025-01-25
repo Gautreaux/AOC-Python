@@ -1,29 +1,29 @@
-import math
 
-def y2019d1(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d1.txt"
-    print("2019 day 1:")
+from AOC_Lib.SolutionBase import SolutionBase
 
-    newFuelCounter = 0
-    newTotalFuelCounter = 0 #for part 2
-    with open(inputPath) as f:
-        for line in f:
-            newFuelCounter += math.floor(int(line)/3)-2
+class Solution_2019_01(SolutionBase):
+    """https://adventofcode.com/2019/day/01"""
 
-            tempCtr = int(line)
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
 
-            while(tempCtr > 0):
-                #print(tempCtr)
-                newTemp = math.floor(tempCtr/3)-2
-                if(newTemp > 0):
-                    newTotalFuelCounter += newTemp
-                    tempCtr = newTemp
+        newFuelCounter = 0
+        newTotalFuelCounter = 0
+        
+        for line in self.input_str_list(include_empty_lines=False):
+            newFuelCounter += int(line) // 3 - 2
+
+            temp_counter = int(line)
+
+            while temp_counter > 0:
+                next_temp = temp_counter // 3 - 2
+                if next_temp > 0:
+                    newTotalFuelCounter += next_temp
+                    temp_counter = next_temp
                 else:
-                    tempCtr = 0
+                    temp_counter = 0
 
-    print("The new fuel needed (part 1) is: " + str(newFuelCounter))
-    print("The total new fuel needed (part 2) is: " + str(newTotalFuelCounter))
-    print("===========")
+        self._part_1_answer = newFuelCounter
+        self._part_2_answer = newTotalFuelCounter
 
-    return (newFuelCounter, newTotalFuelCounter)
+        print(newFuelCounter, newTotalFuelCounter)

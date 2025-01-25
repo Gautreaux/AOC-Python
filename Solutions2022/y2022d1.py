@@ -1,37 +1,43 @@
 # from AOC_Lib.name import *
 
-def y2022d1(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2022/d1.txt"
-    print("2022 day 1:")
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
+from dataclasses import dataclass
+from typing import Optional
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
+
+@dataclass(frozen=True)
+class Elf:
+    """An Elf, carrying some number of calories"""
+    calories_carried: int
+
+    def __lt__(self, other: 'Elf') -> bool:
+        return self.calories_carried < other.calories_carried
+
+
+class Solution_2022_01(SolutionBase):
+    """https://adventofcode.com/2022/day/1"""
+
+    def __post_init__(self):
+        self._elves: list[Elf] = self._load_elves()
     
-    elves = []
+    def _load_elves(self) -> list[Elf]:
 
-    running_total = 0
+        elves = []
 
-    for line in lineList:
-        if line:
-            i = int(line)
-            running_total += i
-        else:
-            elves.append(running_total)
-            running_total = 0
-    if running_total:
-        elves.append(running_total)
+        t = 0
+        for line in self.input_str_list():
+            if line:
+                t += int(line)
+            else:
+                elves.append(Elf(t))
+                t = 0
+        return elves
 
-    Part_1_Answer = max(elves)
-
-    elves.sort()
-
-    Part_2_Answer = sum(elves[-3:])
-
-    return (Part_1_Answer, Part_2_Answer)
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        e: Elf = max(self._elves)
+        return e.calories_carried
+    
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        self._elves.sort()
+        return sum(map(lambda x: x.calories_carried, self._elves[-3:]))

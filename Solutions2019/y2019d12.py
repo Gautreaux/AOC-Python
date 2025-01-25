@@ -1,156 +1,145 @@
-import copy
 
-def listHash2(lIn):
-    return hash((listHash4(lIn[0]), listHash4(lIn[1])))
+from dataclasses import dataclass
+import itertools
+from math import lcm
+from typing import Optional
 
-def listHash3(lIn):
-    return hash((lIn[0], lIn[1], lIn[2]))
 
-def listHash4(lIn):
-    return hash((listHash3(lIn[0]), listHash3(lIn[1]), listHash3(lIn[2]), listHash3(lIn[3])))
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+from AOC_Lib.Geometry.Point import DiscretePoint3
 
-def otherListHash2(lIn):
-    return hash((otherListHash4(lIn[0]), otherListHash4(lIn[1])))
+@dataclass
+class Moon:
+    """A moon with position and velocity"""    
+    position: DiscretePoint3
+    velocity: DiscretePoint3
 
-def otherListHash4(lIn):
-    return hash((lIn[0], lIn[1], lIn[2], lIn[3]))
-
-class Planet():
-    def __init__(self, positionList):
-        self.position = positionList
-        self.velocity = [0,0,0]
+    @property
+    def potential_energy(self) -> int:
+        """The moon's potential energy"""
+        return sum(map(abs, self.position))
     
-def y2019d12(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d2.txt"
-    print("2019 day 2:")
+    @property
+    def kinetic_energy(self) -> int:
+        """The moon's kinetic energy"""
+        return sum(map(abs, self.velocity))
 
-    with open(inputPath) as f:
-        for line in f:
-            #TODO - actually read in
-            pass
+    @property
+    def total_energy(self) -> int:
+        """The moon't total energy"""
+        return self.potential_energy * self.kinetic_energy
 
-    #input
-    planetList = [[3,2,-6],[-13,18,10],[-8,-1,13],[5,10,4]]
+    def apply_gravity(self, other: 'Moon') -> None:
+        """Apply the gravity to BOTH moons"""
 
-    #sample1
-    # planetList = [[-1,0,2],[2,-10,-7],[4,-8,8], [3,5,-1]]
+        modifiers = map(
+            lambda a,b: ((1,-1) if a < b else ((0, 0) if a == b else (-1, 1))),
+            self.position,
+            other.position,
+        )
 
+        m1,m2 = itertools.tee(modifiers, 2)
 
-    velocityList = [[0,0,0], [0,0,0,], [0,0,0], [0,0,0]]
+        self.velocity += DiscretePoint3(*map(lambda x: x[0], m1))
+        other.velocity += DiscretePoint3(*map(lambda x: x[1], m2))
+    
+    def apply_velocity(self) -> None:
+        """Update position based on current velocity"""
+        self.position += self.velocity 
+    
 
-    stateDict = {}
-    stateDictList = [{},{},{}]
-    solList = [None, None, None]
+class Solution_2019_12(SolutionBase):
+    """https://adventofcode.com/2019/day/12"""
 
-    print(planetList)
-    print(velocityList)
-    print("========0")
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
 
-    ctr = 0
-    while(True):
-        # break
-        #simulate a time step
+        self.moons: list[Moon] = []
+        self.starting_positions: list[DiscretePoint3] = []
 
-        #update all velocities (apply gravity)
-        for i in range(4):
-            for j in range(4):
-                if(i == j):
-                    continue
+        for line in self.input_str_list(include_empty_lines=False):
+            positions = map(
+                lambda x: int(x.strip().partition('=')[-1]),
+                line[1:-1].split(","),
+            )
+            self.moons.append(Moon(
+                position=DiscretePoint3(*positions),
+                velocity=DiscretePoint3(0,0,0),
+            ))
+            self.starting_positions.append(self.moons[-1].position)
 
-                for axis in range(3):
-                    if(planetList[i][axis] > planetList[j][axis]):
-                        velocityList[i][axis] -=1
-                    elif(planetList[i][axis] < planetList[j][axis]):
-                        velocityList[i][axis] += 1
+    def _simulate_one_step(self):
+        """Advance the simulation by one step"""
 
-        #update positions
-        for i in range(4):
-            for axis in range(3):
-                planetList[i][axis] += velocityList[i][axis]
+        for a,b in itertools.combinations(self.moons, 2):
+            a.apply_gravity(b)
+        for m in self.moons:
+            m.apply_velocity()
 
-        # print(planetList)
-        # print(velocityList)
-        # print("========" + str(i+1))
+    def _get_one_dimensional_period(
+        self, 
+        positions: list[int],
+        starting_velocity: int = 0
+    ) -> int:
+        """Get the period across one dimension"""
 
-        #for part 2:
-        for dimension in range(3):
-            t = [[planetList[0][dimension], planetList[1][dimension], planetList[2][dimension], planetList[3][dimension]], [velocityList[0][dimension],velocityList[1][dimension], velocityList[2][dimension], velocityList[3][dimension]]]
-            tt = otherListHash2(t)
-            # print(tt)
-            if(tt not in stateDict):
-                stateDict[tt] = [copy.deepcopy(t)]
+        # copy
+        positions = list(positions)
+        velocities = [starting_velocity]*len(positions)
+
+        # mapping configs to when they occurred
+        seen_configs = {}
+
+        for i in itertools.count():
+
+            # Check and update seen configurations
+            this_config = tuple(itertools.chain(positions, velocities))
+            if this_config in seen_configs:
+                past = seen_configs[this_config]
+                return i - past
             else:
-                if(t in stateDict[tt]):
-                    if(solList[dimension] == None):
-                        print("Found dimension: " + str(dimension))  
-                        solList[dimension] = ctr
-                    else:
-                        # print("DUPE FOUND")
-                        pass
-
-                else:
-                    stateDict[tt].append(copy.deepcopy(t))
-
-        if(None not in solList):
-            break
-
-        ctr+=1
-        if(ctr == 1000):
-            totalEnergy = 0
-            for i in range(4):
-                pE = 0
-                kE = 0
-                for axis in range(3):
-                    pE+= abs(planetList[i][axis])
-                    kE += abs(velocityList[i][axis])
-
-                totalEnergy+= pE*kE
+                seen_configs[this_config] = i
             
-            print(str(totalEnergy))
+            # Now update velocity
+            for i in range(len(positions)):
+                for j in range(len(positions)):
+                    if positions[i] == positions[j]:
+                        continue
+                    elif positions[i] < positions[j]:
+                        velocities[i] += 1
+                    else:
+                        velocities[i] -= 1
+
+            # Update positions
+            for i in range(len(positions)):
+                positions[i] += velocities[i]
+
+
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+
+        for _ in range(1000):
+            self._simulate_one_step()
+        return sum(map(lambda x: x.total_energy, self.moons))
+
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+
+        # Each dimension is independent
+        #   so find when each dimension repeats, 
+        #   and then find the LCM of that
         
-        if(ctr%100000 == 0):
-            print("Heartbeat: " + str(ctr))
+        periods: list[int] = []
 
-        # if(ctr >= 1000000):
-        #     print("Infinite loop, breaking")
-        #     break
+        # [186028, 84032, 286332]
 
-    # print("Fixed value debug")
-    # solList = [186028, 84032, 286332]
+        for dim in range(3):
+            start_positions = list(map(
+                lambda x: x[dim],
+                self.starting_positions,
+            ))
+            periods.append(self._get_one_dimensional_period(start_positions))
+        
+        print(f"Resolved periods: {periods}")
 
-    print("Found periods:"+ str(solList))
-
-    #so we need to find the first value I where I%each of those is the same
-    #but i has to be grater than the smallest
-    solList.sort()
-    i = solList[0]
-
-    ctr = 0
-    # #Takes forever 
-    #TODO - can this be multiprocessed and eventually terminate?
-    #                       it will eventually, but is it reasonablely short?
-    # while(True):
-    #     i = 279751820342592 %but it would have terminated
-    #     t = i %solList[0]
-    #     if(t == i %solList[1] and t == i %solList[2]):
-    #         print("Part 2: " + str(i))
-    #         break
-    
-    #     i+=solList[0]
-    #     ctr+=1
-    #     if(ctr %100000 == 0):
-    #         print("Heartbeat: " + str(ctr))
-
-    #use an online LCM calculator, you'll get:
-
-    # TODO - remove hardcoded answer
-    print("Part 2: " + str(279751820342592))
-
-
-    print("===========")
-
-
-    #74074531000 too high
-
-    return (totalEnergy, 279751820342592)
+        return lcm(*periods)

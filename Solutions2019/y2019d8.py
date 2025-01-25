@@ -1,82 +1,96 @@
 
+from dataclasses import dataclass
+from typing import Optional
 
-def y2019d8(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d8.txt"
-    print("2019 day 8:")
 
-    with open(inputPath) as f:
-        for line in f:
-            #do something
-            myline = line #TODO - rework to the proper format for single line
-            break
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
 
-        myline = myline.strip()
 
-        width = 25
-        height = 6
+_WHITE = '█'
+_BLACK = ' '
+_UKN = '?'
 
-        #for testing
-        # myline = "0222112222120000"
-        # width = 2
-        # height = 2
 
-        totalPixelPerLayer = width*height
+@dataclass(frozen=True)
+class ImageLayer:
 
-        fewestZero = float('inf')
-        layerSum = None
+    width: int
+    height: int
+    
+    data: str
 
-        layerList = []
 
-        layers = len(myline)/totalPixelPerLayer
-        print("Layers computed: " + str(layers))
+@dataclass(frozen=True)
+class Image:
 
-        while(len(myline) >= totalPixelPerLayer):
-            myLayer= myline[:totalPixelPerLayer]
-            myline = myline[totalPixelPerLayer:]
-            layerList.append(myLayer)
+    width: int
+    height: int
+    layers: tuple[ImageLayer]
 
-            thisZero = myLayer.count('0')
-            if(thisZero < fewestZero):
-                fewestZero = thisZero
-                layerSum = myLayer.count('1')*myLayer.count('2')
+    @classmethod
+    def from_byte_stream(cls, input_bytes: str, width: int = 25, height: int = 6) -> 'Image':
+        """Parse and build an image from a stream of bytes"""
+        
+        layers = []
 
-        print("Part 1: " + str(layerSum))
-        print("Total layers found: " + str(len(layerList)))
+        bytes_per_layer = width*height
 
-        myImage = ['2']*totalPixelPerLayer
+        assert len(input_bytes) % bytes_per_layer == 0
+        assert len(input_bytes) > 0
 
-        for i in range(len(layerList)):
-            myLayer = layerList[i]
-            for j in range(totalPixelPerLayer):
-                if myImage[j] == '2':
-                    #transparent
-                    myImage[j] = myLayer[j]
-            i-=1
+        itr = iter(input_bytes)
 
-        #print my image
-        borderStr = "+"+"-"*width+"+" #purely cosmetic
-        print(borderStr)
-        for i in range(0, height):
-            myPrintLineStart = i*width
-            myPrintLine = myImage[myPrintLineStart:myPrintLineStart+width]
+        while True:
+            this_layer_data = "".join(map(lambda _: next(itr), range(bytes_per_layer)))
+            if this_layer_data:
+                layers.append(ImageLayer(
+                    width=width,
+                    height=height,
+                    data=this_layer_data,
+                ))
+            else:
+                break
 
-            myStr = "|"
-            for p in myPrintLine:
-                if(p == "0"):
-                    myStr += " "
-                elif(p == "1"):
-                    #initally used zero, but this turns out to be much more readable
-                    myStr += "█"
-                else:
-                    myStr += t
-            myStr += "|"
-            print(myStr)
-        print(borderStr)
-        print("The part two answer for my input was YGRYZ")
+        return Image(width=width, height=height, layers=tuple(layers))
+    
+    def print(self):
+        """Print this image to the console"""
+        
+        pixels = zip(*map(lambda x: x.data, self.layers))
+        pixel_iter = iter(pixels)
 
-    print("===========")
+        def get_pixel(this_pixel_over_layers: tuple[str]) -> str:
+            for p in this_pixel_over_layers:
+                if p == '0':
+                    return _BLACK
+                elif p == '1':
+                    return _WHITE
+            return _UKN
 
-    # the fact that this is hardcoded is annoying
-    # TODO - fix
-    return (layerSum, "YGRYZ")
+        for _ in range(self.height):
+            for _ in range(self.width):
+                print(get_pixel(next(pixel_iter)), end='')
+            print('') # newline
+
+
+class Solution_2019_08(SolutionBase):
+    """https://adventofcode.com/2019/day/8"""
+
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
+        
+        self.image = Image.from_byte_stream(self.input_str().strip())
+
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+
+        layer_with_least_zeros = min(self.image.layers, key=lambda l: l.data.count('0'))
+
+        return (layer_with_least_zeros.data.count('1') * layer_with_least_zeros.data.count('2'))
+
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+        
+        self.image.print()
+        print('\nSee above output for image')
+        return 'YGRYZ'

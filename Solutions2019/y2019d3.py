@@ -1,173 +1,106 @@
 
-def isVertical(segment):
-    return segment.start[0] == segment.end[0]
+from dataclasses import dataclass
+import itertools
+from typing import Optional
 
-def isHorizontal(segment):
-    return segment.start[1] == segment.end[1]
 
-def getSegmentCollision(Seg1, Seg2):
-    if(isVertical(Seg1) and isHorizontal(Seg2)):
-        #calculate the intersection
-        if(Seg2.start[0] <= Seg1.start[0] and Seg2.end[0] >= Seg1.start[0]) and (Seg1.start[1] >= Seg2.start[1] and Seg1.end[1] <= Seg2.start[1]):
-            return (Seg1.start[0], Seg2.start[1])
-    elif(isVertical(Seg1) and isVertical(Seg2)):
-        #calculate the intersection
-        if(Seg1.start[0] == Seg2.start[0]):
-            #share the x coordinate
-            if(Seg1.start[0] <= Seg2.start[0] and Seg1.end[0] >= Seg2.start[0]):
-                #there is some overlapping region
-                print("Need to finish horizontal region overlap checking")
-            elif(Seg1.start[0] <= Seg2.end[0] and Seg1.end[0] >= Seg2.end[0]):
-                #there is some overlapping region
-                print("Need to finish horizontal region overlap checking")
+from AOC_Lib.Geometry.LineSegment import Segment2_DiscreteAA, DegenerateMultipoint
+from AOC_Lib.Geometry.Point import DiscretePoint2
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+
+@dataclass(frozen=True)
+class Wire:
+
+    segments: tuple[Segment2_DiscreteAA]
+
+    @classmethod
+    def from_operations(cls, operations: list[str], start_pos: DiscretePoint2 = DiscretePoint2(0,0)) -> 'Wire':
+        """Build a Wire for a list of operations"""
+
+        segments: list[Segment2_DiscreteAA] = []
+
+        last_pos = start_pos
+
+        for op in operations:
+            instr = op[0]
+            amount = int(op[1:])
+
+            end_pos = {
+                'R': (lambda s,a: DiscretePoint2(s.x + a, s.y)),
+                'L': (lambda s,a: DiscretePoint2(s.x - a, s.y)),
+                'U': (lambda s,a: DiscretePoint2(s.x, s.y + a)),
+                'D': (lambda s,a: DiscretePoint2(s.x, s.y - a)),
+            }[instr](last_pos, amount)
+
+            segments.append(Segment2_DiscreteAA(last_pos, end_pos))
+            last_pos = end_pos
+        return cls(tuple(segments))
+
+    def get_intersection_points(self, other: 'Wire') -> list[DiscretePoint2]:
+        """Get all the point where the wires intersect"""
+
+        to_return = []
+
+        for segment_a, segment_b in itertools.product(self.segments, other.segments):
+            try:
+                p = segment_a.get_intersection(segment_b)
+            except DegenerateMultipoint:
+                print("WARNING degenerate multipoint found")
+                continue
+            if p:
+                to_return.append(p)
+        return to_return
+
+    def get_point_depth_on_wire(self, point: DiscretePoint2) -> int:
+        """Return how far along wire `point` is
+        Raise an error if point is not on wire
+        """
+        counter = 0
+        for s in self.segments:
+            if s.is_point_on_segment(point):
+                return counter + point.manhattan_distance(s.start_pos)
             else:
-                #there is no overlapping region
-                return None
-    elif(isHorizontal(Seg1) and isHorizontal(Seg2)):
-        if(Seg1.start[1] == Seg2.start[1]):
-            #segments share the y coordinate
-            #can do this by converting to vertical then checking that way
-            #return getSegmentCollision(rotate90(Seg1), rotate90(Seg2))
-            print("Not fully implemented horizontal segment collision")
-    elif(isHorizontal(Seg1) and isVertical(Seg2)):
-        return getSegmentCollision(Seg2, Seg1)
-    else:
-        print("Found one or more non-proper segments")
-    return None
-    
+                counter += len(s)
+        raise RuntimeError()
 
-class Segment:
-    def __init__(self, startPair, endPair):
-        #can assume the the start is above/left of the ending point
-        if(startPair[0] > endPair[0]):
-            self.start = endPair
-            self.end = startPair
-        elif(endPair[1] > startPair[1]):
-            self.start = endPair
-            self.end = startPair
-        else:
-            self.start = startPair
-            self.end = endPair
-        self.actualStart = startPair
-    #TODO - overload getting by []
 
-def manhattanDistance(pair1, pair2):
-    return abs(pair1[0]-pair2[0]) + abs(pair1[1]-pair2[1])
+class Solution_2019_03(SolutionBase):
+    """https://adventofcode.com/2019/day/3"""
 
-def y2019d3(inputPath = None):
-    if(inputPath == None):
-        inputPath = "Input2019/d3.txt"
-    print("2019 day 3:")
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
 
-    with open(inputPath) as f:
-        myStr = f.readline()
-        myStr = myStr.strip()
-        myStr += ", "
-        #split on commas
-        wirePath = []
-        while(myStr.find(",") > 0):
-            commaIndex = myStr.find(",")
-            wirePath.append(myStr[0:commaIndex])
-            myStr = myStr[commaIndex+1:]
+        self.wires: list[Wire] = []
         
-        segmentList = []
+        for line in self.input_str_list(include_empty_lines=False):
+            self.wires.append(Wire.from_operations(line.split(",")))
 
-        #now process
-        nowX = 0
-        nowY = 0
-        for movement in wirePath:
-            instr = movement[0:1]
-            amount = int(movement[1:])
+        assert len(self.wires) == 2
 
-            start = (nowX, nowY)
+        self.intersections = self.wires[0].get_intersection_points(self.wires[1])
 
-            if(instr == 'R'):
-                nowX += amount
-            elif(instr == 'L'):
-                nowX -= amount
-            elif(instr == 'U'):
-                nowY += amount
-            else:
-                nowY -= amount
-            
-            end = (nowX, nowY)
-            segmentList.append(Segment(start, end))
-    
-        myStr2 = f.readline()
-        myStr2 = myStr2.strip()
-        myStr2 += ", "
-        
-        #now parse the second wire
-        wirePath = []
-        while(myStr2.find(",") > 0):
-            commaIndex = myStr2.find(",")
-            wirePath.append(myStr2[0:commaIndex])
-            myStr2 = myStr2[commaIndex+1:]
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
 
-        #and process
-        nowX = 0
-        nowY = 0
-        closestIntersection = float("inf")
-        closestIntersectionLocation = None
+        origin = DiscretePoint2(0,0)
 
-        #part 2
-        closestStepIntersection = float("inf")
-        netPathDistance = 0 #total distance by wire two
+        return min(map(
+            lambda x: x.manhattan_distance(origin),
+            filter(
+                lambda p: not p.is_origin,
+                self.intersections,
+            ),
+        ))
 
-        for movement in wirePath:
-            instr = movement[0:1]
-            amount = int(movement[1:])
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
 
-            start = (nowX, nowY)
+        wire_a, wire_b = self.wires
 
-            if(instr == 'R'):
-                nowX += amount
-            elif(instr == 'L'):
-                nowX -= amount
-            elif(instr == 'U'):
-                nowY += amount
-            else:
-                nowY -= amount
-            
-            end = (nowX, nowY)
-
-            sTemp = Segment(start, end)
-
-            for segment in segmentList:
-                res = getSegmentCollision(segment, sTemp)
-                if(res != None):
-                    distance = manhattanDistance(res, (0,0))
-                    if(distance == 0):
-                        continue
-                    elif distance < closestIntersection:
-                        closestIntersection = distance
-                        closestIntersectionLocation = res
-
-            #part 2 loop
-            pathLength = 0
-            for segment in segmentList:
-                res = getSegmentCollision(segment, sTemp)
-                if(res != None):
-                    if(res[0] == 0 and res[1] == 0):
-                        pathLength += manhattanDistance(segment.start, segment.end)
-                        continue
-                    
-                    thisDistance = manhattanDistance(start, res) + netPathDistance #for wire two
-                    thisDistance += manhattanDistance(segment.actualStart, res) + pathLength #for wire one
-                
-                    if(thisDistance < closestStepIntersection):
-                        closestStepIntersection = thisDistance
-                        #break #cant do better than this
-
-                pathLength += manhattanDistance(segment.start, segment.end)
-
-            netPathDistance += amount
-    
-    print("The closest intersection (part 1) is at distance "+ str(closestIntersection))
-    print("The closest path intersection (part 2) is at distance "+ str(closestStepIntersection))
-    print("===========")
-
-    return (closestIntersection, closestStepIntersection)
-
-
-#84 is not correct
+        return min(map(
+            lambda x: wire_a.get_point_depth_on_wire(x) + wire_b.get_point_depth_on_wire(x),
+            filter(
+                lambda p: not p.is_origin,
+                self.intersections,
+            ),
+        ))

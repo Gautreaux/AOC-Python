@@ -1,83 +1,74 @@
 
-#return true iff the intIn has two, matching, adjacent characters
-def hasTwoAdjacent(intIn):
-    i = str(intIn)
+from typing import Optional
 
-    for ii in range(0,len(i)-1):
-        if(i[ii] == i[ii+1]):
-            return True
-    return False
 
-#return true iff the characters of the intIn are non-decreasing
-def isIncreasing(intIn):
-    i = str(intIn)
+from AOC_Lib.SolutionBase import SolutionBase, Answer_T
+from AOC_Lib.SlidingWindow import sliding_window
 
-    for ii in range(0,len(i)-1):
-        if(i[ii] > i[ii+1]):
-            return False
-    return True
+class Solution_2019_04(SolutionBase):
+    """https://adventofcode.com/2019/day/4"""
 
-#return true iff the int in is a valid (part 1) value
-def isValidValue(intIn):
-    if(len(str(intIn)) != 6):
-        return False
-    #no need to check range
-    if(not(hasTwoAdjacent(intIn))):
-        return False
-    return isIncreasing(intIn)
-
-#return true iff the int satisfies the part 2 constraint:
-#there are a set of duplicate characters that are only 2 long
-def meetsPart2(intIn):
-    i = str(intIn)
-
-    #check the middle portion for two characters meeting the criteria
-    for ii in range(1, len(i)-2):
-        if(i[ii] == i[ii+1] and i[ii] != i[ii-1] and i[ii] != i[ii+2]):
-            return True
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
         
-    #check the beginning to see if it satisfies
-    if(i[0] == i[1] and i[0] != i[2]):
-        return True
-    
-    #check the end part to see if it satisfies
-    lastIndex = len(i)-1
-    if(i[lastIndex-1] == i[lastIndex] and i[lastIndex-2] != i[lastIndex]):
-        return True
-    
-    #no conditions could be meet, terminate
-    return False
+        l_str, _ ,u_str = self.input_str().partition('-')
 
-def y2019d4(inputStr = None):
-    if(inputStr == None):
-        inputStr = "272091-815432"
-    print("2019 day 4:")
+        self.lower_bound = int(l_str)
+        self.upper_bound = int(u_str)
 
-    #input handeling
-    inputStr = inputStr.strip()
-    dash = inputStr.find("-")
-    lb = int(inputStr[0:dash])
-    ub = int(inputStr[dash+1:])
+    def is_valid_passcode(self, i: int) -> bool:
+        """Return `True` iff this is a valid passcode"""
+        s = str(i)
 
-    i = lb
-    validCount = 0
-    validCount2 = 0
+        if len(s) != 6:
+            return False
+        elif i < self.lower_bound:
+            return False
+        elif i > self.upper_bound:
+            return False
+        elif not any(map(
+            lambda x: x[0] == x[1],
+            sliding_window(s, 2),
+        )):
+            return False
+        
+        l = list(s)
+        l.sort()
+        return all(map(
+            lambda x,y: x == y,
+            l,
+            s,
+        ))
 
-    #loop over all values in the range
-    while(i <= ub):
-        if(isValidValue(i)):
-            validCount+=1
-            if(meetsPart2(i)):
-                validCount2+=1
-        i+=1
+    def is_valid_passcode_pt2(self, i: int) -> bool:
 
-    print("The valid count (part 1) is " + str(validCount))
-    print("The valid count (part 2) is " + str(validCount2))
-    print("===========")
+        if not self.is_valid_passcode(i):
+            return False
+        
+        s = str(i)
+        if any(map(
+            lambda x: x[0] != x[1] and x[1] == x[2] and x[2] != x[3],
+            sliding_window(s, 4),
+        )):
+            return True
 
-    return (validCount, validCount2)
+        # Check the edges where the pair is at the end
+        if s[0] == s[1] and s[1] != s[2]:
+            return True
+        if s[-1] == s[-2] and s[-2] != s[-3]:
+            return True
+        return False
 
-    #part 2 
-    #353 not correct
-    #808 not correct
-    #829 not correct
+    def _part_1_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_1_answer`"""
+        return sum(1 for _ in filter(
+            lambda x: self.is_valid_passcode(x),
+            range(self.lower_bound, self.upper_bound+1),
+        ))
+
+    def _part_2_hook(self) -> Optional[Answer_T]:
+        """Called once and return value is taken as `part_2_answer`"""
+        return sum(1 for _ in filter(
+            lambda x: self.is_valid_passcode_pt2(x),
+            range(self.lower_bound, self.upper_bound+1),
+        ))
