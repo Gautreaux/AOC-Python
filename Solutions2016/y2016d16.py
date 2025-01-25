@@ -1,72 +1,53 @@
-# from AOC_Lib.name import *
+"""https://adventofcode.com/2016/day/16"""
 
 import itertools
+from AOC_Lib.SolutionBase import SolutionBase
 
 
-def checksum(s, lenGoal=None):
-    if lenGoal is not None:
-        s = s[:lenGoal]
+class Solution_2016_16(SolutionBase):
+    """https://adventofcode.com/2016/day/16"""
 
-    if len(s) % 2 == 1:
-        return s
+    # Lengths given in the problem statement
+    FIRST_DISK_LENGTH = 272
+    SECOND_DISK_LENGTH = 35651584
 
-    l = []
+    @staticmethod
+    def do_one_round(begin: str) -> str:
+        """Do one round of filling"""
+        b = reversed(begin)
+        b = map(lambda x: "0" if x == "1" else "1", b)
+        return "".join(itertools.chain(begin, "0", b))
 
-    try:
-        for i in range(len(s)):
-            l.append("1" if s[i * 2] == s[i * 2 + 1] else "0")
-    except IndexError:
-        pass
+    @staticmethod
+    def checksum(s: str):
+        """Compute the checksum of `s`"""
 
-    c = "".join(l)
+        if len(s) % 2 == 1:
+            return s
 
-    return checksum(c)
+        l = []
 
+        try:
+            for i in range(len(s)):
+                l.append("1" if s[i * 2] == s[i * 2 + 1] else "0")
+        except IndexError:
+            pass
 
-def doOneRound(input):
-    b = reversed(input)
-    b = map(lambda x: "0" if x == "1" else "1", b)
-    return "".join(itertools.chain(input, "0", b))
+        c = "".join(l)
 
+        return Solution_2016_16.checksum(c)
 
-def y2016d16(inputPath=None):
-    if inputPath == None:
-        inputPath = "Input2016/d16.txt"
-    print("2016 day 16:")
+    def __post_init__(self):
+        """Runs Once After `__init__`"""
 
-    Part_1_Answer = None
-    Part_2_Answer = None
-    lineList = []
+        b = self.input_str()
 
-    with open(inputPath) as f:
-        for line in f:
-            line = line.strip()
-            lineList.append(line)
+        while len(b) < self.FIRST_DISK_LENGTH:
+            b = self.do_one_round(b)
 
-    # test cases
-    assert doOneRound("1") == "100"
-    assert doOneRound("0") == "001"
-    assert doOneRound("11111") == "11111000000"
-    assert doOneRound("111100001010") == "1111000010100101011110000"
+        self._part_1_answer = self.checksum(b[: self.FIRST_DISK_LENGTH])
 
-    b = lineList[0]
+        while len(b) < self.SECOND_DISK_LENGTH:
+            b = self.do_one_round(b)
 
-    while len(b) < 272:
-        b = doOneRound(b)
-
-    Part_1_Answer = checksum(b, 272)
-
-    print("part 1 done")
-    print(len(b))
-    print(len(Part_1_Answer))
-
-    while len(b) < 35651584:
-        b = doOneRound(b)
-    print("part 2 gen done")
-
-    Part_2_Answer = checksum(b, 35651584)
-    print("part 2 done")
-    print(len(b))
-    print(len(Part_2_Answer))
-
-    return (Part_1_Answer, Part_2_Answer)
+        self._part_2_answer = self.checksum(b[: self.SECOND_DISK_LENGTH])

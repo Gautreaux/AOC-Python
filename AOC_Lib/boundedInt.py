@@ -8,9 +8,9 @@ class BoundedInt:
             # TODO - there is some error when lowerbound is not zero
             raise NotImplementedError("Lowerbound should be 0")
 
-        self.v = value
-        self.u = upper_bound
-        self.l = lower_bound
+        self.v: int = value
+        self.u: int = upper_bound
+        self.l: int = lower_bound
 
         self.__bound()
 
@@ -31,19 +31,19 @@ class BoundedInt:
         if self.v >= self.u or self.v < self.l:
             self.v = self.v % (self.u - self.l) + self.l
 
-    def __add__(self, o: "BoundedInt") -> "BoundedInt":
+    def __add__(self, o: int) -> "BoundedInt":
         return BoundedInt(self.u, self.l, self.v + o)
 
-    def __sub__(self, o: "BoundedInt") -> "BoundedInt":
+    def __sub__(self, o: int) -> "BoundedInt":
         return BoundedInt(self.u, self.l, self.v - o)
 
-    def __mul__(self, o: "BoundedInt") -> "BoundedInt":
+    def __mul__(self, o: int) -> "BoundedInt":
         return BoundedInt(self.u, self.l, self.v * o)
 
-    def __mul__(self, o: "BoundedInt") -> "BoundedInt":
-        return BoundedInt(self.u, self.l, self.v / o)
+    def __div__(self, o: int) -> "BoundedInt":
+        return BoundedInt(self.u, self.l, self.v // o)
 
-    def __eq__(self, o: "BoundedInt") -> bool:
+    def __eq__(self, o: int) -> bool:
         return self.v == o
 
     def __hash__(self) -> int:
@@ -59,9 +59,9 @@ class LockedInt:
     def __init__(self, lower_bound, upper_bound, value=None) -> None:
         assert lower_bound <= upper_bound
 
-        self.v = value if value is not None else lower_bound
-        self.u = upper_bound
-        self.l = lower_bound
+        self.v: int = value if value is not None else lower_bound
+        self.u: int = upper_bound
+        self.l: int = lower_bound
 
         self.__bound()
 
@@ -84,19 +84,19 @@ class LockedInt:
         elif self.v > self.u:
             self.v = self.u
 
-    def __add__(self, o: "LockedInt") -> "LockedInt":
+    def __add__(self, o: int) -> "LockedInt":
         return LockedInt(self.l, self.u, self.v + o)
 
-    def __sub__(self, o: "LockedInt") -> "LockedInt":
+    def __sub__(self, o: int) -> "LockedInt":
         return LockedInt(self.l, self.u, self.v - o)
 
-    def __mul__(self, o: "LockedInt") -> "LockedInt":
+    def __mul__(self, o: int) -> "LockedInt":
         return LockedInt(self.l, self.u, self.v * o)
 
-    def __mul__(self, o: "LockedInt") -> "LockedInt":
-        return LockedInt(self.l, self.u, self.v / o)
+    def __div__(self, o: int) -> "LockedInt":
+        return LockedInt(self.l, self.u, self.v // o)
 
-    def __eq__(self, o: "LockedInt") -> bool:
+    def __eq__(self, o: int) -> bool:
         return self.v == o
 
     def __hash__(self) -> int:

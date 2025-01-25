@@ -59,7 +59,7 @@ class Point2:
     def __mul__(self, o: int) -> "Point2":
         return Point2(self.x * o, self.y * o)
 
-    def manhattan(self, o: "Point2" = (0, 0)) -> int:
+    def manhattan(self, o: "Point2 | tuple[int, int]" = (0, 0)) -> int:
         "compute the manhattan distance from this point to another"
         return abs(self[0] - o[0]) + abs(self[1] - o[1])
 
