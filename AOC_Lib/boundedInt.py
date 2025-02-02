@@ -1,7 +1,7 @@
 class BoundedInt:
     """An integer fixed between lower inclusive and upper exclusive bound with arithmetic rollover/under"""
 
-    def __init__(self, upper_bound, lower_bound=0, value=0) -> None:
+    def __init__(self, upper_bound: int, lower_bound: int = 0, value: int = 0) -> None:
         assert lower_bound < upper_bound
 
         if lower_bound != 0:

@@ -10,18 +10,21 @@ class Point2:
             if len(p1) == 1:
                 raise TypeError  # a dummy error
             if len(p1) == 2:
-                self.x = p1[0]
-                self.y = p1[1]
+                self.x: int = p1[0]
+                self.y: int = p1[1]
         except TypeError:
-            self.x = p1
-            self.y = p2
+            if p2 is not None:
+                self.x: int = p1
+                self.y: int = p2
+            else:
+                raise ValueError("No value resolved for `p2`") from None
 
         # TODO - validate that p1 and p2 are both numeric types
 
     def __len__(self):
         return 2
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> int:
         if key == 0 or key == "x":
             return self.x
         elif key == 1 or key == "y":
@@ -29,7 +32,7 @@ class Point2:
 
         raise KeyError(f"Invalid key ({str(key)}) in point2")
 
-    def __setitem__(self, key, item):
+    def __setitem__(self, key, item: int):
         # TODO - validate item on success
         if key == 0 or key == "x":
             self.x = item

@@ -7,4 +7,5 @@
 
 # Disable similarity checker
 # C0103: Class name "Solution_XXXX_YY" doesn't conform to PascalCase naming style (invalid-name)
-disable=similarities, C0103
+# C0114: Missing Module Docstrings
+disable=similarities, C0103, C0114
